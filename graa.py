@@ -58,8 +58,8 @@ class GraaPlayer():
     def eval_node(self, session, node):
         # reload module, so you can toy around with it while playing
         try:
-            imp.reload(GraaFun)
-            getattr(GraaFun, node.content[0])(*node.content[1:])
+            imp.reload(graa_fun)
+            getattr(graa_fun, node.content[0])(*node.content[1:])
         except:
             print("Couldn't evaluate node. Please try again!")
             raise
