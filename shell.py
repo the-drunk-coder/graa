@@ -1,16 +1,17 @@
 #! /usr/bin/env python
-import cmd, readline, time, sched, threading, random
+import cmd, readline, time, sched, threading, random, imp
 from pyparsing import *
 from GraaStructures import *
 from queue import Queue
-
-
+# default function library
+import GraaFun
 
 # ideas:
 # node as function call, eval, node timing within node funciton
 # don't modifiy the durations at player-level, but only in the data structure!
 
 # improvements: use universal scheduler ?
+# centralized clock for collaborative graaing ?
 
 """
 The Player class.
@@ -55,9 +56,14 @@ class GraaPlayer():
         return int(random.choice(choice_list))
     # eval node content
     def eval_node(self, session, node):
+        # reload module, so you can toy around with it while playing
+        try:
+            imp.reload(GraaFun)
+            getattr(GraaFun, node.content[0])(*node.content[1:])
+        except:
+            print("Couldn't evaluate node. Please try again!")
+            raise
         
-        print("evaluating graph: {}, node id: {}, content: {}".format(self.graph_id, node.id, node.content), file=session.outfile, flush=True)
-      
 """
 The scheduler, taking care of the time and process spawning.
 
@@ -104,17 +110,16 @@ class GraaSession():
         self.active = True
         self.outfile = outfile
     def add_node(self, node_tuple):
-        print("add node: " + str(node_tuple))
         graph_id = node_tuple[0]
         if graph_id not in self.graphs:
             self.graphs[graph_id] = Graph()
-            print("initialized graph with id: \'" + graph_id + "\'")
+            print("Initialized graph with id: \'" + graph_id + "\'")
         self.graphs[graph_id].add_node(node_tuple[1])
-        print("added node with id \'{}\' to graph \'{}\'".format(node_tuple[1].id, graph_id))
+        print("Added node with id \'{}\' to graph \'{}\'".format(node_tuple[1].id, graph_id))
     def add_edge(self, edge_tuple):
         graph_id = edge_tuple[0]
         self.graphs[graph_id].add_edge(edge_tuple[1], edge_tuple[2])
-        print("added edge from node \'{}\' to node \'{}\'".format(edge_tuple[1],edge_tuple[2].dest))
+        print("Added edge from node \'{}\' to node \'{}\' in graph {}!".format(edge_tuple[1],edge_tuple[2].dest, graph_id))
     
 """
 Parse nodes and edges from the command line input 
@@ -148,6 +153,7 @@ class GraaParser():
     
 """
 The main shell
+
 """
 class GraaShell(cmd.Cmd):
     intro = """    
@@ -157,7 +163,7 @@ class GraaShell(cmd.Cmd):
   /|                   
   \|
 
-Welcome! Type help or ? to list commands.\n
+Welcome! Type \'help\' or \'?\' to list commands.\n
 """
     prompt = 'graa> '
     def __init__(self):
@@ -166,20 +172,23 @@ Welcome! Type help or ? to list commands.\n
         self.parser = GraaParser()
         self.scheduler = GraaScheduler(self.session)
         super().__init__()
+    def do_hold(self, arg):
+        'Hold graph in its current state.'
+        self.session.players[arg].active = False
     def do_tempo(self, arg):
-        'set beat tempo'
+        'Set beat tempo (measured in BPM).'
         try:
             self.session.tempo = int(arg)
-            print("set tempo to {} bpm".format(self.session.tempo))
+            print("Beat tempo set to {} bpm!".format(self.session.tempo))
         except ValueError:
-            print("invalid tempo specification")
+            print("Invalid tempo specification! - " + arg)
     def do_print(self, arg):
-        'print specified digraph to file'
+        'Print specified digraph to file.'
         self.session.graphs[arg].render("graph_" + arg, "comment")
         print('tbd')
     def do_quit(self, arg):
         'Quit graa.'
-        print("quitting graa on next beat")
+        print("Quitting graa on next beat ... ")
         self.session.active = False
         self.scheduler.beat_thread.join()
         for player_key in self.session.players.keys():
@@ -188,12 +197,28 @@ Welcome! Type help or ? to list commands.\n
             player.graph_thread.join()
         print("Quitting, bye!")
         return True
-    def do_q(self, arg):
-        'Quit graa.'
-        return self.do_quit(arg)
     def do_play(self, arg):
-        'Play graph'
+        'Play graph.'
         self.scheduler.queue_graph(arg)
+    def do_syntax(self, arg):
+        """
+ __,  ,_    __,   __,  
+/  | /  |  /  |  /  |  
+\_/|/   |_/\_/|_/\_/|_/
+  /|                   
+  \|
+        
+Syntax overview!
+        
+A node is specified as follows:
+
+<graph_id><node_id>:<node_type>:<param1>:...:<param_n>
+
+An edge is specified as follows:
+
+<graph_id><node_id_1>-<dur>:<prob>-><graph_id><node_id_2>
+
+        """
     def default(self, arg):
         # ignore comment lines
         if arg[0] == "#":
@@ -208,10 +233,12 @@ Welcome! Type help or ? to list commands.\n
                 self.session.add_edge(self.parser.parse_edge(arg))
                 # print(edge_results)
             except ParseException:
-                print("invalid input!")
+                print("Invalid input! Please type \'help\' or \'?\' for assistance!")
+            except KeyboardInterrupt:
+                return self.do_quit()
             except:
                 raise
-        
+   
 if __name__ == '__main__':
     shell = GraaShell()
     shell.cmdloop()
