@@ -1,10 +1,10 @@
 #! /usr/bin/env python
 import cmd, readline, time, sched, threading, random, imp
 from pyparsing import *
-from GraaStructures import *
+from graa_structures import *
 from queue import Queue
 # default function library
-import GraaFun
+import graa_fun
 
 # ideas:
 # node as function call, eval, node timing within node funciton
