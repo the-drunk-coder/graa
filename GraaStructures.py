@@ -53,14 +53,16 @@ class Graph():
         if source_node_id not in self.nodes or new_edge.dest not in self.nodes:
             raise GraphError("nodes for this edge not present")
         else:
-            if new_edge.prob != None:
-                self.edges[source_node_id].append(new_edge)
-            else:
+            #check if there's already an edge in that respective direction, and remove it
+            for edge in self.edges[source_node_id]:
+                if edge.dest == new_edge.dest:
+                    self.edges[source_node_id].remove(edge)
+            if new_edge.prob == None:
                 new_prob = int(100/(len(self.edges[source_node_id]) + 1))
                 for edge in self.edges[source_node_id]:
                     edge.prob = new_prob
                 new_edge.prob = new_prob
-                self.edges[source_node_id].append(new_edge)                
+            self.edges[source_node_id].append(new_edge)                
     def render(self, filename, render="content"):
         dot = Digraph(comment="",edge_attr={'len': '6', 'weight':'0.00001'})
         dot.engine = 'dot'

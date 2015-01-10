@@ -1,13 +1,16 @@
 #! /usr/bin/env python
 import cmd, readline, time, sched, threading, random
 from pyparsing import *
-from GraphStructures import *
+from GraaStructures import *
 from queue import Queue
+
+
 
 # ideas:
 # node as function call, eval, node timing within node funciton
 # don't modifiy the durations at player-level, but only in the data structure!
 
+# improvements: use universal scheduler ?
 
 """
 The Player class.
@@ -32,27 +35,28 @@ class GraaPlayer():
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]
-        self.eval_node(current_node)
+        self.eval_node(session, current_node)
         if(self.active):
             self.sched_next_node(session, graph_id, graph.current_node_id)
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
+        #print("chosen destinination: {}".format(edge.dest), file=session.outfile)
         session.graphs[graph_id].current_node_id = edge.dest
         if(self.active):
             self.sched.enter(edge.dur / 1000, 1, self.play, argument=(session, graph_id))        
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):
         weights = [edge.prob for edge in session.graphs[graph_id].edges[node_id]]
-        print(str(weights))
         choice_list = []
         for i, weight in zip(range(len(weights)), weights):
            choice_list += [str(i)] * weight
         return int(random.choice(choice_list))
     # eval node content
-    def eval_node(self, node):
-        print("evaluating graph: {}, node id: {}, content: {}".format(self.graph_id, node.id, node.content))
+    def eval_node(self, session, node):
+        
+        print("evaluating graph: {}, node id: {}, content: {}".format(self.graph_id, node.id, node.content), file=session.outfile, flush=True)
       
 """
 The scheduler, taking care of the time and process spawning.
@@ -77,7 +81,7 @@ class GraaScheduler():
         self.beat(session)
         self.sched.run() 
     def beat(self, session):
-        #print("beat, tempo: {}".format(session.tempo))
+        #print("beat, tempo: {}".format(session.tempo), file = session.outfile, flush=True)
         while not self.graph_queue.empty():
             self.start_graph(session, self.graph_queue.get())
         if(session.active):
@@ -93,11 +97,12 @@ Contains all the graphs and some metadata in a session.
 
 """
 class GraaSession():
-    def __init__(self):
+    def __init__(self, outfile):
         self.graphs = {}
         self.players = {}
         self.tempo = 119
         self.active = True
+        self.outfile = outfile
     def add_node(self, node_tuple):
         print("add node: " + str(node_tuple))
         graph_id = node_tuple[0]
@@ -145,10 +150,19 @@ class GraaParser():
 The main shell
 """
 class GraaShell(cmd.Cmd):
-    intro = 'Type help or ? to list commands.\n'
+    intro = """    
+ __,  ,_    __,   __,  
+/  | /  |  /  |  /  |  
+\_/|/   |_/\_/|_/\_/|_/
+  /|                   
+  \|
+
+Welcome! Type help or ? to list commands.\n
+"""
     prompt = 'graa> '
     def __init__(self):
-        self.session = GraaSession()
+        outfile = open('out', 'a')
+        self.session = GraaSession(outfile)
         self.parser = GraaParser()
         self.scheduler = GraaScheduler(self.session)
         super().__init__()
@@ -193,9 +207,9 @@ class GraaShell(cmd.Cmd):
             try:
                 self.session.add_edge(self.parser.parse_edge(arg))
                 # print(edge_results)
-            except:
-                print("Unexpected error:", sys.exc_info()[0])
+            except ParseException:
                 print("invalid input!")
+            except:
                 raise
         
 if __name__ == '__main__':
