@@ -46,9 +46,11 @@ class Graph():
         if self.start_node_id == None:
             self.start_node_id = node.id
             self.current_node_id = node.id
+        # only intialize edges if node not present yet
+        if node.id not in self.nodes.keys():    
+            self.edges[node.id] = []
         self.nodes[node.id] = node
-        self.edges[node.id] = []
-    # Add an edge, a a tuple of destination node and transition
+    # Add an edge, a tuple of destination node and transition
     def add_edge(self, source_node_id, new_edge):
         if source_node_id not in self.nodes or new_edge.dest not in self.nodes:
             raise GraphError("nodes for this edge not present")
