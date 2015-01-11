@@ -43,7 +43,7 @@ class GraaPlayer():
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
-        print("chosen destinination: {}".format(edge.dest), file=session.outfile)
+        print("chosen destinination: {}".format(edge.dest), file=session.outfile, flush=True)
         session.graphs[graph_id].current_node_id = edge.dest
         if(self.active):
             self.sched.enter(edge.dur / 1000, 1, self.play, argument=(session, graph_id))        
@@ -58,8 +58,18 @@ class GraaPlayer():
     def eval_node(self, session, node):
         # reload module, so you can toy around with it while playing
         try:
+            #filter out args and kwargs
+            args = []
+            kwargs = {}
+            for arg in node.content[1:]:
+                if "=" in arg:
+                    kvpair = arg.split("=")
+                    kwargs[kvpair[0]] = kvpair[1]
+                else:
+                    args.append(arg)
             #imp.reload(graa_fun)
-            getattr(graa_fun, node.content[0])(*node.content[1:])
+            getattr(graa_fun, node.content[0])(*args, **kwargs)
+            print(str(node.content), file=session.outfile, flush=True)
         except:
             print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)
             raise
@@ -130,7 +140,8 @@ class GraaParser():
     graph_id = Word(alphas)
     node_id = graph_id + Word(nums)
     node_type = Word(alphas)
-    node_line = node_id + ":" + node_type + OneOrMore(":" + Word(alphanums))
+    node_param = Word(alphanums) ^ Word(alphanums + "=" + alphanums)                      
+    node_line = node_id + ":" + node_type + OneOrMore(":" + node_param)
     transition = Word(nums) + Optional(":" + Word(nums))
     edge_line = node_id + "-" + transition + "->" + node_id
     def parse_node(self, arg):
