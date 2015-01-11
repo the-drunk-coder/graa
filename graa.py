@@ -219,10 +219,14 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         print("Quitting, bye!")
         return True
     def do_play(self, arg):
-        'Play graph.'
+        'Play graph. Start on next beat. If graph already playing, don\'t.'
         # tbd: check if graph is already playing, to avoid collisions
         for gra_id in arg.split(":"):
-            self.scheduler.queue_graph(gra_id)
+            # check if graph is already playing ...
+            if gra_id not in self.session.players.keys():
+                self.scheduler.queue_graph(gra_id)
+            else:
+                print("{} already playing!".format(gra_id))
     def do_syntax(self, arg):
         """
  __,  ,_    __,   __,  
@@ -242,6 +246,7 @@ An edge is specified as follows:
 <graph_id><node_id_1>-<dur>:<prob>-><graph_id><node_id_2>
 
         """
+        print("Dummy command for syntax help!")
     def default(self, arg):
         # ignore comment lines
         if arg[0] == "#":
