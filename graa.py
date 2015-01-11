@@ -43,7 +43,7 @@ class GraaPlayer():
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
-        #print("chosen destinination: {}".format(edge.dest), file=session.outfile)
+        print("chosen destinination: {}".format(edge.dest), file=session.outfile)
         session.graphs[graph_id].current_node_id = edge.dest
         if(self.active):
             self.sched.enter(edge.dur / 1000, 1, self.play, argument=(session, graph_id))        
@@ -58,10 +58,10 @@ class GraaPlayer():
     def eval_node(self, session, node):
         # reload module, so you can toy around with it while playing
         try:
-            imp.reload(graa_fun)
+            #imp.reload(graa_fun)
             getattr(graa_fun, node.content[0])(*node.content[1:])
         except:
-            print("Couldn't evaluate node. Please try again!")
+            print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)
             raise
         
 """
@@ -80,7 +80,7 @@ class GraaScheduler():
     #def start_graph(self, graph_id):
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
-        print("queuing graph with id: {}".format(graph_id))
+        print("queuing graph with id: {}".format(graph_id), file=self.session.outfile, flush=True)
     # function to be called by scheduler in separate process
     def start_beat(self, session):
         self.sched = sched.scheduler(time.monotonic, time.sleep)
@@ -113,13 +113,13 @@ class GraaSession():
         graph_id = node_tuple[0]
         if graph_id not in self.graphs:
             self.graphs[graph_id] = Graph()
-            print("Initialized graph with id: \'" + graph_id + "\'")
+            print("Initialized graph with id: \'" + graph_id + "\'", file=self.outfile, flush=True)
         self.graphs[graph_id].add_node(node_tuple[1])
-        print("Added node with id \'{}\' to graph \'{}\'".format(node_tuple[1].id, graph_id))
+        print("Added node with id \'{}\' to graph \'{}\'".format(node_tuple[1].id, graph_id), file=self.outfile, flush=True)
     def add_edge(self, edge_tuple):
         graph_id = edge_tuple[0]
         self.graphs[graph_id].add_edge(edge_tuple[1], edge_tuple[2])
-        print("Added edge from node \'{}\' to node \'{}\' in graph {}!".format(edge_tuple[1],edge_tuple[2].dest, graph_id))
+        print("Added edge from node \'{}\' to node \'{}\' in graph {}!".format(edge_tuple[1],edge_tuple[2].dest, graph_id), file=self.outfile, flush=True)
     
 """
 Parse nodes and edges from the command line input 
@@ -174,7 +174,17 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         super().__init__()
     def do_hold(self, arg):
         'Hold graph in its current state.'
-        self.session.players[arg].active = False
+        if len(arg) == 0:
+            print("Please specify graph!")
+        else:
+            try:
+                if arg == "all":
+                    for player_key in self.session.players.keys():
+                        self.session.players[player_key].active = False
+                else:
+                    self.session.players[arg].active = False
+            except:
+                print("Couldn't hold graph, probably not played yet!")
     def do_tempo(self, arg):
         'Set beat tempo (measured in BPM).'
         try:
@@ -199,7 +209,9 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         return True
     def do_play(self, arg):
         'Play graph.'
-        self.scheduler.queue_graph(arg)
+        # tbd: check if graph is already playing, to avoid collisions
+        for gra_id in arg.split(":"):
+            self.scheduler.queue_graph(gra_id)
     def do_syntax(self, arg):
         """
  __,  ,_    __,   __,  

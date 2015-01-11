@@ -90,3 +90,6 @@ if a graph is specified with relative durations, but is played in absolute mode,
 current clock speed.
 if a graph is specified with absoulte durations, but played in relative mode, the durations will be quantized to the nearest eight note, regarding the
 current clock speed
+
+# Meta-Graphs
+A graph node can also contain a graph itself, so you can do compositions purely based on graphs!
