@@ -7,11 +7,18 @@ from queue import Queue
 import graa_fun
 
 # ideas:
-# node as function call, eval, node timing within node funciton
 # don't modifiy the durations at player-level, but only in the data structure!
 
 # improvements: use universal scheduler ?
 # centralized clock for collaborative graaing ?
+
+# tbd: removing graphs
+# tbd: resetting graphs
+#
+# tbd: validation: all nodes reachable etc ?
+# tbd: more fine-grained logging
+# tbd: overlay graphs 
+
 
 """
 The Player class.
@@ -56,7 +63,6 @@ class GraaPlayer():
         return int(random.choice(choice_list))
     # eval node content
     def eval_node(self, session, node):
-        # reload module, so you can toy around with it while playing
         try:
             #filter out args and kwargs
             args = []
@@ -87,7 +93,6 @@ class GraaScheduler():
         self.beat_thread = threading.Thread(target=self.start_beat, args=(session,))
         self.beat_thread.deamon = True
         self.beat_thread.start()
-    #def start_graph(self, graph_id):
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
         print("queuing graph with id: {}".format(graph_id), file=self.session.outfile, flush=True)
@@ -161,7 +166,7 @@ class GraaParser():
         if edge_list[4] == ":":
             edge.prob = int(edge_list[5])
         return (graph_id, source_node_id, edge)
-    
+   
 """
 The main shell
 
@@ -172,7 +177,7 @@ class GraaShell(cmd.Cmd):
 /  | /  |  /  |  /  |  
 \_/|/   |_/\_/|_/\_/|_/
   /|                   
-  \|
+  \|        Version 0.1
 
 Welcome! Type \'help\' or \'?\' to list commands.\n
 """
@@ -192,8 +197,13 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
                 if arg == "all":
                     for player_key in self.session.players.keys():
                         self.session.players[player_key].active = False
+                        self.session.players[player_key].graph_thread.join()
+                        del self.session.players[player_key]
                 else:
-                    self.session.players[arg].active = False
+                    for player_key in arg.split(":"):
+                        self.session.players[player_key].active = False
+                        self.session.players[player_key].graph_thread.join()
+                        del self.session.players[player_key]
             except:
                 print("Couldn't hold graph, probably not played yet!")
     def do_tempo(self, arg):
@@ -221,10 +231,16 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
     def do_play(self, arg):
         'Play graph. Start on next beat. If graph already playing, don\'t.'
         # tbd: check if graph is already playing, to avoid collisions
+        for gra_id in arg.split(":"):            # check if graph is already playing ...
+            if gra_id not in self.session.players.keys():
+                self.scheduler.queue_graph(gra_id)
+            else:
+                print("{} already playing!".format(gra_id))
+    def do_iplay(self, arg):
         for gra_id in arg.split(":"):
             # check if graph is already playing ...
             if gra_id not in self.session.players.keys():
-                self.scheduler.queue_graph(gra_id)
+                self.scheduler.start_graph(self.session, gra_id)
             else:
                 print("{} already playing!".format(gra_id))
     def do_syntax(self, arg):
@@ -233,7 +249,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
 /  | /  |  /  |  /  |  
 \_/|/   |_/\_/|_/\_/|_/
   /|                   
-  \|
+  \|        Version 0.1 
         
 Syntax overview!
         
