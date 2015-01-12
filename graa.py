@@ -13,6 +13,7 @@ import graa_fun
 # learning: store paths, rate performances, automatically play on that basis ? 
 # centralized clock for collaborative graaing ?
 # node locking mode ? (give nodes a duration ?)
+# configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE:
 # tbd MULTIPLE COMMANDS! (emacs mode?)
