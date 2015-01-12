@@ -2,22 +2,28 @@
 import cmd, readline, time, sched, threading, random, imp
 from pyparsing import *
 from graa_structures import *
+from graa_scheduler import *
 from queue import Queue
 # default function library
 import graa_fun
 
-# ideas:
-# don't modifiy the durations at player-level, but only in the data structure!
 
+# IDEAS:
+# don't modifiy the durations at player-level, but only in the data structure!
+# learning: store paths, rate performances, automatically play on that basis ? 
 # improvements: use universal scheduler ?
 # centralized clock for collaborative graaing ?
 
+# TO BE DONE:
+# tbd MULTIPLE COMMANDS! (emacs mode?)
 # tbd: removing graphs
 # tbd: resetting graphs
-#
 # tbd: validation: all nodes reachable etc ?
 # tbd: more fine-grained logging
-# tbd: overlay graphs 
+# tbd: overlay graphs
+# tbd: handle end nodes
+# re-sync graphs on beat (restart command ?)
+# GENERATOR OVERLAYS !!!!!
 
 
 """
@@ -27,33 +33,29 @@ Each graph lives in its own player, each player has its own thread.
 
 """
 class GraaPlayer():   
-    def __init__(self, session, graph_id):
+    def __init__(self, session, graph_id, sched):
+        self.sched = sched
         self.session = session
         self.graph_id = graph_id
-        self.graph_thread = threading.Thread(target=self.start_play, args=(session, graph_id))
+        self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
         self.graph_thread.deamon = True
         self.active = False
     def start(self):
         self.active = True
         self.graph_thread.start()
-    def start_play(self, session, graph_id):
-        self.sched = sched.scheduler(time.monotonic, time.sleep)
-        self.play(session, graph_id)
-        self.sched.run()
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]
-        self.eval_node(session, current_node)
         if(self.active):
             self.sched_next_node(session, graph_id, graph.current_node_id)
+            self.eval_node(session, current_node)
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
         print("chosen destinination: {}".format(edge.dest), file=session.outfile, flush=True)
         session.graphs[graph_id].current_node_id = edge.dest
-        if(self.active):
-            self.sched.enter(edge.dur / 1000, 1, self.play, argument=(session, graph_id))        
+        self.sched.time_function(self.play, [session, graph_id], {}, edge.dur)        
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):
         weights = [edge.prob for edge in session.graphs[graph_id].edges[node_id]]
@@ -63,6 +65,7 @@ class GraaPlayer():
         return int(random.choice(choice_list))
     # eval node content
     def eval_node(self, session, node):
+        #print("EVAL!!")
         try:
             #filter out args and kwargs
             args = []
@@ -73,42 +76,41 @@ class GraaPlayer():
                     kwargs[kvpair[0]] = kvpair[1]
                 else:
                     args.append(arg)
-            #imp.reload(graa_fun)
+            # try loading function from default library
             getattr(graa_fun, node.content[0])(*args, **kwargs)
-            print(str(node.content), file=session.outfile, flush=True)
+            # print(str(node.content), file=session.outfile, flush=True)
         except:
             print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)
-            raise
+            #raise
         
 """
-The scheduler, taking care of the time and process spawning.
+The beat, taking care of starting graphs etc
+(might find a better naming, this was the sceduler originally ...)
 
 """
-class GraaScheduler():
-    def __init__(self, session):
+class GraaBeat():
+    def __init__(self, session, sched):
+        self.sched = sched
         self.graphs = {}
         # LIFO Queue
         self.graph_queue = Queue()
         self.session = session
-        self.beat_thread = threading.Thread(target=self.start_beat, args=(session,))
+        self.beat_thread = threading.Thread(target=self.beat, args=(session,))
         self.beat_thread.deamon = True
         self.beat_thread.start()
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
         print("queuing graph with id: {}".format(graph_id), file=self.session.outfile, flush=True)
     # function to be called by scheduler in separate process
-    def start_beat(self, session):
-        self.sched = sched.scheduler(time.monotonic, time.sleep)
-        self.beat(session)
-        self.sched.run() 
     def beat(self, session):
         #print("beat, tempo: {}".format(session.tempo), file = session.outfile, flush=True)
         while not self.graph_queue.empty():
-            self.start_graph(session, self.graph_queue.get())
+            self.start_graph(session, self.graph_queue.get(), self.sched)
         if(session.active):
-            self.sched.enter(60.0 / session.tempo, 1, self.beat, argument=(session,))
-    def start_graph(self, session, graph_id):
-        player = GraaPlayer(session, graph_id)
+            #it's important only to use integers here !
+            self.sched.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
+    def start_graph(self, session, graph_id, sched):
+        player = GraaPlayer(session, graph_id, sched)
         session.players[graph_id] = player
         player.start()
         
@@ -121,7 +123,7 @@ class GraaSession():
     def __init__(self, outfile):
         self.graphs = {}
         self.players = {}
-        self.tempo = 119
+        self.tempo = 120
         self.active = True
         self.outfile = outfile
     def add_node(self, node_tuple):
@@ -186,7 +188,8 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         outfile = open('out', 'a')
         self.session = GraaSession(outfile)
         self.parser = GraaParser()
-        self.scheduler = GraaScheduler(self.session)
+        self.scheduler = GraaScheduler()
+        self.beat = GraaBeat(self.session, self.scheduler)
         super().__init__()
     def do_hold(self, arg):
         'Hold graph in its current state.'
@@ -198,7 +201,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
                     for player_key in self.session.players.keys():
                         self.session.players[player_key].active = False
                         self.session.players[player_key].graph_thread.join()
-                        del self.session.players[player_key]
+                    self.session.players={}
                 else:
                     for player_key in arg.split(":"):
                         self.session.players[player_key].active = False
@@ -221,7 +224,9 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         'Quit graa.'
         print("Quitting graa on next beat ... ")
         self.session.active = False
-        self.scheduler.beat_thread.join()
+        self.scheduler.active = False
+        self.scheduler.sched_thread.join()
+        self.beat.beat_thread.join()
         for player_key in self.session.players.keys():
             player = self.session.players[player_key]
             player.active = False
@@ -232,15 +237,18 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         'Play graph. Start on next beat. If graph already playing, don\'t.'
         # tbd: check if graph is already playing, to avoid collisions
         for gra_id in arg.split(":"):            # check if graph is already playing ...
-            if gra_id not in self.session.players.keys():
-                self.scheduler.queue_graph(gra_id)
+            if gra_id not in self.session.graphs.keys():
+                print("{} not found!".format(gra_id))
+            elif gra_id not in self.session.players.keys():
+                self.beat.queue_graph(gra_id)
             else:
                 print("{} already playing!".format(gra_id))
     def do_iplay(self, arg):
+        'Play graph. Start immediately. If graph is already playing, don\'t.'
         for gra_id in arg.split(":"):
             # check if graph is already playing ...
             if gra_id not in self.session.players.keys():
-                self.scheduler.start_graph(self.session, gra_id)
+                self.beat.start_graph(self.session, gra_id)
             else:
                 print("{} already playing!".format(gra_id))
     def do_syntax(self, arg):
