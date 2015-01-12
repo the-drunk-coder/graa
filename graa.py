@@ -11,8 +11,8 @@ import graa_fun
 # IDEAS:
 # don't modifiy the durations at player-level, but only in the data structure!
 # learning: store paths, rate performances, automatically play on that basis ? 
-# improvements: use universal scheduler ?
 # centralized clock for collaborative graaing ?
+# node locking mode ? (give nodes a duration ?)
 
 # TO BE DONE:
 # tbd MULTIPLE COMMANDS! (emacs mode?)
