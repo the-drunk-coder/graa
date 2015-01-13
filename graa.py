@@ -1,12 +1,12 @@
 #! /usr/bin/env python
-import cmd, readline, time, sched, threading, random, imp
+import cmd, readline, time, sched, threading, random, imp, copy
 from pyparsing import *
 from graa_structures import *
 from graa_scheduler import *
 from queue import Queue
 # default function library
 import graa_fun
-
+import graa_mod
 
 # IDEAS:
 # don't modifiy the durations at player-level, but only in the data structure!
@@ -27,6 +27,14 @@ import graa_fun
 # graphs containing graphs, for longer compositions !
 # GENERATOR OVERLAYS !!!!!
 
+# Overlay Syntax:
+# ol1:<func>:<params> (omit params if only duration should be modified)
+# ol1-<duration_mod_function>-<prob>->ol1 (duration mod function can be ommitted if duration should not be modified, as can the prob if there's
+# only one edge ... otherwise the same rules apply)
+# ol <ol_id> define overlay
+# ol a <ol_od>:<graphs>
+# ol d <ol_id>:<graphs>
+# ol del <ol_id> delete overlay
 
 """
 The Player class.
@@ -38,6 +46,7 @@ class GraaPlayer():
     def __init__(self, session, graph_id, sched):
         self.sched = sched
         self.session = session
+        self.overlays = {}
         self.graph_id = graph_id
         self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
         self.graph_thread.deamon = True
@@ -45,6 +54,9 @@ class GraaPlayer():
     def start(self):
         self.active = True
         self.graph_thread.start()
+    def add_overlay(self, overlay_id):
+        # add a copy of the overlay, as each overlay should act independent for each player
+        self.overlays[overlay_id] = copy.deepcopy(self.session.overlays[overlay_id])                                                  
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]
@@ -54,8 +66,11 @@ class GraaPlayer():
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
+        
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
-        print("chosen destinination: {}".format(edge.dest), file=session.outfile, flush=True)
+        # INSERT HERE: overlay edge modification application 
+        # print("chosen destinination: {}".format(edge.dest), file=session.outfile, flush=True)
+        
         session.graphs[graph_id].current_node_id = edge.dest
         self.sched.time_function(self.play, [session, graph_id], {}, edge.dur)        
     # choose edge for next transition
@@ -73,6 +88,7 @@ class GraaPlayer():
             args = []
             kwargs = {}
             for arg in node.content[1:]:
+                # devide named and unnamed arguments
                 if "=" in arg:
                     kvpair = arg.split("=")
                     kwargs[kvpair[0]] = kvpair[1]
@@ -93,7 +109,6 @@ The beat, taking care of starting graphs etc
 class GraaBeat():
     def __init__(self, session, sched):
         self.sched = sched
-        self.graphs = {}
         # LIFO Queue
         self.graph_queue = Queue()
         self.session = session
@@ -116,7 +131,6 @@ class GraaBeat():
         session.players[graph_id] = player
         player.start()
         
-        
 """
 Contains all the graphs and some metadata in a session.
 
@@ -125,6 +139,7 @@ class GraaSession():
     def __init__(self, outfile):
         self.graphs = {}
         self.players = {}
+        self.overlays = {}
         self.tempo = 120
         self.active = True
         self.outfile = outfile
@@ -150,14 +165,15 @@ class GraaParser():
     node_id = graph_id + Word(nums)
     node_type = Word(alphas)
     node_param = Word(alphanums) ^ Word(alphanums + "=" + alphanums) ^ Word(alphanums + "=" + nums + "." + nums )                      
-    node_line = node_id + ":" + node_type + OneOrMore(":" + node_param)
+    node_line = node_id + "|" + node_type + OneOrMore(":" + node_param)
     transition = Word(nums) + Optional(":" + Word(nums))
     edge_line = node_id + "-" + transition + "->" + node_id
     def parse_node(self, arg):
         node_list = self.node_line.parseString(arg, parseAll=True)
         graph_id = node_list[0]
         node_id = node_list[1]
-        node_params = list(filter(lambda a: a != ":", node_list[2:]))
+        node_params = list(filter(lambda a: a not in [":", "|"], node_list[2:]))
+        print(node_params)
         # create and return node
         return (graph_id, Node(node_id, node_params))
     def parse_edge(self, arg):
@@ -277,7 +293,7 @@ An edge is specified as follows:
         # ignore comment lines
         if arg[0] == "#":
             return False
-        # this should be done better somehow
+        # this should probably be done better somehow, but it works out for now
         try:
             self.session.add_node(self.parser.parse_node(arg))
             # print(node_results)

@@ -14,7 +14,8 @@ class GraphError(Exception):
         return repr(self.message)
 
 """
-A node, consting of an
+A node, consisting of an id, content and some meta information 
+
 """
 class Node():
     def __init__(self, node_id, node_content, meta=""):
