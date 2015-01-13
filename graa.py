@@ -24,6 +24,7 @@ import graa_fun
 # tbd: overlay graphs
 # tbd: handle end nodes
 # re-sync graphs on beat (restart command ?)
+# graphs containing graphs, for longer compositions !
 # GENERATOR OVERLAYS !!!!!
 
 
@@ -148,7 +149,7 @@ class GraaParser():
     graph_id = Word(alphas)
     node_id = graph_id + Word(nums)
     node_type = Word(alphas)
-    node_param = Word(alphanums) ^ Word(alphanums + "=" + alphanums)                      
+    node_param = Word(alphanums) ^ Word(alphanums + "=" + alphanums) ^ Word(alphanums + "=" + nums + "." + nums )                      
     node_line = node_id + ":" + node_type + OneOrMore(":" + node_param)
     transition = Word(nums) + Optional(":" + Word(nums))
     edge_line = node_id + "-" + transition + "->" + node_id
