@@ -23,6 +23,8 @@ class Node():
         self.content = node_content
         # space for arbitrary meta information
         self.meta = meta
+    def __repr__(self):
+        return "Node id: {} content: {} meta: {}".format(self.id, self.content, self.meta)
 
 """
 An edge, consisting of the destination node, the transition probability and the transition duration.
@@ -31,17 +33,27 @@ If transition probability is None, it will be calculated when the edge is added.
 
 """
 class Edge():
-    def __init__(self, destination_node_id, transition_duration, transition_probability=None):
+    def __init__(self, destination_node_id, transition_duration, transition_probability=None, meta=""):
         self.dest = destination_node_id
         self.prob = transition_probability
+        # might also contain function to modify duration
         self.dur = transition_duration
-        
+        # some meta information, like steps or so ... 
+        self.meta = meta
+    def __repr__(self):
+        return "Edge-" + str(self.dur) + ":" + str(self.prob) + "->" +  str(self.dest)
+
+
+"""
+The main graph class!
+"""
 class Graph():
     def __init__(self):
         self.nodes = {}
         self.edges = {}
         self.start_node_id = None
         self.current_node_id = None
+        self.steps = 0
     def add_node(self, node):
         # by convention, first added node is start node
         if self.start_node_id == None:

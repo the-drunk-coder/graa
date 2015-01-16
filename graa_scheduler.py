@@ -25,11 +25,13 @@ class GraaScheduler():
             correction = 0
             # check last few slots in case the wait wasn't precise
             while past > now - 5:
-                #print("corr ")
                 if past in schedict:
                     for func_tuple in schedict[past]:
                         #print("playing function at: {}".format(past))
-                        func_tuple[0](*func_tuple[1],**func_tuple[2])
+                        try:
+                            func_tuple[0](*func_tuple[1],**func_tuple[2])
+                        except:
+                            print("Couldn't execute scheduled function!", file=outfile, flush=True)
                     del schedict[past]
                     correction = now - past
                     break

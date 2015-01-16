@@ -1,12 +1,14 @@
 #! /usr/bin/env python
 import cmd, readline, time, sched, threading, random, imp, copy
-from pyparsing import *
-from graa_structures import *
-from graa_scheduler import *
 from queue import Queue
-# default function library
-import graa_fun
-import graa_mod
+from graa_structures import *
+from graa_parser import *
+from graa_scheduler import *
+from graa_overlay_processors import * 
+
+# default sound function library
+import graa_sound_functions
+
 
 # IDEAS:
 # don't modifiy the durations at player-level, but only in the data structure!
@@ -25,16 +27,24 @@ import graa_mod
 # tbd: handle end nodes
 # re-sync graphs on beat (restart command ?)
 # graphs containing graphs, for longer compositions !
-# GENERATOR OVERLAYS !!!!!
+# edge probability modification (maybe)
 
-# Overlay Syntax:
-# ol1:<func>:<params> (omit params if only duration should be modified)
-# ol1-<duration_mod_function>-<prob>->ol1 (duration mod function can be ommitted if duration should not be modified, as can the prob if there's
-# only one edge ... otherwise the same rules apply)
-# ol <ol_id> define overlay
-# ol a <ol_od>:<graphs>
-# ol d <ol_id>:<graphs>
-# ol del <ol_id> delete overlay
+# OVERLAY PATTERN MATCHING (if not applicable, ignore):
+# ol1|$1=func($1) -> first unnamed arg will be replaced by func($1) -- analogous fo f(float), s(string) etc
+# ol1|vowel=func(vowel) -> named parameter vowel will be replaced by func vowel 
+# functions should be found in graa_mod
+
+# STEP COUNTER FOR OVERLAYS, store in meta 
+# func($1) = dependent on orig. arg
+# func(step) = dependent on step
+# func() = func without any argument
+# func($1, step, param) = dependent on both, plus some random param
+
+# OVERLAY COMMANDS
+# ol <graph> - mark graph as overlay
+# <graphs>+<overlays> add overlays to graphs
+# <graphs>-<overlays> remove overlays from graphs d:e:f+a:d
+# del <ol_ids> delete overlays OR graphs
 
 """
 The Player class.
@@ -60,15 +70,27 @@ class GraaPlayer():
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]
+        # collect overlay functions
+        current_overlay_dicts = []
+        current_overlay_steps = []
+        for ol_key in self.overlays.keys():
+            overlay = self.overlays[ol_key]
+            current_overlay_dicts.append(overlay.nodes[overlay.current_node_id].content)
+            current_overlay_steps.append(overlay.steps)
+            overlay.meta += 1
         if(self.active):
             self.sched_next_node(session, graph_id, graph.current_node_id)
-            self.eval_node(session, current_node)
+            self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
         
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
-        # INSERT HERE: overlay edge modification application 
+
+        #for ol_key in self.overlays.keys():
+        #    overlay = self.overlays[ol_key]
+            
+
         # print("chosen destinination: {}".format(edge.dest), file=session.outfile, flush=True)
         
         session.graphs[graph_id].current_node_id = edge.dest
@@ -81,26 +103,24 @@ class GraaPlayer():
            choice_list += [str(i)] * weight
         return int(random.choice(choice_list))
     # eval node content
-    def eval_node(self, session, node):
-        #print("EVAL!!")
+    def eval_node(self, session, node, overlay_dicts, overlay_steps):
         try:
-            #filter out args and kwargs
-            args = []
-            kwargs = {}
-            for arg in node.content[1:]:
-                # devide named and unnamed arguments
-                if "=" in arg:
-                    kvpair = arg.split("=")
-                    kwargs[kvpair[0]] = kvpair[1]
-                else:
-                    args.append(arg)
+            args = node.content["args"]
+            kwargs = node.content["kwargs"]
+            for functions, step in zip(overlay_dicts, overlay_steps):
+                args = replace_args(node.content["args"], functions, step)
+                kwargs = replace_kwargs(node.content["kwargs"], functions, step)
             # try loading function from default library
-            getattr(graa_fun, node.content[0])(*args, **kwargs)
-            # print(str(node.content), file=session.outfile, flush=True)
+            # evaluating the function string at runtime here, as
+            # here might be a dynamic function library in the future ...                
+            getattr(graa_sound_functions, node.content["type"])(*args, **kwargs)            
         except:
             print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)
-            #raise
-        
+            #print(d.message)
+            raise
+
+
+                
 """
 The beat, taking care of starting graphs etc
 (might find a better naming, this was the sceduler originally ...)
@@ -143,50 +163,7 @@ class GraaSession():
         self.tempo = 120
         self.active = True
         self.outfile = outfile
-    def add_node(self, node_tuple):
-        graph_id = node_tuple[0]
-        if graph_id not in self.graphs:
-            self.graphs[graph_id] = Graph()
-            print("Initialized graph with id: \'" + graph_id + "\'", file=self.outfile, flush=True)
-        self.graphs[graph_id].add_node(node_tuple[1])
-        print("Added node with id \'{}\' to graph \'{}\'".format(node_tuple[1].id, graph_id), file=self.outfile, flush=True)
-    def add_edge(self, edge_tuple):
-        graph_id = edge_tuple[0]
-        self.graphs[graph_id].add_edge(edge_tuple[1], edge_tuple[2])
-        print("Added edge from node \'{}\' to node \'{}\' in graph {}!".format(edge_tuple[1],edge_tuple[2].dest, graph_id), file=self.outfile, flush=True)
-    
-"""
-Parse nodes and edges from the command line input 
- 
-"""
-class GraaParser():
-    #grammar rules for node and edge lines
-    graph_id = Word(alphas)
-    node_id = graph_id + Word(nums)
-    node_type = Word(alphas)
-    node_param = Word(alphanums) ^ Word(alphanums + "=" + alphanums) ^ Word(alphanums + "=" + nums + "." + nums )                      
-    node_line = node_id + "|" + node_type + OneOrMore(":" + node_param)
-    transition = Word(nums) + Optional(":" + Word(nums))
-    edge_line = node_id + "-" + transition + "->" + node_id
-    def parse_node(self, arg):
-        node_list = self.node_line.parseString(arg, parseAll=True)
-        graph_id = node_list[0]
-        node_id = node_list[1]
-        node_params = list(filter(lambda a: a not in [":", "|"], node_list[2:]))
-        print(node_params)
-        # create and return node
-        return (graph_id, Node(node_id, node_params))
-    def parse_edge(self, arg):
-        edge_list = self.edge_line.parseString(arg, parseAll=True)
-        graph_id = edge_list[0]
-        source_node_id = edge_list[1]
-        destination_node_id = edge_list[-1]
-        duration = int(edge_list[3])
-        edge = Edge(destination_node_id, duration)
-        if edge_list[4] == ":":
-            edge.prob = int(edge_list[5])
-        return (graph_id, source_node_id, edge)
-   
+       
 """
 The main shell
 
@@ -205,7 +182,8 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
     def __init__(self):
         outfile = open('out', 'a')
         self.session = GraaSession(outfile)
-        self.parser = GraaParser()
+        self.parser = GraaParser
+        self.dispatcher = GraaDispatcher(self.session)
         self.scheduler = GraaScheduler()
         self.beat = GraaBeat(self.session, self.scheduler)
         super().__init__()
@@ -235,7 +213,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         except ValueError:
             print("Invalid tempo specification! - " + arg)
     def do_print(self, arg):
-        'Print specified digraph to file.'
+        'Print specified graaph to file.'
         self.session.graphs[arg].render("graph_" + arg, "comment")
         print('tbd')
     def do_quit(self, arg):
@@ -252,7 +230,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         print("Quitting, bye!")
         return True
     def do_play(self, arg):
-        'Play graph. Start on next beat. If graph already playing, don\'t.'
+        'Play graaph. Start on next beat. If graph already playing, don\'t.'
         # tbd: check if graph is already playing, to avoid collisions
         for gra_id in arg.split(":"):            # check if graph is already playing ...
             if gra_id not in self.session.graphs.keys():
@@ -262,7 +240,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
             else:
                 print("{} already playing!".format(gra_id))
     def do_iplay(self, arg):
-        'Play graph. Start immediately. If graph is already playing, don\'t.'
+        'Play graaph. Start immediately. If graph is already playing, don\'t.'
         for gra_id in arg.split(":"):
             # check if graph is already playing ...
             if gra_id not in self.session.players.keys():
@@ -281,34 +259,48 @@ Syntax overview!
         
 A node is specified as follows:
 
-<graph_id><node_id>:<node_type>:<param1>:...:<param_n>
+d1|dirt:0:casio:1
 
+This will specify a graaph called 'd' and a
+node with id '1', using dirt as backend
+        
 An edge is specified as follows:
 
-<graph_id><node_id_1>-<dur>:<prob>-><graph_id><node_id_2>
+d1-500:100->d1
+
+This will specify an edge from d1 to itself,
+with a duration of 500ms and a probability of 100%!
 
         """
         print("Dummy command for syntax help!")
+    def do_del(self, arg):
+        "Delete graaph or overlay, with all consequences!"
+        for key in arg.split(":"):
+            # stop and remove player if playing
+            if key in self.session.players:
+                self.session.players[key].active = False
+                self.session.players[key].graph_thread.join()
+                del self.session.players[key]
+            # remove graaph
+            if key in self.session.graphs:
+                del self.session.graphs[key]
+            if key in self.session.overlays:
+                for player in self.session.players.keys():
+                    #remove overlay from players
+                    if key in self.session.players[player].overlays:
+                        del self.session.players[player].overlays[key]
+                del self.session.overlay[key]                               
     def default(self, arg):
-        # ignore comment lines
-        if arg[0] == "#":
-            return False
-        # this should probably be done better somehow, but it works out for now
         try:
-            self.session.add_node(self.parser.parse_node(arg))
-            # print(node_results)
+            self.dispatcher.dispatch(self.parser.parse(arg))
         except ParseException:
-            #print(str(Error))
-            try:
-                self.session.add_edge(self.parser.parse_edge(arg))
-                # print(edge_results)
-            except ParseException:
-                print("Invalid input! Please type \'help\' or \'?\' for assistance!")
-            except KeyboardInterrupt:
-                return self.do_quit()
-            except:
-                raise
-   
+            print("Invalid input! Please type \'help\' or \'?\' for assistance!")
+        except DispatcherError as de:
+            print(de.message)
+
+        
+
+# MAIN!!
 if __name__ == '__main__':
     shell = GraaShell()
     shell.cmdloop()

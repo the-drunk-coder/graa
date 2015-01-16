@@ -17,11 +17,11 @@ outfile = open("out", "a")
 
 #iisffffffsffffififfff
 
-def dirt(*args, **kwargs):
+def dirt(*args, **kwargs):   
     msg = osc_message_builder.OscMessageBuilder(address = "/play")
     msg.add_arg(int(time.time()))
     msg.add_arg(datetime.datetime.now().microsecond)
-    msg.add_arg(args[1] + ":" + args[2]) #sample name:number
+    msg.add_arg(args[1] + ":" + str(args[2])) #sample name:number
     msg.add_arg(float(kwargs.get('offset', 0.0)))
     msg.add_arg(float(kwargs.get('begin', 0.0)))
     msg.add_arg(float(kwargs.get('end', 1.0)))
@@ -47,5 +47,5 @@ def dirt(*args, **kwargs):
     msg.add_arg(float(kwargs.get('bandq', 0.0)))
     msg = msg.build()
     dc[int(args[0])].send(msg)
-    print("sample: {}, out: {}".format(args[1] + ":" + args[2], args[0]), file=outfile, flush=True)
+    print("sample: {}, out: {}".format(args[1] + ":" + str(args[2]), args[0]), file=outfile, flush=True)
     
