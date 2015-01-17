@@ -55,7 +55,7 @@ class GraaParser():
     var_assign.setParseAction(lambda t: t.asList())
     ol_node_def = node_id + Suppress("|") + OneOrMore(func_assign + Optional(param_divider))
     ol_node_def.setParseAction(lambda t: GraaParser.parse_ol_node(t))
-    node_def = node_id + Suppress("|") + node_type + param_divider + Group(ZeroOrMore((func_param ^ var_assign) + Optional(param_divider)))
+    node_def = node_id + Suppress("|") + node_type + Suppress("|") + Group(ZeroOrMore((func_param ^ var_assign) + Optional(param_divider)))
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
     transition_param = Word(nums)
     transition_param.setParseAction(lambda t: GraaParser.typify(t[0]))
@@ -69,6 +69,13 @@ class GraaParser():
     ol_application.setParseAction(lambda t: GraaParser.parse_ol_application(t.asList()))
     line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def ^ ol_application
     line.setParseAction(lambda t: t.asList())
+    # Additional rules to parse command inputs
+    delay_command = Suppress("+") + Word(nums)
+    delay_command.setParseAction(lambda t: GraaParser.typify(t[0]))
+    start_command = graph_id ^ Group(graph_id + Suppress("|") + Word(alphas)) ^ Group(graph_id + Suppress("|") + delay_command) 
+    #start_command.setParseAction(lambda t: t.asList())
+    start_line = OneOrMore(start_command + Optional(param_divider))
+    start_line.setParseAction(lambda t: t.asList())
     # convert string representation to actual (typed) value
     def typify(arg):
         #try int:

@@ -42,7 +42,7 @@ class GraaScheduler():
                 delayed_event = stack.pop()
                 # correct future time if wait was not precise
                 future_time = now - correction + delayed_event[0]
-                #print("func: {} now: {} delay: {} for: {} correction: {}".format(delayed_event[1], now, delayed_event[0], future_time, correction), file = outfile, flush = True)
+                print("now: {} delay: {} for: {} correction: {}".format(now, delayed_event[0], future_time, correction), file = outfile, flush = True)
                 #print("correction: {}".format(correction))
                 if future_time not in self.schedict:
                     self.schedict[future_time] = []    

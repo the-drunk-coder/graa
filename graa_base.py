@@ -18,7 +18,8 @@ class GraaSession():
         self.graphs = {}
         self.players = {}
         self.overlays = {}
-        self.tempo = 120
+        # 117bpm results in 512ms per beat ... a nice, round number!
+        self.tempo = 117
         self.active = True
         self.outfile = outfile
 
@@ -32,7 +33,7 @@ Each graph lives in its own player, each player has its own thread.
 
 """
 class GraaPlayer():   
-    def __init__(self, session, graph_id, sched):
+    def __init__(self, session, graph_id, sched, delay=0):
         self.sched = sched
         self.session = session
         self.overlays = {}
@@ -40,6 +41,7 @@ class GraaPlayer():
         self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
         self.graph_thread.deamon = True
         self.active = False
+        self.initial_delay = delay
     def start(self):
         self.active = True
         self.graph_thread.start()
@@ -55,32 +57,37 @@ class GraaPlayer():
         updated_overlay.current_node_id = current_overlay.current_node_id
         updated_overlay.nodes[updated_overlay.current_node_id].meta = current_overlay.nodes[current_overlay.current_node_id].meta
         self.overlays[overlay_id] = updated_overlay
-    def play(self, session, graph_id):
-        graph = session.graphs[graph_id]
-        current_node = graph.nodes[graph.current_node_id]
-        # collect overlay node functions in lists
-        current_overlay_dicts = []
-        current_overlay_steps = []
-        # collect edge modificator functions in list
-        dur_modificators = []
-        prob_modificators = []
-        for ol_key in self.overlays.keys():
-            overlay = self.overlays[ol_key]
-            current_overlay_dicts.append(overlay.nodes[overlay.current_node_id].content)
-            current_overlay_steps.append(overlay.nodes[overlay.current_node_id].meta)
-            ol_edge_id = self.choose_overlay_edge(ol_key, overlay.current_node_id)
-            # append
-            ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
-            if ol_edge.dur != None:
-                dur_modificators.append(ol_edge.dur)
-            if ol_edge.prob != None:
-                prob_modificators.append(ol_edge.prob)
-            # forward incrementation of step counter
-            overlay.nodes[ol_edge.dest].meta = overlay.nodes[overlay.current_node_id].meta + 1
-            overlay.current_node_id = ol_edge.dest
-        if(self.active):
-            self.sched_next_node(session, graph_id, graph.current_node_id)
-            self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
+    def play(self, session, graph_id):        
+        if self.active:
+            # process initial delay
+            if self.initial_delay != 0:
+                self.sched.time_function(self.play, [session, graph_id], {}, self.initial_delay)
+                self.initial_delay = 0
+            else:
+                graph = session.graphs[graph_id]
+                current_node = graph.nodes[graph.current_node_id]
+                # collect overlay node functions in lists
+                current_overlay_dicts = []
+                current_overlay_steps = []
+                # collect edge modificator functions in list
+                dur_modificators = []
+                prob_modificators = []
+                for ol_key in self.overlays.keys():
+                    overlay = self.overlays[ol_key]
+                    current_overlay_dicts.append(overlay.nodes[overlay.current_node_id].content)
+                    current_overlay_steps.append(overlay.nodes[overlay.current_node_id].meta)
+                    ol_edge_id = self.choose_overlay_edge(ol_key, overlay.current_node_id)
+                    # append
+                    ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
+                    if ol_edge.dur != None:
+                        dur_modificators.append(ol_edge.dur)
+                    if ol_edge.prob != None:
+                        prob_modificators.append(ol_edge.prob)
+                        # forward incrementation of step counter
+                    overlay.nodes[ol_edge.dest].meta = overlay.nodes[overlay.current_node_id].meta + 1
+                    overlay.current_node_id = ol_edge.dest
+                self.sched_next_node(session, graph_id, graph.current_node_id)            
+                self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
     # TBD : apply edge mod, use step from node
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):
@@ -144,14 +151,16 @@ class GraaBeat():
     def beat(self, session):
         #print("beat, tempo: {}".format(session.tempo), file = session.outfile, flush=True)
         while not self.graph_queue.empty():
-            self.start_graph(session, self.graph_queue.get(), self.sched)
+            graph_start = self.graph_queue.get()
+            self.start_graph(session, graph_start[0], self.sched, graph_start[1])
         if(session.active):
             #it's important only to use integers here !
             self.sched.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
-    def start_graph(self, session, graph_id, sched):
+    def start_graph(self, session, graph_id, sched, delay=0):
         if graph_id not in session.players:
-            session.players[graph_id] = GraaPlayer(session, graph_id, sched)
+            session.players[graph_id] = GraaPlayer(session, graph_id, sched, delay)
         # this might happen if player was created by an overlay addition
         if session.players[graph_id].sched == None:
             session.players[graph_id].sched = sched
+            session.players[graph_id].initial_delay = delay
         session.players[graph_id].start()

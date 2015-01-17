@@ -20,14 +20,14 @@ from graa_base import *
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: graphs containing graphs, for longer compositions !
 # tbd: edge probability modification
+# tbd: edge duration modification
 # tbd: emacs mode
-# tbd: play delay
 # tbd: disklavier backend
 # tbd: supercollider backend
 # tbd: multiple edges at once: b1-500->b2-500->b3 ?
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
 # tbd: documentation
-
+# tbd: play modes: markov, manual, beat (?)
 
 
 """
@@ -89,22 +89,31 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         self.scheduler.active = False
         self.scheduler.sched_thread.join()
         self.beat.beat_thread.join()
-        for player_key in self.session.players.keys():
+        for player_key in self.session.players:            
             player = self.session.players[player_key]
-            player.active = False
-            player.graph_thread.join()
+            if player.active:
+                player.active = False
+                player.graph_thread.join()
         print("Quitting, bye!")
         return True
     def do_play(self, arg):
-        'Play graaph. Start on next beat. If graph already playing, don\'t.'
-        # tbd: check if graph is already playing, to avoid collisions
-        for gra_id in arg.split(":"):            # check if graph is already playing ...
-            if gra_id not in self.session.graphs.keys():
-                print("{} not found!".format(gra_id))
-            elif gra_id not in self.session.players or not self.session.players[gra_id].active:
-                self.beat.queue_graph(gra_id)
+        'Play graph. Start on next beat. If graph already playing, don\'t.'        
+        print(parsed_arg)
+        for start_command in parsed_arg:
+            if type(start_command) is str:
+                self.beat.queue_graph((start_command,0))
             else:
-                print("{} already playing!".format(gra_id))
+                gra_id = start_command[0]
+                if gra_id not in self.session.graphs.keys():
+                    print("{} not found!".format(gra_id))
+                elif gra_id not in self.session.players or not self.session.players[gra_id].active:
+                    start_mode = start_command[1]
+                    if start_mode == "i":
+                        self.beat.start_graph(self.session, gra_id, self.scheduler)
+                    elif type(start_mode) is int:
+                        self.beat.queue_graph((gra_id, start_mode))
+                else:
+                    print("{} already playing!".format(gra_id))
     def do_syntax(self, arg):
         """
  __,  ,_    __,   __,  
@@ -136,8 +145,9 @@ with a duration of 500ms and a probability of 100%!
         for key in arg.split(":"):
             # stop and remove player if playing
             if key in self.session.players:
-                self.session.players[key].active = False
-                self.session.players[key].graph_thread.join()
+                if self.session.players[key].active:
+                    self.session.players[key].active = False
+                    self.session.players[key].graph_thread.join()
                 del self.session.players[key]
             # remove graaph
             if key in self.session.graphs:
