@@ -33,6 +33,7 @@ d1-func(prob, 1):func(...)->d1
 
 from pyparsing import *
 from graa_structures import *
+from graa_base import *
 
 class GraaParser():
     # type flags
@@ -201,16 +202,19 @@ class GraaDispatcher():
                 if cmd == "+":
                     try:
                         print("Adding overlay: {} to graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
+                        # if no player present for current graph, create one
+                        if graph_id not in self.session.players:                            
+                            self.session.players[graph_id] = GraaPlayer(self.session, graph_id, None)
                         self.session.players[graph_id].add_overlay(overlay_id)
                     except:
-                        print("couldn't add overlay!")
+                        print("Couldn't add overlay!")
                         raise
                 elif cmd == "-":
                     try:
                         print("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
                         self.session.players[graph_id].remove_overlay(overlay_id)
                     except:
-                        print("couldn't remove overlay!")
+                        print("Couldn't remove overlay!")
                         raise
                 
 # class for dispatcher errors                

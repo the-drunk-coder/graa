@@ -10,6 +10,7 @@ def replace_kwargs(kwargs, functions, step):
        
 # replace anonymous args, where args is a list of arguments
 def replace_args(args, functions, step):
+    # generate identifiers for unnamed variables
     arg_vars = ["$" + str(i) for i in range(1, 1 + len(args))]
     # process variables
     processed_values = [process_mod_function(key, value, step, functions) for key, value in zip(arg_vars, args)]
