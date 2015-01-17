@@ -5,7 +5,6 @@ from graa_scheduler import *
 from graa_parser import *
 from graa_base import *
 
-
 # IDEAS:
 # learning: store paths, rate performances, automatically play on that basis ? 
 # centralized clock for collaborative graaing ?
@@ -27,7 +26,7 @@ from graa_base import *
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
-
+# tbd: manual timeshift
 
 """
 The main shell
