@@ -23,14 +23,16 @@ import graa_sound_functions
 # tbd: more fine-grained logging
 # tbd: overlay graphs
 # tbd: handle end nodes
-# re-sync graphs on beat (restart command ?)
-# graphs containing graphs, for longer compositions !
-# edge probability modification (maybe)
+# tbd: re-sync graphs on beat (restart command ?)
+# tbd: graphs containing graphs, for longer compositions !
+# tbd: edge probability modification (maybe)
 # tbd: emacs mode
 # tbd: play delay
 # tbd: disklavier backend
 # tbd: multiple edges at once: b1-500->b2-500->b3 ?
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
+# tbd: update overlays in playing graphs 
+
 
 # OVERLAY PATTERN MATCHING (if not applicable, ignore):
 # ol1|$1=func($1) -> first unnamed arg will be replaced by func($1) -- analogous fo f(float), s(string) etc
@@ -122,7 +124,7 @@ class GraaPlayer():
             args = node.content["args"]
             kwargs = node.content["kwargs"]
             for functions, step in zip(overlay_dicts, overlay_steps):
-                #args = replace_args(node.content["args"], functions, step)
+                args = replace_args(node.content["args"], functions, step)
                 kwargs = replace_kwargs(node.content["kwargs"], functions, step)
             # try loading function from default library
             # evaluating the function string at runtime here, as
@@ -304,7 +306,7 @@ with a duration of 500ms and a probability of 100%!
                     #remove overlay from players
                     if key in self.session.players[player].overlays:
                         del self.session.players[player].overlays[key]
-                del self.session.overlay[key]                               
+                del self.session.overlays[key]                               
     def default(self, arg):
         try:
             self.dispatcher.dispatch(self.parser.parse(arg))

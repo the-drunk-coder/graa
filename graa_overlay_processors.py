@@ -1,11 +1,12 @@
-import graa_overlay_functions
+import copy, graa_overlay_functions
 
 # replace named args, where kwargs is a dictionary of arguments
 def replace_kwargs(kwargs, functions, step):
-    # convert strings in kwargs to actual type
+    # new empty dictionary, so orignal arguments won't be destroyed ... 
+    new_kwargs = {}
     for arg_key in kwargs.keys():
-        kwargs[arg_key] = process_mod_function(arg_key, kwargs[arg_key], step, functions)
-    return kwargs
+        new_kwargs[arg_key] = process_mod_function(arg_key, kwargs[arg_key], step, functions)
+    return new_kwargs
        
 # replace anonymous args, where args is a list of arguments
 def replace_args(args, functions, step):
@@ -30,4 +31,5 @@ def process_mod_function(key, orig_value, step, functions):
             else:
                 func_args.append(arg_id)                                 
         return func(*func_args)
-                        
+    else:
+        return orig_value
