@@ -31,6 +31,9 @@ Handles one graph and all its overlays.
 
 Each graph lives in its own player, each player has its own thread.
 
+Each player con only be started once. That is, if you restart the graph,
+a new player will be spawned
+
 """
 class GraaPlayer():   
     def __init__(self, session, graph_id, sched, delay=0):
@@ -40,11 +43,17 @@ class GraaPlayer():
         self.graph_id = graph_id
         self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
         self.graph_thread.deamon = True
+        self.started = False
         self.active = False
         self.initial_delay = delay
     def start(self):
         self.active = True
+        self.started = True
         self.graph_thread.start()
+    def can_be_deleted(self):
+        thread_active = self.graph_thread.is_alive()
+        # ifa player has been started once, but is not active anymore, it can be deleted ...
+        return not thread_active and not self.active and self.started
     # function only to be called from outside
     def hold(self):
         self.active = False
@@ -100,8 +109,10 @@ class GraaPlayer():
                     self.sched_next_node(session, graph_id, graph.current_node_id)            
                 except:                    
                     print("Couldn't schedule next node for graph {}, ending!".format(graph_id), file=session.outfile, flush=True)           
+                    self.active = False
                     self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
                     return
+                # otherwise, just eval 
                 self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
     # TBD : apply edge mod, use step from node
     # schedule next node
@@ -166,25 +177,24 @@ class GraaBeat():
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
         print("Queuing graph with id: {}.".format(graph_id), file=self.session.outfile, flush=True)
-    # function to be called by scheduler in separate process
-    def beat(self, session):
-        #print("beat, tempo: {}".format(session.tempo), file = session.outfile, flush=True)
+    # garbage collection: delete deletable players
+    def collect_garbage_players(self, session):
+        deletable_players = [session.players[player_key].graph_id for player_key in session.players if session.players[player_key].can_be_deleted()]        
+        if len(deletable_players) > 0:
+            print("Putting players {} to garbage.".format(deletable_players), file=self.session.outfile, flush=True)
+        while len(deletable_players) != 0:            
+            del session.players[deletable_players.pop()]
+    # function to be called by scheduler in separate process    
+    def beat(self, session):        
         while not self.graph_queue.empty():
             graph_start = self.graph_queue.get()
-            self.start_graph(session, graph_start[0], self.sched, graph_start[1])        
-        # garbage collection
-        delete_keys = []
-        for player_key in self.session.players:
-            if not self.session.players[player_key].graph_thread.is_alive():
-                print("Putting player {} to garbage!".format(player_key), file=self.session.outfile, flush=True)
-                delete_keys.append(player_key)
-        while len(delete_keys) != 0:
-            del self.session.players[delete_keys.pop()]
+            self.start_graph(session, graph_start[0], self.sched, graph_start[1])
+        self.collect_garbage_players(session)
+        # schedule next beat
         if(session.active):
             #it's important only to use integers here !
             self.sched.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
     def start_graph(self, session, graph_id, sched, delay=0):
-        # on-the-fly garbage collection
         if graph_id not in session.players:
             session.players[graph_id] = GraaPlayer(session, graph_id, sched, delay)            
         # this might happen if player was created by an overlay addition

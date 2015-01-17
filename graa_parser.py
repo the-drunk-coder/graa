@@ -70,7 +70,7 @@ class GraaParser():
     line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def ^ ol_application
     line.setParseAction(lambda t: t.asList())
     # Additional rules to parse command inputs
-    delay_command = Suppress("+") + (Word(nums) ^ Word("i"))
+    delay_command = Suppress("@") + (Word(nums) ^ Word("i"))
     delay_command.setParseAction(lambda t: GraaParser.typify(t[0]))
     start_command = graph_id ^ Group(graph_id + delay_command) 
     #start_command.setParseAction(lambda t: t.asList())

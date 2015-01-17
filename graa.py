@@ -93,32 +93,20 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         return True
     def do_play(self, arg):
         'Play graph. Start on next beat. If graph already playing, don\'t.' 
+        self.beat.collect_garbage_players(self.session)
         parsed_arg = self.parser.start_line.parseString(arg)
         for start_command in parsed_arg:
             if type(start_command) is str:
                 if start_command not in self.session.graphs:
                     print("{} not found!".format(start_command))                    
-                else:
-                    # happens if oneshot graph has been played
-                    if start_command in self.session.players and not self.session.players[start_command].graph_thread.is_alive():
-                        print("Putting player {} to garbage!".format(start_command), file=self.session.outfile, flush=True)
-                        del self.session.players[start_command]                
+                else:                                        
                     self.beat.queue_graph((start_command,0))
             else:
                 gra_id = start_command[0]
                 if gra_id not in self.session.graphs:
                     print("{} not found!".format(gra_id))
-                # if graph has been initialized without startihg
+                # if graph has been initialized without starting
                 elif gra_id not in self.session.players or not self.session.players[gra_id].active:
-                    start_mode = start_command[1]
-                    if start_mode == "i":
-                        self.beat.start_graph(self.session, gra_id, self.scheduler)
-                    elif type(start_mode) is int:
-                        self.beat.queue_graph((gra_id, start_mode))
-                # if graph has been running once before
-                elif gra_id in self.session.players and not self.session.players[gra_id].graph_thread.is_alive():
-                    print("Putting player {} to garbage!".format(gra_id), file=self.session.outfile, flush=True)
-                    del self.session.players[gra_id]                
                     start_mode = start_command[1]
                     if start_mode == "i":
                         self.beat.start_graph(self.session, gra_id, self.scheduler)
