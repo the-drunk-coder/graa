@@ -20,7 +20,6 @@ from graa_base import *
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: graphs containing graphs, for longer compositions !
 # tbd: edge probability modification
-# tbd: edge duration modification
 # tbd: emacs mode
 # tbd: disklavier backend
 # tbd: supercollider backend
@@ -97,8 +96,8 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         print("Quitting, bye!")
         return True
     def do_play(self, arg):
-        'Play graph. Start on next beat. If graph already playing, don\'t.'        
-        print(parsed_arg)
+        'Play graph. Start on next beat. If graph already playing, don\'t.' 
+        parsed_arg = self.parser.start_line.parseString(arg)
         for start_command in parsed_arg:
             if type(start_command) is str:
                 self.beat.queue_graph((start_command,0))
