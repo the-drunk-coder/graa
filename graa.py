@@ -29,7 +29,6 @@ import graa_sound_functions
 # tbd: supercollider backend
 # tbd: multiple edges at once: b1-500->b2-500->b3 ?
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
-# tbd: update overlays in playing graphs 
 # tbd: documentation
 
 """
@@ -55,6 +54,13 @@ class GraaPlayer():
         self.overlays[overlay_id] = copy.deepcopy(self.session.overlays[overlay_id])                                                  
     def remove_overlay(self, overlay_id):        
         del self.overlays[overlay_id]
+    def update_overlay(self, overlay_id):
+        current_overlay = self.overlays[overlay_id] 
+        updated_overlay = copy.deepcopy(self.session.overlays[overlay_id])
+        # update current node and step counter
+        updated_overlay.current_node_id = current_overlay.current_node_id
+        updated_overlay.nodes[updated_overlay.current_node_id].meta = current_overlay.nodes[current_overlay.current_node_id].meta
+        self.overlays[overlay_id] = updated_overlay
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]

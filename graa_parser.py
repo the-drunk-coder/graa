@@ -171,6 +171,9 @@ class GraaDispatcher():
             ol_content.meta = 0
             self.session.overlays[ol_id].add_node(ol_content)
             print("Adding node: {} to overlay: {}'".format(ol_content, ol_id), file=self.outfile, flush=True)
+        for player_id in self.session.players:
+            if ol_id in self.session.players[player_id].overlays:
+                self.session.players[player_id].update_overlay(ol_id)                
     def dispatch_normal(self, elem):
         graph_id = elem[1]
         if graph_id not in self.session.graphs:
