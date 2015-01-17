@@ -158,8 +158,7 @@ with a duration of 500ms and a probability of 100%!
             # stop and remove player if playing
             if key in self.session.players:
                 if self.session.players[key].active:
-                    self.session.players[key].active = False
-                    self.session.players[key].graph_thread.join()               
+                    self.session.players[key].hold()               
                 del self.session.players[key]
             # remove graaph
             if key in self.session.graphs:

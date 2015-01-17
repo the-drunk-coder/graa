@@ -45,6 +45,7 @@ class GraaPlayer():
     def start(self):
         self.active = True
         self.graph_thread.start()
+    # function only to be called from outside
     def hold(self):
         self.active = False
         self.graph_thread.join() 
@@ -184,9 +185,6 @@ class GraaBeat():
             self.sched.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
     def start_graph(self, session, graph_id, sched, delay=0):
         # on-the-fly garbage collection
-        if graph_id in session.players.keys() and not session.players[graph_id].graph_thread.is_alive():
-            print("Putting player {} to garbage!".format(player_key), file=self.session.outfile, flush=True)
-            del session.players[graph_id]
         if graph_id not in session.players:
             session.players[graph_id] = GraaPlayer(session, graph_id, sched, delay)            
         # this might happen if player was created by an overlay addition
