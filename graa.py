@@ -16,39 +16,21 @@ import graa_sound_functions
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE:
-# tbd MULTIPLE COMMANDS! (emacs mode?)
-# tbd: removing graphs
 # tbd: resetting graphs
 # tbd: validation: all nodes reachable etc ?
 # tbd: more fine-grained logging
-# tbd: overlay graphs
 # tbd: handle end nodes
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: graphs containing graphs, for longer compositions !
-# tbd: edge probability modification (maybe)
+# tbd: edge probability modification
 # tbd: emacs mode
 # tbd: play delay
 # tbd: disklavier backend
+# tbd: supercollider backend
 # tbd: multiple edges at once: b1-500->b2-500->b3 ?
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
 # tbd: update overlays in playing graphs 
-
-
-# OVERLAY PATTERN MATCHING (if not applicable, ignore):
-# ol1|$1=func($1) -> first unnamed arg will be replaced by func($1) -- analogous fo f(float), s(string) etc
-# ol1|vowel=func(vowel) -> named parameter vowel will be replaced by func vowel 
-# functions should be found in graa_mod
-
-# STEP COUNTER FOR OVERLAYS, store in meta 
-# func($1) = dependent on orig. arg
-# func(step) = dependent on step
-# func() = func without any argument
-# func($1, step, param) = dependent on both, plus some random param
-
-# OVERLAY COMMANDS
-# <graphs>+<overlays> add overlays to graphs
-# <graphs>-<overlays> remove overlays from graphs d:e:f+a:d
-
+# tbd: documentation
 
 """
 The Player class.
@@ -71,6 +53,8 @@ class GraaPlayer():
     def add_overlay(self, overlay_id):
         # add a copy of the overlay, as each overlay should act independent for each player
         self.overlays[overlay_id] = copy.deepcopy(self.session.overlays[overlay_id])                                                  
+    def remove_overlay(self, overlay_id):        
+        del self.overlays[overlay_id]
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]
@@ -132,8 +116,7 @@ class GraaPlayer():
             print(args, file=session.outfile, flush=True)
             getattr(graa_sound_functions, node.content["type"])(*args, **kwargs)            
         except:
-            print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)
-            #print(d.message)
+            print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)           
             raise
 
 
@@ -257,7 +240,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
             else:
                 print("{} already playing!".format(gra_id))
     def do_iplay(self, arg):
-        'Play graaph. Start immediately. If graph is already playing, don\'t.'
+        'Play graph. Start immediately. If graph is already playing, don\'t.'
         for gra_id in arg.split(":"):
             # check if graph is already playing ...
             if gra_id not in self.session.players.keys():
@@ -278,7 +261,7 @@ A node is specified as follows:
 
 d1|dirt:0:casio:1
 
-This will specify a graaph called 'd' and a
+This will specify a graph called 'd' and a
 node with id '1', using dirt as backend
         
 An edge is specified as follows:
@@ -291,7 +274,7 @@ with a duration of 500ms and a probability of 100%!
         """
         print("Dummy command for syntax help!")
     def do_del(self, arg):
-        "Delete graaph or overlay, with all consequences!"
+        "Delete graph or overlay, with all consequences!"
         for key in arg.split(":"):
             # stop and remove player if playing
             if key in self.session.players:

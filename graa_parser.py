@@ -64,7 +64,7 @@ class GraaParser():
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))
     ol_edge_def = node_id + Optional(Suppress("-") + ol_transition) + Suppress("->") + node_id
     ol_edge_def.setParseAction(lambda t: GraaParser.parse_ol_edge(t))
-    ol_application = Group(OneOrMore(graph_id + Optional(param_divider))) + Suppress("+") + Group(OneOrMore(graph_id + Optional(param_divider)))
+    ol_application = Group(OneOrMore(graph_id + Optional(param_divider))) + (Word("+") ^ Word("-")) + Group(OneOrMore(graph_id + Optional(param_divider)))
     ol_application.setParseAction(lambda t: GraaParser.parse_ol_application(t.asList()))
     line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def ^ ol_application
     line.setParseAction(lambda t: t.asList())
@@ -191,16 +191,24 @@ class GraaDispatcher():
             self.session.graphs[graph_id].add_node(content)                                                  
     def dispatch_ol_application(self, elem):
         graph_ids = elem[1][0]
-        overlay_ids = elem[1][1]
-        for graph_id in graph_ids:
-            print(graph_id)
+        cmd = elem[1][1]
+        overlay_ids = elem[1][2]
+        for graph_id in graph_ids:            
             for overlay_id in overlay_ids:
-                try:
-                    print(overlay_id)
-                    self.session.players[graph_id].add_overlay(overlay_id)
-                except:
-                    print("couldn't add overlay!")
-                    raise
+                if cmd == "+":
+                    try:
+                        print("Adding overlay: {} to graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
+                        self.session.players[graph_id].add_overlay(overlay_id)
+                    except:
+                        print("couldn't add overlay!")
+                        raise
+                elif cmd == "-":
+                    try:
+                        print("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
+                        self.session.players[graph_id].remove_overlay(overlay_id)
+                    except:
+                        print("couldn't remove overlay!")
+                        raise
                 
 # class for dispatcher errors                
 class DispatcherError(Exception):
