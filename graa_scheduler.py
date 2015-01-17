@@ -32,6 +32,7 @@ class GraaScheduler():
                             func_tuple[0](*func_tuple[1],**func_tuple[2])
                         except:
                             print("Couldn't execute scheduled function!", file=outfile, flush=True)
+                            raise
                     del schedict[past]
                     correction = now - past
                     break

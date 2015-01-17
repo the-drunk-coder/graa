@@ -65,7 +65,7 @@ class GraaParser():
     ol_edge_def = node_id + Optional(Suppress("-") + ol_transition) + Suppress("->") + node_id
     ol_edge_def.setParseAction(lambda t: GraaParser.parse_ol_edge(t))
     ol_application = Group(OneOrMore(graph_id + Optional(param_divider))) + Suppress("+") + Group(OneOrMore(graph_id + Optional(param_divider)))
-    ol_application.setParseAction(lambda t: GraaParser.parse_ol_application(t))
+    ol_application.setParseAction(lambda t: GraaParser.parse_ol_application(t.asList()))
     line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def ^ ol_application
     line.setParseAction(lambda t: t.asList())
     # convert string representation to actual (typed) value
@@ -153,22 +153,24 @@ class GraaDispatcher():
         ol_id = ol_elem[1]
         if ol_id not in self.session.overlays:
             self.session.overlays[ol_id] = Graph()
-            print("Initialized overlay with id: \'" + graph_id + "\'", file=self.outfile, flush=True)            
+            print("Initialized overlay with id: \'" + ol_id + "\'", file=self.outfile, flush=True)            
         # otherwise, dispatch the element
         overlay = self.session.overlays[ol_id]
         ol_content = ol_elem[2]
         if type(ol_content) is Edge:
-            src = elem[3]
+            src = ol_elem[3]
             dst = ol_content.dest
             # initialize step counter with 0
-            content.meta = 0
+            # content.meta = 0
             if src not in overlay.nodes or dst not in overlay.nodes:
                 raise DispatcherError("Invalid overlay edge, source or destination node not present!")
-            self.session.overlays[ol_id].add_edge(src, ol_content)                                                  
+            self.session.overlays[ol_id].add_edge(src, ol_content)
+            print("Adding edge: {} to overlay: {}'".format(ol_content, ol_id), file=self.outfile, flush=True)
         elif type(ol_content) is Node:
-            # initialize step counter with 0
+            #initialize step counter with 0
             ol_content.meta = 0
             self.session.overlays[ol_id].add_node(ol_content)
+            print("Adding node: {} to overlay: {}'".format(ol_content, ol_id), file=self.outfile, flush=True)
     def dispatch_normal(self, elem):
         graph_id = elem[1]
         if graph_id not in self.session.graphs:
@@ -188,14 +190,26 @@ class GraaDispatcher():
             print("Adding node: {} to graph: {}'".format(content, graph_id), file=self.outfile, flush=True)
             self.session.graphs[graph_id].add_node(content)                                                  
     def dispatch_ol_application(self, elem):
-        pass
-    
+        graph_ids = elem[1][0]
+        overlay_ids = elem[1][1]
+        for graph_id in graph_ids:
+            print(graph_id)
+            for overlay_id in overlay_ids:
+                try:
+                    print(overlay_id)
+                    self.session.players[graph_id].add_overlay(overlay_id)
+                except:
+                    print("couldn't add overlay!")
+                    raise
+                
+# class for dispatcher errors                
 class DispatcherError(Exception):
     def __init__(self, message):
         self.message = message
     def __str__(self):
         return repr(self.message)
     
+"""
 if __name__ == "__main__":
     print(GraaParser.line.parseString("ol1|$1=func($1, b1, step, 0.1):vowel=func(2)"))
     print(GraaParser.line.parseString("d1|dirt:0:casio:1:vowel=o:d"))
@@ -212,4 +226,4 @@ if __name__ == "__main__":
     #print(edge2.dur)
     print(GraaParser.line.parseString("d+e"))
     print(GraaParser.line.parseString("d:a+e:w"))
-    
+"""    

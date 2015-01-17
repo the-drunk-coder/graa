@@ -1,6 +1,6 @@
 import random
 
-def random_vowel():
+def randomvowel():
     return random.choice(['a', 'e', 'i', 'o', 'u'])
 
 def add(i, j):

@@ -9,9 +9,7 @@ from graa_overlay_processors import *
 # default sound function library
 import graa_sound_functions
 
-
 # IDEAS:
-# don't modifiy the durations at player-level, but only in the data structure!
 # learning: store paths, rate performances, automatically play on that basis ? 
 # centralized clock for collaborative graaing ?
 # node locking mode ? (give nodes a duration ?)
@@ -28,6 +26,11 @@ import graa_sound_functions
 # re-sync graphs on beat (restart command ?)
 # graphs containing graphs, for longer compositions !
 # edge probability modification (maybe)
+# tbd: emacs mode
+# tbd: play delay
+# tbd: disklavier backend
+# tbd: multiple edges at once: b1-500->b2-500->b3 ?
+# tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
 
 # OVERLAY PATTERN MATCHING (if not applicable, ignore):
 # ol1|$1=func($1) -> first unnamed arg will be replaced by func($1) -- analogous fo f(float), s(string) etc
@@ -41,10 +44,9 @@ import graa_sound_functions
 # func($1, step, param) = dependent on both, plus some random param
 
 # OVERLAY COMMANDS
-# ol <graph> - mark graph as overlay
 # <graphs>+<overlays> add overlays to graphs
 # <graphs>-<overlays> remove overlays from graphs d:e:f+a:d
-# del <ol_ids> delete overlays OR graphs
+
 
 """
 The Player class.
@@ -70,34 +72,46 @@ class GraaPlayer():
     def play(self, session, graph_id):
         graph = session.graphs[graph_id]
         current_node = graph.nodes[graph.current_node_id]
-        # collect overlay functions
+        # collect overlay node functions in lists
         current_overlay_dicts = []
         current_overlay_steps = []
+        # collect edge modificator functions in list
+        dur_modificators = []
+        prob_modificators = []
         for ol_key in self.overlays.keys():
             overlay = self.overlays[ol_key]
             current_overlay_dicts.append(overlay.nodes[overlay.current_node_id].content)
-            current_overlay_steps.append(overlay.steps)
-            overlay.meta += 1
+            current_overlay_steps.append(overlay.nodes[overlay.current_node_id].meta)
+            ol_edge_id = self.choose_overlay_edge(ol_key, overlay.current_node_id)
+            # append
+            ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
+            if ol_edge.dur != None:
+                dur_modificators.append(ol_edge.dur)
+            if ol_edge.prob != None:
+                prob_modificators.append(ol_edge.prob)
+            # forward incrementation of step counter
+            overlay.nodes[ol_edge.dest].meta = overlay.nodes[overlay.current_node_id].meta + 1
+            overlay.current_node_id = ol_edge.dest
         if(self.active):
             self.sched_next_node(session, graph_id, graph.current_node_id)
             self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
+    # TBD : apply edge mod, use step from node
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
-        
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
-
-        #for ol_key in self.overlays.keys():
-        #    overlay = self.overlays[ol_key]
-            
-
-        # print("chosen destinination: {}".format(edge.dest), file=session.outfile, flush=True)
-        
-        session.graphs[graph_id].current_node_id = edge.dest
-        self.sched.time_function(self.play, [session, graph_id], {}, edge.dur)        
+        session.graphs[graph_id].current_node_id = edge.dest        
+        self.sched.time_function(self.play, [session, graph_id], {}, edge.dur)
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):
         weights = [edge.prob for edge in session.graphs[graph_id].edges[node_id]]
+        choice_list = []
+        for i, weight in zip(range(len(weights)), weights):
+           choice_list += [str(i)] * weight
+        return int(random.choice(choice_list))
+    # choose overlay edge
+    def choose_overlay_edge(self, overlay_id, node_id):
+        weights = [edge.prob for edge in self.overlays[overlay_id].edges[node_id]]
         choice_list = []
         for i, weight in zip(range(len(weights)), weights):
            choice_list += [str(i)] * weight
@@ -108,11 +122,12 @@ class GraaPlayer():
             args = node.content["args"]
             kwargs = node.content["kwargs"]
             for functions, step in zip(overlay_dicts, overlay_steps):
-                args = replace_args(node.content["args"], functions, step)
+                #args = replace_args(node.content["args"], functions, step)
                 kwargs = replace_kwargs(node.content["kwargs"], functions, step)
             # try loading function from default library
             # evaluating the function string at runtime here, as
             # here might be a dynamic function library in the future ...                
+            print(args, file=session.outfile, flush=True)
             getattr(graa_sound_functions, node.content["type"])(*args, **kwargs)            
         except:
             print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)

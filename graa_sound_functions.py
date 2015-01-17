@@ -49,3 +49,10 @@ def dirt(*args, **kwargs):
     dc[int(args[0])].send(msg)
     print("sample: {}, out: {}".format(args[1] + ":" + str(args[2]), args[0]), file=outfile, flush=True)
     
+"""
+
+Disklavier function, midi with "collision detection":
+
+if a node is already playing, dont play again 
+
+"""
