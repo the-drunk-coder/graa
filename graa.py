@@ -15,7 +15,6 @@ from graa_base import *
 # tbd: resetting graphs
 # tbd: validation: all nodes reachable etc ?
 # tbd: more fine-grained logging
-# tbd: handle end nodes
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: graphs containing graphs, for longer compositions !
 # tbd: edge probability modification
@@ -58,14 +57,12 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         else:
             try:
                 if arg == "all":
-                    for player_key in self.session.players.keys():
-                        self.session.players[player_key].active = False
-                        self.session.players[player_key].graph_thread.join()
+                    for player_key in self.session.players:
+                        self.session.players[player_key].hold()
                     self.session.players={}
                 else:
                     for player_key in arg.split(":"):
-                        self.session.players[player_key].active = False
-                        self.session.players[player_key].graph_thread.join()
+                        self.session.players[player_key].hold()                   
                         del self.session.players[player_key]
             except:
                 print("Couldn't hold graph, probably not played yet!")
@@ -99,12 +96,29 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         parsed_arg = self.parser.start_line.parseString(arg)
         for start_command in parsed_arg:
             if type(start_command) is str:
-                self.beat.queue_graph((start_command,0))
+                if start_command not in self.session.graphs:
+                    print("{} not found!".format(start_command))                    
+                else:
+                    # happens if oneshot graph has been played
+                    if start_command in self.session.players and not self.session.players[start_command].graph_thread.is_alive():
+                        print("Putting player {} to garbage!".format(start_command), file=self.session.outfile, flush=True)
+                        del self.session.players[start_command]                
+                    self.beat.queue_graph((start_command,0))
             else:
                 gra_id = start_command[0]
-                if gra_id not in self.session.graphs.keys():
+                if gra_id not in self.session.graphs:
                     print("{} not found!".format(gra_id))
+                # if graph has been initialized without startihg
                 elif gra_id not in self.session.players or not self.session.players[gra_id].active:
+                    start_mode = start_command[1]
+                    if start_mode == "i":
+                        self.beat.start_graph(self.session, gra_id, self.scheduler)
+                    elif type(start_mode) is int:
+                        self.beat.queue_graph((gra_id, start_mode))
+                # if graph has been running once before
+                elif gra_id in self.session.players and not self.session.players[gra_id].graph_thread.is_alive():
+                    print("Putting player {} to garbage!".format(gra_id), file=self.session.outfile, flush=True)
+                    del self.session.players[gra_id]                
                     start_mode = start_command[1]
                     if start_mode == "i":
                         self.beat.start_graph(self.session, gra_id, self.scheduler)
@@ -145,7 +159,7 @@ with a duration of 500ms and a probability of 100%!
             if key in self.session.players:
                 if self.session.players[key].active:
                     self.session.players[key].active = False
-                    self.session.players[key].graph_thread.join()
+                    self.session.players[key].graph_thread.join()               
                 del self.session.players[key]
             # remove graaph
             if key in self.session.graphs:
