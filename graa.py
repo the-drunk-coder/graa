@@ -3,6 +3,7 @@ import cmd, readline
 
 from graa_scheduler import *
 from graa_parser import *
+from graa_dispatcher import *
 from graa_base import *
 
 # IDEAS:
@@ -33,9 +34,10 @@ from graa_base import *
 # tbd: mute nodes through overlays
 # tbd: two overlay modes d+ol: non-persistent, only apply functions, d+=ol: store values
 # tbd: note parser for midi backend
-# tbd: uncouple language from shell, move to dispatcher
 # tbd: write graph generators, like: tournament tr dirt~0:bd:0 5 1024 (tournament graph with 5 nodes...) (circle, bjoerklund)
-# tbd: write graph transformers, like, reverse, tournament, rotate (?) 
+# tbd: write graph transformers that workon the structure of the graph, like, reverse, tournament, rotate (?), revert, minspan, tsp
+# tbd: load source files
+# tbd: expand -> expandgraph to code in it's current state
 
 """
 The main shell
@@ -55,34 +57,17 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
     def __init__(self):
         outfile = open('out', 'a')
         self.session = GraaSession(outfile)
-        self.parser = GraaParser
-        self.dispatcher = GraaDispatcher(self.session)
+        self.parser = GraaParser        
         self.scheduler = GraaScheduler()
         self.beat = GraaBeat(self.session, self.scheduler)
+        self.dispatcher = GraaDispatcher(self.session, self. beat)
         super().__init__()
     def do_hold(self, arg):
         'Hold graph in its current state.'
-        if len(arg) == 0:
-            print("Please specify graph!")
-        else:
-            try:
-                if arg == "all":
-                    for player_key in self.session.players:
-                        self.session.players[player_key].hold()
-                    self.session.players={}
-                else:
-                    for player_key in arg.split(":"):
-                        self.session.players[player_key].hold()                   
-                        del self.session.players[player_key]
-            except:
-                print("Couldn't hold graph, probably not played yet!")
+        self.dispatcher.dispatch([(GraaDispatcher.HOLD, arg)])
     def do_tempo(self, arg):
         'Set beat tempo (measured in BPM).'
-        try:
-            self.session.tempo = int(arg)
-            print("Beat tempo set to {} bpm!".format(self.session.tempo))
-        except ValueError:
-            print("Invalid tempo specification! - " + arg)
+        self.dispatcher.dispatch([(GraaDispatcher.TEMPO, arg)])
     def do_print(self, arg):
         'Print specified graaph to file.'
         self.session.graphs[arg].render("graph_" + arg, "comment")
@@ -102,28 +87,10 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         print("Quitting, bye!")
         return True
     def do_play(self, arg):
-        'Play graph. Start on next beat. If graph already playing, don\'t.' 
+        'Play graph. If graph already playing, don\'t.' 
         self.beat.collect_garbage_players(self.session)
         parsed_arg = self.parser.start_line.parseString(arg)
-        for start_command in parsed_arg:
-            if type(start_command) is str:
-                if start_command not in self.session.graphs:
-                    print("{} not found!".format(start_command))                    
-                else:                                        
-                    self.beat.queue_graph((start_command,0))
-            else:
-                gra_id = start_command[0]
-                if gra_id not in self.session.graphs:
-                    print("{} not found!".format(gra_id))
-                # if graph has been initialized without starting
-                elif gra_id not in self.session.players or not self.session.players[gra_id].active:
-                    start_mode = start_command[1]
-                    if start_mode == "i":
-                        self.beat.start_graph(self.session, gra_id, self.scheduler)
-                    elif type(start_mode) is int:
-                        self.beat.queue_graph((gra_id, start_mode))
-                else:
-                    print("{} already playing!".format(gra_id))
+        self.dispatcher.dispatch([(GraaDispatcher.PLAY, parsed_arg)])
     def do_syntax(self, arg):
         """
  __,  ,_    __,   __,  
@@ -152,30 +119,13 @@ with a duration of 500ms and a probability of 100%!
         print("Dummy command for syntax help!")
     def do_del(self, arg):
         "Delete graph or overlay, with all consequences!"
-        for key in arg.split(":"):
-            # stop and remove player if playing
-            if key in self.session.players:
-                if self.session.players[key].active:
-                    self.session.players[key].hold()               
-                del self.session.players[key]
-            # remove graaph
-            if key in self.session.graphs:
-                del self.session.graphs[key]
-            if key in self.session.overlays:
-                for player in self.session.players.keys():
-                    #remove overlay from players
-                    if key in self.session.players[player].overlays:
-                        del self.session.players[player].overlays[key]
-                del self.session.overlays[key]                               
+        keys = arg.split(":")
+        self.dispatcher.dispatch([(GraaDispatcher.DELETE, keys)])                                           
     def default(self, arg):
         try:
             self.dispatcher.dispatch(self.parser.parse(arg))
         except ParseException:
             print("Invalid input! Please type \'help\' or \'?\' for assistance!")
-        except DispatcherError as de:
-            print(de.message)
-
-        
 
 # MAIN!!
 if __name__ == '__main__':
