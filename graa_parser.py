@@ -70,7 +70,7 @@ class GraaParser():
     line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def ^ ol_application
     line.setParseAction(lambda t: t.asList())
     # Additional rules to parse command inputs
-    delay_command = Suppress("@") + (Word(nums) ^ Word("i"))
+    delay_command = Suppress("@") + (Word(nums) ^ Word("now"))
     delay_command.setParseAction(lambda t: GraaParser.typify(t[0]))
     start_command = graph_id ^ Group(graph_id + delay_command) 
     #start_command.setParseAction(lambda t: t.asList())
@@ -159,6 +159,9 @@ class GraaDispatcher():
             print("Can't dispatch {}, no dispatcher present!".format(elem))        
     def dispatch_overlay(self, ol_elem):
         ol_id = ol_elem[1]
+        if ol_id in self.session.graphs:
+            print("Can't add overlay element to graph!", file=self.outfile, flush=True)
+            return
         if ol_id not in self.session.overlays:
             self.session.overlays[ol_id] = Graph()
             print("Initialized overlay with id: \'" + ol_id + "\'", file=self.outfile, flush=True)            
@@ -182,8 +185,11 @@ class GraaDispatcher():
         for player_id in self.session.players:
             if ol_id in self.session.players[player_id].overlays:
                 self.session.players[player_id].update_overlay(ol_id)                
-    def dispatch_normal(self, elem):
+    def dispatch_normal(self, elem):        
         graph_id = elem[1]
+        if graph_id in self.session.overlays:
+            print("Can't add graph element to overlay!", file=self.outfile, flush=True)
+            return
         if graph_id not in self.session.graphs:
             self.session.graphs[graph_id] = Graph()
             print("Initialized graph with id: \'" + graph_id + "\'", file=self.outfile, flush=True)
@@ -208,18 +214,31 @@ class GraaDispatcher():
             for overlay_id in overlay_ids:
                 if cmd == "+":
                     try:
-                        print("Adding overlay: {} to graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
-                        # if no player present for current graph, create one
-                        if graph_id not in self.session.players:                            
-                            self.session.players[graph_id] = GraaPlayer(self.session, graph_id, None)
-                        self.session.players[graph_id].add_overlay(overlay_id)
+                        if graph_id == "all":
+                            print("Adding overlay: {} to all graphs'".format(overlay_id), file=self.outfile, flush=True)
+                            for key in self.session.graphs:                                
+                                # if no player present for current graph, create one                        
+                                if key not in self.session.players:                            
+                                    self.session.players[key] = GraaPlayer(self.session, key, None)
+                                self.session.players[key].add_overlay(overlay_id)
+                        else:
+                            print("Adding overlay: {} to graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
+                            # if no player present for current graph, create one                        
+                            if graph_id not in self.session.players:                            
+                                self.session.players[graph_id] = GraaPlayer(self.session, graph_id, None)
+                            self.session.players[graph_id].add_overlay(overlay_id)
                     except:
                         print("Couldn't add overlay!")
                         raise
                 elif cmd == "-":
                     try:
-                        print("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
-                        self.session.players[graph_id].remove_overlay(overlay_id)
+                        if graph_id == "all":
+                            print("Removing overlay: {} from all graphs'".format(overlay_id), file=self.outfile, flush=True)
+                            for key in self.session.graphs:                                                                
+                                self.session.players[key].remove_overlay(overlay_id)
+                        else:
+                            print("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id), file=self.outfile, flush=True)
+                            self.session.players[graph_id].remove_overlay(overlay_id)
                     except:
                         print("Couldn't remove overlay!")
                         raise

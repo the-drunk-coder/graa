@@ -1,4 +1,4 @@
-import threading, copy, random, _thread
+import threading, copy, random
 from queue import Queue
 from graa_structures import *
 from graa_overlay_processors import * 
@@ -52,15 +52,17 @@ class GraaPlayer():
         self.graph_thread.start()
     def can_be_deleted(self):
         thread_active = self.graph_thread.is_alive()
-        # ifa player has been started once, but is not active anymore, it can be deleted ...
+        # if a player has been started once, but is not active anymore, it can be deleted ...
         return not thread_active and not self.active and self.started
-    # function only to be called from outside
+    # method only to be called from outside
     def hold(self):
         self.active = False
         self.graph_thread.join() 
     def add_overlay(self, overlay_id):
         # add a copy of the overlay, as each overlay should act independent for each player
         self.overlays[overlay_id] = copy.deepcopy(self.session.overlays[overlay_id])                                                      
+    def remove_overlay(self, overlay_id):
+        del self.overlays[overlay_id]
     def update_overlay(self, overlay_id):
         current_overlay = self.overlays[overlay_id] 
         updated_overlay = copy.deepcopy(self.session.overlays[overlay_id])
@@ -93,13 +95,12 @@ class GraaPlayer():
                         # overlay reached its end
                         print("Overlay {} on graph {} reached its end, removing!".format(ol_key, graph_id), file=session.outfile, flush=True)           
                         ol_to_remove.append(ol_key)
-                    else:    
-                        # append
+                    else:                            
                         ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
                         if ol_edge.dur != None:
                             dur_modificators.append(ol_edge.dur)
-                            if ol_edge.prob != None:
-                                prob_modificators.append(ol_edge.prob)
+                        if ol_edge.prob != None:
+                            prob_modificators.append(ol_edge.prob)
                         # forward incrementation of step counter
                         overlay.nodes[ol_edge.dest].meta = overlay.nodes[overlay.current_node_id].meta + 1
                         overlay.current_node_id = ol_edge.dest
@@ -124,6 +125,7 @@ class GraaPlayer():
         self.sched.time_function(self.play, [session, graph_id], {}, edge.dur)
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):        
+        random.seed()
         weights = [edge.prob for edge in session.graphs[graph_id].edges[node_id]]
         choice_list = []
         for i, weight in zip(range(len(weights)), weights):
@@ -131,7 +133,7 @@ class GraaPlayer():
         return int(random.choice(choice_list))
     # choose overlay edge
     def choose_overlay_edge(self, overlay_id, node_id):
-        # end node 
+        random.seed()
         if len(self.overlays[overlay_id].edges[node_id])== 0:
             return None
         weights = [edge.prob for edge in self.overlays[overlay_id].edges[node_id]]
@@ -185,7 +187,7 @@ class GraaBeat():
         while len(deletable_players) != 0:            
             del session.players[deletable_players.pop()]
     # function to be called by scheduler in separate process    
-    def beat(self, session):        
+    def beat(self, session):                
         while not self.graph_queue.empty():
             graph_start = self.graph_queue.get()
             self.start_graph(session, graph_start[0], self.sched, graph_start[1])

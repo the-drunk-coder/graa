@@ -32,7 +32,8 @@ class GraaScheduler():
                             func_tuple[0](*func_tuple[1],**func_tuple[2])
                         except:
                             print("Couldn't execute scheduled function!", file=outfile, flush=True)
-                            raise
+                            # don't raise, as failed function execution shouldn't break the performance
+                            #raise
                     del schedict[past]
                     correction = now - past
                     break

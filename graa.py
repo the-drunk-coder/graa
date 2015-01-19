@@ -17,7 +17,9 @@ from graa_base import *
 # tbd: more fine-grained logging
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: graphs containing graphs, for longer compositions !
-# tbd: edge probability modification
+# tbd: edge probability modification 
+# tbd: edge duration modification
+# tbd: peristent modifications ?
 # tbd: emacs mode
 # tbd: disklavier backend
 # tbd: supercollider backend
@@ -25,7 +27,15 @@ from graa_base import *
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
-# tbd: manual timeshift
+# tbd: manual timeshift: d1@+/-x
+# tbd: multi-command lines
+# tbd: add overlay kwargs if not present
+# tbd: mute nodes through overlays
+# tbd: two overlay modes d+ol: non-persistent, only apply functions, d+=ol: store values
+# tbd: note parser for midi backend
+# tbd: uncouple language from shell, move to dispatcher
+# tbd: write graph generators, like: tournament tr dirt~0:bd:0 5 1024 (tournament graph with 5 nodes...) (circle, bjoerklund)
+# tbd: write graph transformers, like, reverse, tournament, rotate (?) 
 
 """
 The main shell
@@ -126,7 +136,7 @@ Syntax overview!
         
 A node is specified as follows:
 
-d1|dirt:0:casio:1
+d1|dirt~0:casio:1
 
 This will specify a graph called 'd' and a
 node with id '1', using dirt as backend
