@@ -60,7 +60,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
         self.parser = GraaParser        
         self.scheduler = GraaScheduler()
         self.beat = GraaBeat(self.session, self.scheduler)
-        self.dispatcher = GraaDispatcher(self.session, self. beat)
+        self.dispatcher = GraaDispatcher(self.session, self.beat)
         super().__init__()
     def do_hold(self, arg):
         'Hold graph in its current state.'
@@ -86,6 +86,8 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
                 player.graph_thread.join()
         print("Quitting, bye!")
         return True
+    def do_expand(self, arg):
+        print(self.session.graphs[arg])
     def do_play(self, arg):
         'Play graph. If graph already playing, don\'t.' 
         self.beat.collect_garbage_players(self.session)

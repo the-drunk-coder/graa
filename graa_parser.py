@@ -45,6 +45,7 @@ class GraaParser():
     func_param = Word("$." + alphanums)
     func_param.setParseAction(lambda t: GraaParser.typify(t[0]))
     func = Group(func_id + Group(Suppress("(") + ZeroOrMore(func_param + Optional(Suppress(","))) + Suppress(")")))
+    func.setParseAction(lambda t: t.asList())
     func_assign = Group(func_param + Suppress("=") + func)
     func_assign.setParseAction(lambda t: t.asList())
     var_assign = Group(func_param + Suppress("=") + func_param)
@@ -93,7 +94,7 @@ class GraaParser():
         source_node_id = arg[1]
         destination_node_id = arg[-1]
         transition = arg[2]
-        edge = Edge(destination_node_id, transition[0])
+        edge = Edge(graph_id, source_node_id, destination_node_id, transition[0])
         if len(transition) == 2:
             edge.prob = transition[1]
         return (GraaDispatcher.NORMAL_EDGE, graph_id, edge, source_node_id)
@@ -110,7 +111,7 @@ class GraaParser():
             else:
                 node_params["args"].append(param)
         # create and return node
-        return (GraaDispatcher.NORMAL_NODE, graph_id, Node(node_id, node_params))
+        return (GraaDispatcher.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
     def parse_ol_node(arg):        
         graph_id = arg[0]
         node_id = arg[1]
@@ -118,7 +119,7 @@ class GraaParser():
         for param in arg[2:]:
             node_params[param[0]] = param[1]
         # create and return node
-        return (GraaDispatcher.OVERLAY_NODE, graph_id, Node(node_id, node_params))
+        return (GraaDispatcher.OVERLAY_NODE, graph_id, Node(graph_id, node_id, node_params))
     def parse_ol_edge(arg):
         graph_id = arg[0]
         source_node_id = arg[1]
@@ -126,11 +127,11 @@ class GraaParser():
         edge = None
         if(len(arg) == 5):
             transition = arg[2]
-            edge = Edge(destination_node_id, transition[0])
+            edge = Edge(graph_id, source_node_id, destination_node_id, transition[0])
             if len(transition) == 2:
                 edge.prob = transition[1]
         else:
-            edge = Edge(destination_node_id, 100)
+            edge = Edge(graph_id, source_node_id, destination_node_id, None)
         return (GraaDispatcher.OVERLAY_EDGE, graph_id, edge, source_node_id)
     def parse_ol_application(arg):
         return (GraaDispatcher.OL_APPLICATION, arg[0], arg[1])

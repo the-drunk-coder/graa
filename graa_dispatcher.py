@@ -21,6 +21,7 @@ class GraaDispatcher():
     def __init__(self, session, beat):
         self.session = session
         self.beat = beat
+        self.scheduler = beat.sched
         self.dispatcher_map = {}
         self.dispatcher_map[GraaDispatcher.OVERLAY_NODE] = self.dispatch_overlay_node
         self.dispatcher_map[GraaDispatcher.OVERLAY_EDGE] = self.dispatch_overlay_edge

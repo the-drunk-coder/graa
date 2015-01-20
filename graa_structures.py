@@ -18,13 +18,36 @@ A node, consisting of an id, content and some meta information
 
 """
 class Node():
-    def __init__(self, node_id, node_content, meta=""):
+    def __init__(self, graph_id, node_id, node_content, meta=""):        
+        # graph id basically only needed for pretty printing
+        self.graph_id = graph_id
         self.id = node_id
         self.content = node_content
         # space for arbitrary meta information
         self.meta = meta
     def __repr__(self):
-        return "Node id: {} content: {} meta: {}".format(self.id, self.content, self.meta)
+        node_string="{}{}|".format(self.graph_id, self.id)
+        # have to decide between normal and overlay nodes here ... 
+        try:
+            node_string += str(self.content["type"])
+            node_string += "~"
+            for arg in self.content["args"]:
+                node_string += str(arg) + ":"
+            for key in self.content["kwargs"]:
+                node_string += str(key) + "=" + str(self.content["kwargs"][key]) + ":"
+            # remove last ':'
+            node_string = node_string[:-1]
+        except KeyError:
+            # this should mean it's an ol node
+            for key in self.content:
+                node_string += str(key) + "=" + str(self.content[key][0]) + "("
+                for arg in self.content[key][1]:
+                    node_string += str(arg) + ","
+                node_string = node_string[:-1]
+                node_string += "):"
+            # remove last ':'
+            node_string = node_string[:-1]
+        return node_string
 
 """
 An edge, consisting of the destination node, the transition probability and the transition duration.
@@ -33,7 +56,10 @@ If transition probability is None, it will be calculated when the edge is added.
 
 """
 class Edge():
-    def __init__(self, destination_node_id, transition_duration, transition_probability=None, meta=""):
+    def __init__(self, graph_id, source, destination_node_id, transition_duration, transition_probability=None, meta=""):
+        # source and graph id basically only needed for pretty printing
+        self.source = source
+        self.graph_id = graph_id
         self.dest = destination_node_id
         self.prob = transition_probability
         # might also contain function to modify duration
@@ -41,7 +67,28 @@ class Edge():
         # some meta information, like steps or so ... 
         self.meta = meta
     def __repr__(self):
-        return "Edge-" + str(self.dur) + ":" + str(self.prob) + "->" +  str(self.dest)
+        source_string = "{}{}".format(self.graph_id, self.source)
+        dest_string = "->{}{}".format(self.graph_id, self.dest)
+        trans_string = ""
+        if self.dur is not None:
+            trans_string += "-"
+            if type(self.dur) is list:
+                trans_string += self.dur[0] + "("
+                for arg in self.dur[1]:
+                    trans_string += str(arg) + ","
+                trans_string = trans_string[:-1] + ")"
+            else:
+                trans_string += str(self.dur)
+        if self.prob is not None:
+            trans_string += ":"            
+            if type(self.prob) is list:                
+                trans_string += self.prob[0] + "("
+                for arg in self.prob[1]:
+                    trans_string += str(arg) + ","
+                trans_string = trans_string[:-1] + ")"
+            else:
+                trans_string += str(self.prob)
+        return source_string + trans_string + dest_string
 
 
 """
@@ -54,6 +101,14 @@ class Graph():
         self.start_node_id = None
         self.current_node_id = None
         self.steps = 0
+    def __str__(self):
+        graph_string = ""
+        for node in self.nodes:
+            graph_string += str(self.nodes[node]) + "\n"
+        for node in self.nodes:
+            for edge in self.edges[node]:
+                graph_string += str(edge) + "\n"
+        return graph_string
     def add_node(self, node):
         # by convention, first added node is start node
         if self.start_node_id == None:
