@@ -4,7 +4,10 @@ import cmd, readline
 from graa_scheduler import *
 from graa_parser import *
 from graa_dispatcher import *
+from graa_session import *
 from graa_base import *
+from graa_logger import GraaLogger as log
+                 
 
 # IDEAS:
 # learning: store paths, rate performances, automatically play on that basis ? 
@@ -15,29 +18,29 @@ from graa_base import *
 # TO BE DONE:
 # tbd: resetting graphs
 # tbd: validation: all nodes reachable etc ?
-# tbd: more fine-grained logging
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: graphs containing graphs, for longer compositions !
-# tbd: edge probability modification 
-# tbd: edge duration modification
+# tbd (1): edge probability modification 
+# tbd (1): edge duration modification
 # tbd: peristent modifications ?
-# tbd: emacs mode
-# tbd: disklavier backend
+# tbd (1): disklavier backend
 # tbd: supercollider backend
 # tbd: multiple edges at once: b1-500->b2-500->b3 ?
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
-# tbd: manual timeshift: d1@+/-x
+# tbd (1): manual timeshift: d1@+/-x
 # tbd: multi-command lines
 # tbd: add overlay kwargs if not present
 # tbd: mute nodes through overlays
 # tbd: two overlay modes d+ol: non-persistent, only apply functions, d+=ol: store values
-# tbd: note parser for midi backend
-# tbd: write graph generators, like: tournament tr dirt~0:bd:0 5 1024 (tournament graph with 5 nodes...) (circle, bjoerklund)
-# tbd: write graph transformers that workon the structure of the graph, like, reverse, tournament, rotate (?), revert, minspan, tsp
+# tbd (1): note parser for midi backend
+# tbd (2): write graph generators, like: tournament tr dirt~0:bd:0 5 1024 (tournament graph with 5 nodes...) (circle, bjoerklund)
+# tbd (2): write graph transformers that workon the structure of the graph, like, reverse, tournament, rotate (?), revert, minspan, tsp
 # tbd: load source files
-# tbd: expand -> expandgraph to code in it's current state
+# tbd: expand -> expand graph to code in it's current state
+# tbd (1): split log output: beat_log, action_log, shell_log (for better emacs code expansion)
+# tbd: emacs syntax highlighting
 
 """
 The main shell
@@ -56,7 +59,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
     prompt = 'graa> '
     def __init__(self):
         outfile = open('out', 'a')
-        self.session = GraaSession(outfile)
+        self.session = GraaSession
         self.parser = GraaParser        
         self.scheduler = GraaScheduler()
         self.beat = GraaBeat(self.session, self.scheduler)
@@ -84,7 +87,7 @@ Welcome! Type \'help\' or \'?\' to list commands.\n
             if player.active:
                 player.active = False
                 player.graph_thread.join()
-        print("Quitting, bye!")
+        log.action("Quitting, bye!")
         return True
     def do_expand(self, arg):
         print(self.session.graphs[arg])
@@ -118,7 +121,7 @@ This will specify an edge from d1 to itself,
 with a duration of 500ms and a probability of 100%!
 
         """
-        print("Dummy command for syntax help!")
+        log.action("Dummy command for syntax help!")
     def do_del(self, arg):
         "Delete graph or overlay, with all consequences!"
         keys = arg.split(":")
@@ -127,7 +130,7 @@ with a duration of 500ms and a probability of 100%!
         try:
             self.dispatcher.dispatch(self.parser.parse(arg))
         except ParseException:
-            print("Invalid input! Please type \'help\' or \'?\' for assistance!")
+            log.action("Invalid input! Please type \'help\' or \'?\' for assistance!")
 
 # MAIN!!
 if __name__ == '__main__':

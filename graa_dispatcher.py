@@ -1,6 +1,7 @@
 from graa_structures import *
 from graa_base import *
 from graa_parser import *
+from graa_logger import GraaLogger as log
 
 """
 Dispatch parser output to session
@@ -39,16 +40,16 @@ class GraaDispatcher():
         try:
             self.dispatcher_map[elem[0]](*elem[1:])
         except KeyError:
-            print("Can't dispatch {}, no dispatcher present!".format(elem))
+            log.action("Can't dispatch {}, no dispatcher present!".format(elem))
         except DispatcherError as de:
-            print(de.message, file=self.session.outfile, flush=True)            
+            log.action(de.message)            
     # dispatch overlay output from parser
     def dispatch_overlay_node(self, ol_id, ol_node):
         if ol_id in self.session.graphs:
             raise DispatcherError("Can't add overlay element to a graph!")            
         if ol_id not in self.session.overlays:
             self.session.overlays[ol_id] = Graph()
-            print("Initialized overlay with id: {}".format(ol_id), file=self.session.outfile, flush=True)            
+            log.action("Initialized overlay with id: {}".format(ol_id))            
         #initialize step counter with 0
         ol_node.meta = 0
         self.session.overlays[ol_id].add_node(ol_node)            
@@ -56,7 +57,7 @@ class GraaDispatcher():
         for player_id in self.session.players:
             if ol_id in self.session.players[player_id].overlays:
                 self.session.players[player_id].update_overlay(ol_id)
-        print("Adding node: {} to overlay: {}'".format(ol_node, ol_id), file=self.session.outfile, flush=True)
+        log.action("Adding node: {} to overlay: {}'".format(ol_node, ol_id))
     def dispatch_overlay_edge(self, ol_id, ol_edge, src):
         if ol_id not in self.session.overlays:
             raise DispatcherError("Overlay {} not present, can't add edge!".format(ol_id))            
@@ -68,16 +69,16 @@ class GraaDispatcher():
         for player_id in self.session.players:
             if ol_id in self.session.players[player_id].overlays:
                 self.session.players[player_id].update_overlay(ol_id)                
-        print("Adding edge: {} to overlay: {}'".format(ol_edge, ol_id), file=self.session.outfile, flush=True)
+        log.action("Adding edge: {} to overlay: {}'".format(ol_edge, ol_id))
     # dispatch command to add a normal graph node
     def dispatch_normal_node(self, graph_id, node):                
         if graph_id in self.session.overlays:
             raise DispatcherError("Can't add graph element to overlay!")            
         if graph_id not in self.session.graphs:
             self.session.graphs[graph_id] = Graph()
-            print("Initialized graph with id: {}".format(graph_id), file=self.session.outfile, flush=True) 
+            log.action("Initialized graph with id: {}".format(graph_id)) 
         self.session.graphs[graph_id].add_node(node)
-        print("Adding node: {} to graph: {}'".format(node, graph_id), file=self.session.outfile, flush=True)
+        log.action("Adding node: {} to graph: {}'".format(node, graph_id))
     def dispatch_normal_edge(self, graph_id, edge, src):
         if graph_id not in self.session.graphs:
             raise DispatcherError("Graph {} not present, can't add edge!".format(graph_id))            
@@ -85,7 +86,7 @@ class GraaDispatcher():
         if src not in graph.nodes or edge.dest not in graph.nodes:
             raise DispatcherError("Invalid edge, source or destination node not present!")        
         graph.add_edge(src, edge)                                                  
-        print("Adding edge: {} to graph: {}'".format(edge, graph_id), file=self.session.outfile, flush=True)
+        log.action("Adding edge: {} to graph: {}'".format(edge, graph_id))
     # dispatch the overlay application command        
     def dispatch_ol_application(self, graph_ids, overlay_ids):        
         for graph_id in graph_ids:            
@@ -96,13 +97,13 @@ class GraaDispatcher():
                         if key not in self.session.players:                            
                             self.session.players[key] = GraaPlayer(self.session, key, None)
                         self.session.players[key].add_overlay(overlay_id)
-                    print("Added overlay: {} to all graphs'".format(overlay_id), file=self.session.outfile, flush=True)
+                    log.action("Added overlay: {} to all graphs'".format(overlay_id))
                 else:                    
                     # if no player present for current graph, create one                        
                     if graph_id not in self.session.players:                            
                         self.session.players[graph_id] = GraaPlayer(self.session, graph_id, None)
                     self.session.players[graph_id].add_overlay(overlay_id)
-                    print("Added overlay: {} to graph: {}'".format(overlay_id, graph_id), file=self.session.outfile, flush=True)
+                    log.action("Added overlay: {} to graph: {}'".format(overlay_id, graph_id))
     def dispatch_ol_removal(self, graph_ids, overlay_ids):        
         for graph_id in graph_ids:            
             for overlay_id in overlay_ids:                
@@ -111,37 +112,37 @@ class GraaDispatcher():
                         try:
                             self.session.players[key].remove_overlay(overlay_id)
                         except:
-                            print("Removing {} from {} failed, probably not added!".format(overlay_id, key), file=self.session.outfile, flush=True)
-                    print("Removed overlay: {} from all graphs'".format(overlay_id), file=self.session.outfile, flush=True)
+                            log.action("Removing {} from {} failed, probably not added!".format(overlay_id, key))
+                    log.action("Removed overlay: {} from all graphs'".format(overlay_id))
                 else:
                     try:
                         self.session.players[graph_id].remove_overlay(overlay_id)
                     except:
-                        print("Removing {} from {} failed, probably not added!".format(overlay_id, graph_id), file=self.session.outfile, flush=True)
-                    print("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id), file=self.session.outfile, flush=True)                    
+                        log.action("Removing {} from {} failed, probably not added!".format(overlay_id, graph_id))
+                    log.action("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id))                    
     # hold a graph
     def hold(self, arg):
         if len(arg) == 0:
-            print("Please specify graph!")
+            log.action("Please specify graph!")
         else:
             try:
                 if arg == "all":
                     for player_key in self.session.players:
                         self.session.players[player_key].hold()
                         self.session.players={}
-                    else:
-                        for player_key in arg.split(":"):
-                            self.session.players[player_key].hold()                   
-                            del self.session.players[player_key]
+                else:
+                    for player_key in arg.split(":"):
+                        self.session.players[player_key].hold()                   
+                        del self.session.players[player_key]
             except:
-                print("Couldn't hold graph, probably not played yet!")
+                log.action("Couldn't hold graph, probably not played yet!")
     # change beat tempo
     def tempo(self, arg):
         try:
             self.session.tempo = int(arg)
-            print("Beat tempo set to {} bpm!".format(self.session.tempo))
+            log.action("Beat tempo set to {} bpm!".format(self.session.tempo))
         except ValueError:
-            print("Invalid tempo specification! - " + arg)
+            log.action("Invalid tempo specification! - " + arg)
     def delete_graph_or_overlay(self, keys):
         for key in keys:
             # stop and remove player if playing
@@ -162,15 +163,15 @@ class GraaDispatcher():
         for start_command in start_commands:
             if type(start_command) is str:
                 if start_command not in self.session.graphs:
-                    print("{} not found!".format(start_command))
+                    log.action("{} not found!".format(start_command))
                 elif start_command in self.session.players and self.session.players[start_command].active:
-                    print("{} already playing!".format(start_command))
+                    log.action("{} already playing!".format(start_command))
                 else:                                        
                     self.beat.queue_graph((start_command,0))
             else:
                 gra_id = start_command[0]
                 if gra_id not in self.session.graphs:
-                    print("{} not found!".format(gra_id))
+                    log.action("{} not found!".format(gra_id))
                 # if graph has been initialized without starting
                 elif gra_id not in self.session.players or not self.session.players[gra_id].active:
                     start_mode = start_command[1]
@@ -179,7 +180,7 @@ class GraaDispatcher():
                     elif type(start_mode) is int:
                         self.beat.queue_graph((gra_id, start_mode))
                 else:
-                    print("{} already playing!".format(gra_id))
+                    log.action("{} already playing!".format(gra_id))
                     
 # class for dispatcher errors                
 class DispatcherError(Exception):

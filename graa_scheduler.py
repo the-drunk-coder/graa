@@ -1,7 +1,7 @@
 import threading
 from pygame import time
-
-outfile = open("out", "a")
+from graa_session import *
+from graa_logger import GraaLogger as log
 
 """
 
@@ -21,6 +21,7 @@ class GraaScheduler():
     def sched_loop(self, schedict, stack):
         while self.active:
             now = time.get_ticks() - 1
+            GraaSession.now = now
             past = now
             correction = 0
             # check last few slots in case the wait wasn't precise
@@ -31,7 +32,7 @@ class GraaScheduler():
                         try:
                             func_tuple[0](*func_tuple[1],**func_tuple[2])
                         except:
-                            print("Couldn't execute scheduled function!", file=outfile, flush=True)
+                            log.beat("Couldn't execute scheduled function!")
                             # don't raise, as failed function execution shouldn't break the performance
                             #raise
                     del schedict[past]
@@ -43,8 +44,7 @@ class GraaScheduler():
                 delayed_event = stack.pop()
                 # correct future time if wait was not precise
                 future_time = now - correction + delayed_event[0]
-                print("now: {} delay: {} for: {} correction: {}".format(now, delayed_event[0], future_time, correction), file = outfile, flush = True)
-                #print("correction: {}".format(correction))
+                log.beat("delay: {} for: {} correction: {}".format(delayed_event[0], future_time, correction))
                 if future_time not in self.schedict:
                     self.schedict[future_time] = []    
                 self.schedict[future_time].append((delayed_event[1], delayed_event[2], delayed_event[3]))

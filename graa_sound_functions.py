@@ -1,5 +1,6 @@
 import datetime, time
 from pythonosc import osc_message_builder
+from graa_logger import GraaLogger as log
 import dirt_client
 
 dc = []
@@ -47,7 +48,7 @@ def dirt(*args, **kwargs):
     msg.add_arg(float(kwargs.get('bandq', 0.0)))
     msg = msg.build()
     dc[int(args[0])].send(msg)
-    print("sample: {}, out: {}".format(args[1] + ":" + str(args[2]), args[0]), file=outfile, flush=True)
+    log.beat("sample: {}, out: {}".format(args[1] + ":" + str(args[2]), args[0]))
     
 """
 

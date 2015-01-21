@@ -2,27 +2,12 @@ import threading, copy, random
 from queue import Queue
 from graa_structures import *
 from graa_overlay_processors import * 
+from graa_session import *
+from graa_logger import GraaLogger as log
+
 
 # default sound function library
 import graa_sound_functions
-
-
-"""
-The Graa Session.
-
-Contains all the graphs, overlays and some metadata in a session.
-
-"""
-class GraaSession():
-    def __init__(self, outfile):
-        self.graphs = {}
-        self.players = {}
-        self.overlays = {}
-        # 117bpm results in 512ms per beat ... a nice, round number!
-        self.tempo = 117
-        self.active = True
-        self.outfile = outfile
-
 
 """
 The Graa Player.
@@ -93,7 +78,7 @@ class GraaPlayer():
                     ol_edge_id = self.choose_overlay_edge(ol_key, overlay.current_node_id)
                     if ol_edge_id == None:
                         # overlay reached its end
-                        print("Overlay {} on graph {} reached its end, removing!".format(ol_key, graph_id), file=session.outfile, flush=True)           
+                        log.action("Overlay {} on graph {} reached its end, removing!".format(ol_key, graph_id))           
                         ol_to_remove.append(ol_key)
                     else:                            
                         ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
@@ -109,7 +94,7 @@ class GraaPlayer():
                 try:
                     self.sched_next_node(session, graph_id, graph.current_node_id)            
                 except:                    
-                    print("Couldn't schedule next node for graph {}, ending!".format(graph_id), file=session.outfile, flush=True)           
+                    log.action("Couldn't schedule next node for graph {}, ending!".format(graph_id))           
                     self.active = False
                     self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
                     return
@@ -155,7 +140,7 @@ class GraaPlayer():
             # print(args, file=session.outfile, flush=True)
             getattr(graa_sound_functions, node.content["type"])(*args, **kwargs)            
         except:
-            print("Couldn't evaluate a node. Please try again!", file=session.outfile, flush=True)           
+            log.action("Couldn't evaluate a node. Please try again!")           
             #raise
 
 
@@ -178,12 +163,12 @@ class GraaBeat():
         self.beat_thread.start()
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
-        print("Queuing graph with id: {}.".format(graph_id), file=self.session.outfile, flush=True)
+        log.action("Queuing graph with id: {}.".format(graph_id))
     # garbage collection: delete deletable players
     def collect_garbage_players(self, session):
         deletable_players = [session.players[player_key].graph_id for player_key in session.players if session.players[player_key].can_be_deleted()]        
         if len(deletable_players) > 0:
-            print("Putting players {} to garbage.".format(deletable_players), file=self.session.outfile, flush=True)
+            log.action("Putting players {} to garbage.".format(deletable_players))
         while len(deletable_players) != 0:            
             del session.players[deletable_players.pop()]
     # function to be called by scheduler in separate process    
