@@ -111,7 +111,7 @@ class Graph():
             for edge in self.edges[node]:
                 graph_string += str(edge) + ",\n"
         # remove last comma
-        return graph_string[:-1]
+        return graph_string[:-2] + "\n"
     def add_node(self, node):
         # by convention, first added node is start node
         if self.start_node_id == None:
