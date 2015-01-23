@@ -33,7 +33,7 @@ class GraaParser():
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))
     ol_edge_def = node_id + Optional(Suppress("-") + ol_transition) + Suppress("->") + node_id
     ol_edge_def.setParseAction(lambda t: GraaParser.parse_ol_edge(t))    
-    line = OneOrMore((node_def ^ edge_def ^ ol_node_def ^ ol_edge_def) + Optional(Suppress(","))) 
+    line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def  
     line.setParseAction(lambda t: t.asList())
     # convert string representation to actual (typed) value
     def typify(arg):

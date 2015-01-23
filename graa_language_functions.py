@@ -156,9 +156,10 @@ def minus_ol(self, graph_ids, overlay_ids):
 
 # add graph data
 def add(string):
-    try:
-        session.dispatcher.dispatch(parser.parse(string))
-    except DispatcherError as de:
-        log.action(de.message)
+    for command in string.split(","):
+        try:
+            session.dispatcher.dispatch(parser.parse(command))
+        except DispatcherError as de:
+            log.action(de.message)
 # end add()
         

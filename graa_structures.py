@@ -103,12 +103,15 @@ class Graph():
         self.steps = 0
     def __str__(self):
         graph_string = ""
-        for node in self.nodes:
-            graph_string += str(self.nodes[node]) + "\n"
-        for node in self.nodes:
+        sorted_nodes = list(self.nodes.keys())
+        sorted_nodes.sort()
+        for node in sorted_nodes:
+            graph_string += str(self.nodes[node]) + ",\n"
+        for node in sorted_nodes:
             for edge in self.edges[node]:
-                graph_string += str(edge) + "\n"
-        return graph_string
+                graph_string += str(edge) + ",\n"
+        # remove last comma
+        return graph_string[:-1]
     def add_node(self, node):
         # by convention, first added node is start node
         if self.start_node_id == None:
