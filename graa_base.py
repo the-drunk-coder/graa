@@ -2,9 +2,8 @@ import threading, copy, random
 from queue import Queue
 from graa_structures import *
 from graa_overlay_processors import * 
-from graa_session import *
+from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
-
 
 # default sound function library
 import graa_sound_functions
@@ -21,9 +20,7 @@ a new player will be spawned
 
 """
 class GraaPlayer():   
-    def __init__(self, session, graph_id, sched, delay=0):
-        self.sched = sched
-        self.session = session
+    def __init__(self, graph_id, delay=0):        
         self.overlays = {}
         self.graph_id = graph_id
         self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
@@ -31,6 +28,7 @@ class GraaPlayer():
         self.started = False
         self.active = False
         self.initial_delay = delay
+        self.delay = 0
     def start(self):
         self.active = True
         self.started = True
@@ -59,7 +57,7 @@ class GraaPlayer():
         if self.active:
             # process initial delay
             if self.initial_delay != 0:
-                self.sched.time_function(self.play, [session, graph_id], {}, self.initial_delay)
+                session.scheduler.time_function(self.play, [session, graph_id], {}, self.initial_delay)
                 self.initial_delay = 0
             else:
                 graph = session.graphs[graph_id]
@@ -107,7 +105,7 @@ class GraaPlayer():
         #if there is no edgeleft, end this player!   
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
         session.graphs[graph_id].current_node_id = edge.dest        
-        self.sched.time_function(self.play, [session, graph_id], {}, edge.dur)
+        session.scheduler.time_function(self.play, [session, graph_id], {}, abs(edge.dur + self.delay))
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):        
         random.seed()
@@ -153,11 +151,9 @@ Not to be confused with the scheduler.
 
 """
 class GraaBeat():
-    def __init__(self, session, sched):
-        self.sched = sched
+    def __init__(self):        
         # LIFO Queue
         self.graph_queue = Queue()
-        self.session = session
         self.beat_thread = threading.Thread(target=self.beat, args=(session,))
         self.beat_thread.deamon = True
         self.beat_thread.start()
@@ -165,7 +161,7 @@ class GraaBeat():
         self.graph_queue.put(graph_id)
         log.action("Queuing graph with id: {}.".format(graph_id))
     # garbage collection: delete deletable players
-    def collect_garbage_players(self, session):
+    def collect_garbage_players(self):
         deletable_players = [session.players[player_key].graph_id for player_key in session.players if session.players[player_key].can_be_deleted()]        
         if len(deletable_players) > 0:
             log.action("Putting players {} to garbage.".format(deletable_players))
@@ -175,17 +171,15 @@ class GraaBeat():
     def beat(self, session):                
         while not self.graph_queue.empty():
             graph_start = self.graph_queue.get()
-            self.start_graph(session, graph_start[0], self.sched, graph_start[1])
-        self.collect_garbage_players(session)
+            self.start_graph(graph_start[0], graph_start[1])
+        self.collect_garbage_players()
         # schedule next beat
         if(session.active):
             #it's important only to use integers here !
-            self.sched.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
-    def start_graph(self, session, graph_id, sched, delay=0):
+            session.scheduler.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
+    def start_graph(self, graph_id, delay=0):
         if graph_id not in session.players:
-            session.players[graph_id] = GraaPlayer(session, graph_id, sched, delay)            
-        # this might happen if player was created by an overlay addition
-        if session.players[graph_id].sched == None:
-            session.players[graph_id].sched = sched
-            session.players[graph_id].initial_delay = delay
+            session.players[graph_id] = GraaPlayer(graph_id, delay)            
+        # this might happen if player was created by an overlay addition        
+        session.players[graph_id].initial_delay = delay
         session.players[graph_id].start()

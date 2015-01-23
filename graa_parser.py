@@ -33,9 +33,13 @@ d1-func(prob, 1):func(...)->d1
 
 from pyparsing import *
 from graa_structures import *
-from graa_dispatcher import GraaDispatcher
 
 class GraaParser():
+    # command constants for dispatcher
+    OVERLAY_EDGE = "ol_edge"
+    NORMAL_EDGE = "n_edge"
+    OVERLAY_NODE = "ol_node"
+    NORMAL_NODE = "n_node"    
     # grammar rules (advanced ...)
     graph_id = Word(alphas)
     node_id = graph_id + Word(nums)
@@ -61,20 +65,9 @@ class GraaParser():
     edge_def = node_id + Suppress("-") + transition + Suppress("->") + node_id
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))
     ol_edge_def = node_id + Optional(Suppress("-") + ol_transition) + Suppress("->") + node_id
-    ol_edge_def.setParseAction(lambda t: GraaParser.parse_ol_edge(t))
-    ol_application = Group(OneOrMore(graph_id + Optional(param_divider))) + Suppress("+") + Group(OneOrMore(graph_id + Optional(param_divider)))
-    ol_application.setParseAction(lambda t: GraaParser.parse_ol_application(t.asList()))
-    ol_removal = Group(OneOrMore(graph_id + Optional(param_divider))) + Suppress("-") + Group(OneOrMore(graph_id + Optional(param_divider)))
-    ol_removal.setParseAction(lambda t: GraaParser.parse_ol_removal(t.asList()))
-    line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def ^ ol_application ^ ol_removal
+    ol_edge_def.setParseAction(lambda t: GraaParser.parse_ol_edge(t))    
+    line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def
     line.setParseAction(lambda t: t.asList())
-    # Additional rules to parse command inputs
-    delay_command = Suppress("@") + (Word(nums) ^ Word("now"))
-    delay_command.setParseAction(lambda t: GraaParser.typify(t[0]))
-    start_command = graph_id ^ Group(graph_id + delay_command) 
-    #start_command.setParseAction(lambda t: t.asList())
-    start_line = OneOrMore(start_command + Optional(param_divider))
-    start_line.setParseAction(lambda t: t.asList())
     # convert string representation to actual (typed) value
     def typify(arg):
         #try int:
@@ -90,14 +83,11 @@ class GraaParser():
         # else, return arg as string
         return arg
     def parse_edge(arg):
-        graph_id = arg[0]
-        source_node_id = arg[1]
-        destination_node_id = arg[-1]
-        transition = arg[2]
-        edge = Edge(graph_id, source_node_id, destination_node_id, transition[0])
-        if len(transition) == 2:
-            edge.prob = transition[1]
-        return (GraaDispatcher.NORMAL_EDGE, graph_id, edge, source_node_id)
+        # 0 = graph_id, 1 = source, -1 = dest, 2 = transition
+        edge = Edge(arg[0], arg[1], arg[-1], arg[2][0])
+        if len(arg[2]) == 2:
+            edge.prob = arg[2][1]        
+        return (GraaParser.NORMAL_EDGE, arg[0], edge, arg[1])
     def parse_node(arg):        
         graph_id = arg[0]
         node_id = arg[1]
@@ -111,15 +101,14 @@ class GraaParser():
             else:
                 node_params["args"].append(param)
         # create and return node
-        return (GraaDispatcher.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
+        return (GraaParser.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
     def parse_ol_node(arg):        
         graph_id = arg[0]
         node_id = arg[1]
         node_params = {}
         for param in arg[2:]:
-            node_params[param[0]] = param[1]
-        # create and return node
-        return (GraaDispatcher.OVERLAY_NODE, graph_id, Node(graph_id, node_id, node_params))
+            node_params[param[0]] = param[1]        
+        return (GraaParser.OVERLAY_NODE, graph_id, Node(graph_id, node_id, node_params))
     def parse_ol_edge(arg):
         graph_id = arg[0]
         source_node_id = arg[1]
@@ -130,12 +119,8 @@ class GraaParser():
             edge = Edge(graph_id, source_node_id, destination_node_id, transition[0])
             if len(transition) == 2:
                 edge.prob = transition[1]
-        else:
-            edge = Edge(graph_id, source_node_id, destination_node_id, None)
-        return (GraaDispatcher.OVERLAY_EDGE, graph_id, edge, source_node_id)
-    def parse_ol_application(arg):
-        return (GraaDispatcher.OL_APPLICATION, arg[0], arg[1])
-    def parse_ol_removal(arg):
-        return (GraaDispatcher.OL_REMOVAL, arg[0], arg[1])
+        else:            
+            edge = Edge(graph_id, source_node_id, destination_node_id, None)        
+        return (GraaParser.OVERLAY_EDGE, graph_id, edge, source_node_id)    
     def parse(arg):
         return GraaParser.line.parseString(arg)

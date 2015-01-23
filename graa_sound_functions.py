@@ -21,7 +21,7 @@ outfile = open("out", "a")
 def dirt(*args, **kwargs):   
     msg = osc_message_builder.OscMessageBuilder(address = "/play")
     msg.add_arg(int(time.time()))
-    msg.add_arg(datetime.datetime.now().microsecond)
+    msg.add_arg(datetime.datetime.now().microsecond + 4)
     msg.add_arg(args[1] + ":" + str(args[2])) #sample name:number
     msg.add_arg(float(kwargs.get('offset', 0.0)))
     msg.add_arg(float(kwargs.get('begin', 0.0)))

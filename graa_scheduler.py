@@ -1,6 +1,6 @@
 import threading
 from pygame import time
-from graa_session import *
+from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
 
 """
@@ -21,7 +21,7 @@ class GraaScheduler():
     def sched_loop(self, schedict, stack):
         while self.active:
             now = time.get_ticks() - 1
-            GraaSession.now = now
+            session.now = now
             past = now
             correction = 0
             # check last few slots in case the wait wasn't precise
@@ -34,7 +34,7 @@ class GraaScheduler():
                         except:
                             log.beat("Couldn't execute scheduled function!")
                             # don't raise, as failed function execution shouldn't break the performance
-                            #raise
+                            raise
                     del schedict[past]
                     correction = now - past
                     break
