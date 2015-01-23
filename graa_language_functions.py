@@ -2,6 +2,7 @@ import sys, os
 from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
 from graa_base import GraaBeat as beat
+from graa_base import GraaPlayer as player
 from graa_scheduler import GraaScheduler as scheduler
 from graa_dispatcher import GraaDispatcher as dispatcher
 from graa_dispatcher import DispatcherError
@@ -121,7 +122,7 @@ def plus_ol(graph_ids, overlay_ids):
             for overlay_id in overlay_ids:
                 # if no player present for current graph, create one                        
                 if key not in session.players:                            
-                    session.players[key] = GraaPlayer(session, key, None)
+                    session.players[key] = player(key, None)
                 session.players[key].add_overlay(overlay_id)
                 log.action("Added overlay: {} to all graphs'".format(overlay_id))
     elif type(graph_ids) is list:
@@ -129,7 +130,7 @@ def plus_ol(graph_ids, overlay_ids):
             for overlay_id in overlay_ids:
                 # if no player present for current graph, create one                        
                 if graph_id not in session.players:                            
-                    session.players[graph_id] = GraaPlayer(session, graph_id, None)
+                    session.players[graph_id] = player(graph_id, None)
                 session.players[graph_id].add_overlay(overlay_id)
                 log.action("Added overlay: {} to graph: {}'".format(overlay_id, graph_id))
 # end plus_ol()

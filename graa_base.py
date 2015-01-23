@@ -43,7 +43,7 @@ class GraaPlayer():
         self.graph_thread.join() 
     def add_overlay(self, overlay_id):
         # add a copy of the overlay, as each overlay should act independent for each player
-        self.overlays[overlay_id] = copy.deepcopy(self.session.overlays[overlay_id])                                                      
+        self.overlays[overlay_id] = copy.deepcopy(session.overlays[overlay_id])                                                      
     def remove_overlay(self, overlay_id):
         del self.overlays[overlay_id]
     def update_overlay(self, overlay_id):

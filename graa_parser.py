@@ -15,7 +15,7 @@ class GraaParser():
     param_divider = Suppress(":")
     func_param = Word("$." + alphanums)
     func_param.setParseAction(lambda t: GraaParser.typify(t[0]))
-    func = Group(func_id + Group(Suppress("(") + ZeroOrMore(func_param + Optional(Suppress(","))) + Suppress(")")))
+    func = Group(func_id + Group(Suppress("(") + ZeroOrMore(func_param + Optional(param_divider)) + Suppress(")")))
     func.setParseAction(lambda t: t.asList())
     func_assign = Group(func_param + Suppress("=") + func)
     func_assign.setParseAction(lambda t: t.asList())
