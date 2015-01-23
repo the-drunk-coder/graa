@@ -14,10 +14,6 @@ dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44476))
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44482))
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44488))
 
-outfile = open("out", "a")
-
-#iisffffffsffffififfff
-
 def dirt(*args, **kwargs):   
     msg = osc_message_builder.OscMessageBuilder(address = "/play")
     msg.add_arg(int(time.time()))
