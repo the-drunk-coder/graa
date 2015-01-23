@@ -1,36 +1,3 @@
-"""
-d1|dirt:0:casio:1:vowel=a
-
-=>
-
-("d", Node(1, {type: "dirt", "args": [0, "casio", 1], "kwargs" : {"vowel" : "a"}}))
-
-"""
-
-"""
-ol1|$1=func($1, step, 1):vowel=func2()
-
-=>
-
-("ol", Node(1, {"$1" : {function: "func", args:["$1", "step", 1]}
-                "vowel" : {function: "func2", args:[]}}))
-
-"""
-
-"""
-d1-100->d2
-
-=> ("d", "d1", Edge("d2", 100, None))
-
-d1-100:50->d2
-
-=> ("d", "d1", Edge("d2", 100, 50))
-
-d1-func(prob, 1):func(...)->d1
-
-
-"""
-
 from pyparsing import *
 from graa_structures import *
 
@@ -66,7 +33,7 @@ class GraaParser():
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))
     ol_edge_def = node_id + Optional(Suppress("-") + ol_transition) + Suppress("->") + node_id
     ol_edge_def.setParseAction(lambda t: GraaParser.parse_ol_edge(t))    
-    line = node_def ^ edge_def ^ ol_node_def ^ ol_edge_def
+    line = OneOrMore((node_def ^ edge_def ^ ol_node_def ^ ol_edge_def) + Optional(Suppress(","))) 
     line.setParseAction(lambda t: t.asList())
     # convert string representation to actual (typed) value
     def typify(arg):
