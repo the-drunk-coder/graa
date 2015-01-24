@@ -9,6 +9,25 @@
 (require 'find-lisp)
 (require 'pulse)
 
+(defvar graa-events
+  '("triforce1"
+   "circle" "plus" "minus" "shift"))
+
+(defvar graa-keywords
+      '("play" "expand"))
+
+(defvar graa-font-lock-defaults
+  `((
+     ;; stuff between "
+     ("\"\\.\\*\\?" . font-lock-string-face)
+     ;; ; : , ; { } =>  @ $ = are all special elements
+     ("-\\|:\\|,\\|<\\|>\\||\\|$\\|=" . font-lock-keyword-face)
+     ( ,(regexp-opt graa-keywords 'words) . font-lock-builtin-face)
+     ( ,(regexp-opt graa-events 'words) . font-lock-constant-face)
+)))
+
+(defvar graa-tab-width nil "Width of a tab for graa mode")
+
 (defvar graa-buffer
   "*graa*"
   "*The name of the graa process buffer (default=*graa*).")
@@ -207,9 +226,29 @@
   fundamental-mode
   "Graa"
   "Major mode for interacting with an inferior graa process."
+  (setq font-lock-defaults graa-font-lock-defaults)
   ;(set (make-local-variable 'paragraph-start) "\f\\|[ \t]*$")
   ;(set (make-local-variable 'paragraph-separate) "[ \t\f]*$")					
-  (turn-on-font-lock))
+  )
+
+;; you again used quote when you had '((mydsl-hilite))
+;; I just updated the variable to have the proper nesting (as noted above)
+;; and use the value directly here
+(setq font-lock-defaults graa-font-lock-defaults)
+
+;; when there's an override, use it
+;; otherwise it gets the default value
+(when graa-tab-width
+  (setq tab-width graa-tab-width))
+
+;; for comments
+;; overriding these vars gets you what (I think) you want
+;; they're made buffer local when you set them
+(setq comment-start "#")
+(setq comment-end "")
+
+(modify-syntax-entry ?# "< b" graa-mode-syntax-table)
+(modify-syntax-entry ?\n "> b" graa-mode-syntax-table)
 
 (add-to-list 'auto-mode-alist '("\\.graa$" . graa-mode))
 
