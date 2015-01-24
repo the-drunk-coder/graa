@@ -20,14 +20,13 @@ a new player will be spawned
 
 """
 class GraaPlayer():   
-    def __init__(self, graph_id, delay=0):        
+    def __init__(self, graph_id):        
         self.overlays = {}
         self.graph_id = graph_id
         self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
         self.graph_thread.deamon = True
         self.started = False
-        self.active = False
-        self.initial_delay = delay
+        self.active = False        
         self.delay = 0
     def start(self):
         self.active = True
@@ -56,9 +55,9 @@ class GraaPlayer():
     def play(self, session, graph_id):        
         if self.active:
             # process initial delay
-            if self.initial_delay != 0:
+            if not self.started and self.delay != 0:
                 session.scheduler.time_function(self.play, [session, graph_id], {}, self.initial_delay)
-                self.initial_delay = 0
+                self.delay = 0
             else:
                 graph = session.graphs[graph_id]
                 current_node = graph.nodes[graph.current_node_id]
@@ -106,6 +105,7 @@ class GraaPlayer():
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
         session.graphs[graph_id].current_node_id = edge.dest        
         session.scheduler.time_function(self.play, [session, graph_id], {}, abs(edge.dur + self.delay))
+        self.delay = 0
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):        
         random.seed()

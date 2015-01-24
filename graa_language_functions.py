@@ -1,4 +1,5 @@
 import sys, os
+from infix import shift_infix as infix
 from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
 from graa_base import GraaBeat as beat
@@ -7,6 +8,7 @@ from graa_scheduler import GraaScheduler as scheduler
 from graa_dispatcher import GraaDispatcher as dispatcher
 from graa_dispatcher import DispatcherError
 from graa_parser import GraaParser as parser
+
 
 # setup and start
 def start_graa():
@@ -106,8 +108,12 @@ def play(*args, **kwargs):
 # end play()    
 
 # shift a player by some milliseconds
-def shift(graph_id, delay):
-    session.players[graph_id].delay = delay
+@infix
+def shift(graph_ids, delay):
+    for graph_id in graph_ids.split(":"):
+        if graph_id not in session.players:                            
+            session.players[graph_id] = player(graph_id)
+        session.players[graph_id].delay = delay
 # end shift()
 
 # expand a graph, that is, show all nodes and edges
@@ -116,13 +122,14 @@ def expand(graph_id):
 # end expand()    
 
 # add overlays
-def plus_ol(graph_ids, overlay_ids):        
+@infix
+def plus(graph_ids, overlay_ids):        
     if type(graph_ids) is str and graph_ids == "all":                    
         for key in session.graphs:
             for overlay_id in overlay_ids:
                 # if no player present for current graph, create one                        
                 if key not in session.players:                            
-                    session.players[key] = player(key, None)
+                    session.players[key] = player(key)
                 session.players[key].add_overlay(overlay_id)
                 log.action("Added overlay: {} to all graphs'".format(overlay_id))
     elif type(graph_ids) is list:
@@ -130,13 +137,14 @@ def plus_ol(graph_ids, overlay_ids):
             for overlay_id in overlay_ids:
                 # if no player present for current graph, create one                        
                 if graph_id not in session.players:                            
-                    session.players[graph_id] = player(graph_id, None)
+                    session.players[graph_id] = player(graph_id)
                 session.players[graph_id].add_overlay(overlay_id)
                 log.action("Added overlay: {} to graph: {}'".format(overlay_id, graph_id))
 # end plus_ol()
 
-# remove overlays                    
-def minus_ol(self, graph_ids, overlay_ids):        
+# remove overlays
+@infix
+def minus(self, graph_ids, overlay_ids):        
     if type(graph_ids) is str and graph_ids == "all":                    
         for key in session.graphs:
             for overlay_id in overlay_ids:                
