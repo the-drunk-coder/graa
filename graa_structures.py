@@ -7,12 +7,14 @@ import graphviz
 
 from graphviz import Digraph
 
+
 class GraphError(Exception):
     def __init__(self, message):
         self.message = message
     def __str__(self):
         return repr(self.message)
 
+      
 """
 A node, consisting of an id, content and some meta information 
 
@@ -30,23 +32,23 @@ class Node():
         # have to decide between normal and overlay nodes here ... 
         try:
             node_string += str(self.content["type"])
-            node_string += "~"
+            node_string += "<"
             for arg in self.content["args"]:
                 node_string += str(arg) + ":"
             for key in self.content["kwargs"]:
                 node_string += str(key) + "=" + str(self.content["kwargs"][key]) + ":"
             # remove last ':'
-            node_string = node_string[:-1]
+            node_string = node_string[:-1] + ">"
         except KeyError:
             # this should mean it's an ol node
             for key in self.content:
-                node_string += str(key) + "=" + str(self.content[key][0]) + "("
+                node_string += str(key) + "=" + str(self.content[key][0]) + "<"
                 for arg in self.content[key][1]:
                     node_string += str(arg) + ","
                 node_string = node_string[:-1]
-                node_string += "):"
+                node_string += ">:"
             # remove last ':'
-            node_string = node_string[:-1]
+            node_string = node_string[:-1] + ">"
         return node_string
 
 """

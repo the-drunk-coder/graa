@@ -1,23 +1,27 @@
 # example file for graa mode, this is a comment
 
 # generate a simple cylic list and expand it to this window 
-expand(circle(5, "d1|dirt~0:bd:0", "d1-100->d1"))
+expand(circle(5, "d1|disk<c#4ms400:127>", "d1-500->d1"))
+
+d1|disk<c5ms50:127>,
+d2|disk<g4ms50:107>,
+d3|disk<e4ms50:107>,
+d4|disk<a4ms50:100>,
+d5|disk<f4ms50:127>,
+d1-100:100->d2,
+d2-80:100->d3,
+d3-100:100->d4,
+d4-60:100->d5,
+d5-70:100->d1
+
+
+
 
 # hit C-a to add the region to graa
 
-d1|dirt~1:bd:0,
-d2|dirt~1:bd:0,
-d3|dirt~1:bd:0,
-d4|dirt~1:bd:0,
-d5|dirt~1:bd:0,
-d1-100:100->d2,
-d2-100:100->d3,
-d3-100:100->d4,
-d4-100:100->d5,
-d5-100:100->d1
+play(("d",0))
 
-ol1|$3=mod(step:4),
-ol1->ol1
+hold("d")
 
 # hit C-c to evaluate single lines
 "d" <<plus>> "ol"

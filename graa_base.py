@@ -171,15 +171,14 @@ class GraaBeat():
     def beat(self, session):                
         while not self.graph_queue.empty():
             graph_start = self.graph_queue.get()
-            self.start_graph(graph_start[0], graph_start[1])
+            self.start_graph(graph_start[0])
         self.collect_garbage_players()
         # schedule next beat
         if(session.active):
             #it's important only to use integers here !
             session.scheduler.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
-    def start_graph(self, graph_id, delay=0):
+    def start_graph(self, graph_id):
         if graph_id not in session.players:
-            session.players[graph_id] = GraaPlayer(graph_id, delay)            
+            session.players[graph_id] = GraaPlayer(graph_id)            
         # this might happen if player was created by an overlay addition        
-        session.players[graph_id].initial_delay = delay
         session.players[graph_id].start()
