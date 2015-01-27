@@ -3,6 +3,7 @@ from pygame import time
 from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
 
+
 """
 
 A somewhat naive function scheduler ...
@@ -30,7 +31,8 @@ class GraaScheduler():
                     for func_tuple in schedict[past]:
                         #print("playing function at: {}".format(past))
                         try:
-                            func_tuple[0](*func_tuple[1],**func_tuple[2])
+                            async = threading.Thread(target=func_tuple[0], args=(func_tuple[1],func_tuple[2]))
+                            async.start()
                         except:
                             log.beat("Couldn't execute scheduled function!")
                             # don't raise, as failed function execution shouldn't break the performance

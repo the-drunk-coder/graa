@@ -94,7 +94,7 @@ def delete(keys):
 
 # command format: (graph_id, delay)
 def play(*args, **kwargs):
-    session.beat.collect_garbage_players()
+    #session.beat.collect_garbage_players()
     for command in args:              
         if command[0] not in session.graphs:
             log.action("{} not found!".format(command[0]))

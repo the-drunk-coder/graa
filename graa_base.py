@@ -13,7 +13,7 @@ The Graa Player.
 
 Handles one graph and all its overlays.
 
-Each graph lives in its own player, each player has its own thread.
+Each graph lives in its own player.
 
 Each player con only be started once. That is, if you restart the graph,
 a new player will be spawned
@@ -22,20 +22,17 @@ a new player will be spawned
 class GraaPlayer():   
     def __init__(self, graph_id):        
         self.overlays = {}
-        self.graph_id = graph_id
-        self.graph_thread = threading.Thread(target=self.play, args=(session, graph_id))
-        self.graph_thread.deamon = True
+        self.graph_id = graph_id        
         self.started = False
         self.active = False        
         self.delay = 0
     def start(self):
         self.active = True
         self.started = True
-        self.graph_thread.start()
-    def can_be_deleted(self):
-        thread_active = self.graph_thread.is_alive()
+        self.play()
+    def can_be_deleted(self):        
         # if a player has been started once, but is not active anymore, it can be deleted ...
-        return not thread_active and not self.active and self.started
+        return  not self.active and self.started
     # method only to be called from outside
     def hold(self):
         self.active = False
@@ -52,14 +49,14 @@ class GraaPlayer():
         updated_overlay.current_node_id = current_overlay.current_node_id
         updated_overlay.nodes[updated_overlay.current_node_id].meta = current_overlay.nodes[current_overlay.current_node_id].meta
         self.overlays[overlay_id] = updated_overlay
-    def play(self, session, graph_id):        
+    def play(self, *args, **kwargs):        
         if self.active:
             # process initial delay
             if not self.started and self.delay != 0:
-                session.scheduler.time_function(self.play, [session, graph_id], {}, self.initial_delay)
+                session.scheduler.time_function(self.play, [], {})
                 self.delay = 0
             else:
-                graph = session.graphs[graph_id]
+                graph = session.graphs[self.graph_id]
                 current_node = graph.nodes[graph.current_node_id]
                 # collect overlay node functions in lists
                 current_overlay_dicts = []
@@ -89,9 +86,9 @@ class GraaPlayer():
                 while len(ol_to_remove) != 0:
                     del self.overlays[ol_to_remove.pop()]
                 try:
-                    self.sched_next_node(session, graph_id, graph.current_node_id)            
-                except:                    
-                    log.action("Couldn't schedule next node for graph {}, ending!".format(graph_id))           
+                    self.sched_next_node(session, self.graph_id, graph.current_node_id)            
+                except Exception as e:                    
+                    log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
                     self.active = False
                     self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
                     return
@@ -104,7 +101,7 @@ class GraaPlayer():
         #if there is no edgeleft, end this player!   
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
         session.graphs[graph_id].current_node_id = edge.dest        
-        session.scheduler.time_function(self.play, [session, graph_id], {}, abs(edge.dur + self.delay))
+        session.scheduler.time_function(self.play, [], {}, abs(edge.dur + self.delay))
         self.delay = 0
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):        
@@ -135,11 +132,11 @@ class GraaPlayer():
             # try loading function from default library
             # evaluating the function string at runtime here, as
             # here might be a dynamic function library in the future ...                
-            # print(args, file=session.outfile, flush=True)
+            # print(args, file=session.outfile, flush=True)            
             getattr(graa_sound_functions, node.content["type"])(*args, **kwargs)            
         except:
             log.action("Couldn't evaluate a node. Please try again!")           
-            #raise
+            raise
 
 
 """
@@ -154,9 +151,7 @@ class GraaBeat():
     def __init__(self):        
         # LIFO Queue
         self.graph_queue = Queue()
-        self.beat_thread = threading.Thread(target=self.beat, args=(session,))
-        self.beat_thread.deamon = True
-        self.beat_thread.start()
+        self.beat()
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
         log.action("Queuing graph with id: {}.".format(graph_id))
@@ -168,15 +163,15 @@ class GraaBeat():
         while len(deletable_players) != 0:            
             del session.players[deletable_players.pop()]
     # function to be called by scheduler in separate process    
-    def beat(self, session):                
-        while not self.graph_queue.empty():
-            graph_start = self.graph_queue.get()
-            self.start_graph(graph_start[0])
+    def beat(self, *args, **kwargs):        
         self.collect_garbage_players()
         # schedule next beat
         if(session.active):
             #it's important only to use integers here !
-            session.scheduler.time_function(self.beat, [session], {}, int((60.0 / session.tempo) * 1000))
+            session.scheduler.time_function(self.beat, [], {}, int((60.0 / session.tempo) * 1000))
+            while not self.graph_queue.empty():
+                graph_start = self.graph_queue.get()
+                self.start_graph(graph_start[0])
     def start_graph(self, graph_id):
         if graph_id not in session.players:
             session.players[graph_id] = GraaPlayer(graph_id)            
