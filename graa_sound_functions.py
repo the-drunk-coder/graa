@@ -94,10 +94,13 @@ class NotePlayer():
         self.note_thread.deamon = True
         self.played = False
     def fire(self, a_note):
-        midi_out.note_on(a_note.pitch.midi, a_note.vel)
-        pg_time.wait(a_note.absolute_duration)
-        midi_out.note_off(a_note.pitch.midi,a_note.vel)
-        self.played = True
+        try:
+            midi_out.note_on(a_note.pitch.midi, a_note.vel)
+            pg_time.wait(a_note.absolute_duration)
+            midi_out.note_off(a_note.pitch.midi,a_note.vel)
+            self.played = True
+        except Exception as e:
+            print(e)
     def play(self):
         self.note_thread.start()
         self.note_thread.join()
@@ -107,9 +110,10 @@ class NotePlayer():
 note_dict = {}
 
 # play midi note and make sure each note is only played once, for disklavier compat
-def disk(*args, **kwargs):
+def disk(*args, **kwargs):    
     play_note = args[0]
-    play_note.vel = args[1]
+    play_note.vel = args[2]
+    play_note.absolute_duration = args[1]
     play_pitch = play_note.pitch.midi
     if play_pitch in note_dict and not note_dict[play_note.pitch.midi].played:
         log.action("Midi note {} already playing!")
@@ -117,10 +121,4 @@ def disk(*args, **kwargs):
     note_dict[play_note.pitch.midi] = NotePlayer(play_note)
     note_dict[play_note.pitch.midi].play()
     
-
-
-if __name__ == "__main__":
-    mynote = note.Note("C4")
-    mynote.absolute_duration = 500
-    disk(mynote)    
     

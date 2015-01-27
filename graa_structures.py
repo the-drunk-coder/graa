@@ -1,5 +1,6 @@
 # Import graphviz
 import sys, os, copy
+from music21 import note, duration
 sys.path.append('..')
 sys.path.append('/usr/lib/graphviz/python/')
 sys.path.append('/usr/lib64/graphviz/python/')
@@ -14,6 +15,24 @@ class GraphError(Exception):
     def __str__(self):
         return repr(self.message)
 
+
+duration_mapping = { "q":1.0, "h":2.0,"w":4.0,"e":0.5, "st":0.25, "ts":0.125, "sf":0.0625 }
+dot_mapping = { "d":1, "dd":2 }
+acc_mapping = { "is":"#", "es":"-", "isis": "##", "eses":"--" }
+inv_duration_mapping = { "quarter":"q", "half":"h","whole":"w","eight":"e", "16th":"st", "32th":"ts", "64th":"sf" }
+inv_dot_mapping = {v: k for k, v in dot_mapping.items()}
+
+# define note class to get representation right
+class GraaNote(note.Note):    
+    def __init__(self, *args, **kwargs):
+        self.absolute_duration = None
+        self.vel = None
+        super().__init__(*args, **kwargs)
+    def __repr__(self):
+        note_string = self.nameWithOctave.lower()
+        note_string.replace("#", "is")
+        note_string.replace("-", "es")        
+        return note_string
       
 """
 A node, consisting of an id, content and some meta information 
@@ -32,13 +51,13 @@ class Node():
         # have to decide between normal and overlay nodes here ... 
         try:
             node_string += str(self.content["type"])
-            node_string += "<"
+            node_string += "~"
             for arg in self.content["args"]:
                 node_string += str(arg) + ":"
             for key in self.content["kwargs"]:
                 node_string += str(key) + "=" + str(self.content["kwargs"][key]) + ":"
             # remove last ':'
-            node_string = node_string[:-1] + ">"
+            node_string = node_string[:-1] 
         except KeyError:
             # this should mean it's an ol node
             for key in self.content:
@@ -48,7 +67,7 @@ class Node():
                 node_string = node_string[:-1]
                 node_string += ">:"
             # remove last ':'
-            node_string = node_string[:-1] + ">"
+            node_string = node_string[:-1] 
         return node_string
 
 """
