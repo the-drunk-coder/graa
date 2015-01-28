@@ -87,38 +87,21 @@ def del_out():
 # make sure midi out is removed on program exit, to avoid pointer exception
 atexit.register(del_out)
 
-# fire-and-forget midi note player, one plaer for each note
-class NotePlayer():
-    def __init__(self, a_note):        
-        self.note_thread = threading.Thread(target=self.fire, args=(a_note, ))
-        self.note_thread.deamon = True
-        self.played = False
-    def fire(self, a_note):
-        try:
-            midi_out.note_on(a_note.pitch.midi, a_note.vel)
-            pg_time.wait(a_note.absolute_duration)
-            midi_out.note_off(a_note.pitch.midi,a_note.vel)
-            self.played = True
-        except Exception as e:
-            print(e)
-    def play(self):
-        self.note_thread.start()
-        self.note_thread.join()
-        
-
-# dictionary to store note players
-note_dict = {}
+# naive note mutex
+notes_on = {}
 
 # play midi note and make sure each note is only played once, for disklavier compat
+# the waiting her as ok, as the function is only executed asynchronously
 def disk(*args, **kwargs):    
     play_note = args[0]
     play_note.vel = args[2]
     play_note.absolute_duration = args[1]
     play_pitch = play_note.pitch.midi
-    if play_pitch in note_dict and not note_dict[play_note.pitch.midi].played:
-        log.action("Midi note {} already playing!")
-        return
-    note_dict[play_note.pitch.midi] = NotePlayer(play_note)
-    note_dict[play_note.pitch.midi].play()
-    
-    
+    if play_pitch not in notes_on:
+        notes_on[play_pitch] = True
+        midi_out.note_on(play_pitch, play_note.vel)
+        pg_time.wait(play_note.absolute_duration)
+        midi_out.note_off(play_pitch,play_note.vel)
+        del notes_on[play_pitch]
+    else:    
+        print("midi fail")
