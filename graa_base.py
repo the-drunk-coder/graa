@@ -24,15 +24,17 @@ class GraaPlayer():
         self.overlays = {}
         self.graph_id = graph_id        
         self.started = False
-        self.active = False        
-        self.delay = 0
+        self.active = False
+        self.timestamp = 0
+        self.delay = 0        
     def start(self):
         self.active = True
         self.started = True
+        self.timestamp = session.now
         self.play()
     def can_be_deleted(self):        
         # if a player has been started once, but is not active anymore, it can be deleted ...
-        return  not self.active and self.started
+        return not self.active and self.started
     # method only to be called from outside
     def hold(self):
         self.active = False
@@ -52,8 +54,8 @@ class GraaPlayer():
     def play(self, *args, **kwargs):        
         if self.active:
             # process initial delay
-            if not self.started and self.delay != 0:
-                session.scheduler.time_function(self.play, [], {})
+            if not self.started and self.delay != 0:               
+                session.scheduler.time_function(self.play, [], {}, self.timestamp + self.delay)
                 self.delay = 0
             else:
                 graph = session.graphs[self.graph_id]
@@ -100,8 +102,9 @@ class GraaPlayer():
         chosen_edge = self.choose_edge(session, graph_id, current_node_id)
         #if there is no edgeleft, end this player!   
         edge = session.graphs[graph_id].edges[current_node_id][chosen_edge]
-        session.graphs[graph_id].current_node_id = edge.dest        
-        session.scheduler.time_function(self.play, [], {}, abs(edge.dur + self.delay))
+        session.graphs[graph_id].current_node_id = edge.dest
+        self.timestamp += edge.dur + self.delay        
+        session.scheduler.time_function(self.play, [], {}, self.timestamp)
         self.delay = 0
     # choose edge for next transition
     def choose_edge(self, session, graph_id, node_id):        
@@ -151,7 +154,11 @@ class GraaBeat():
     def __init__(self):        
         # LIFO Queue
         self.graph_queue = Queue()
-        self.beat()
+        # needed because of shitty scheduler
+        # self.correction = 0
+        self.starting_time = session.now
+        self.timestamp = session.now
+        self.beat()        
     def queue_graph(self, graph_id):
         self.graph_queue.put(graph_id)
         log.action("Queuing graph with id: {}.".format(graph_id))
@@ -168,7 +175,8 @@ class GraaBeat():
         # schedule next beat
         if(session.active):
             #it's important only to use integers here !
-            session.scheduler.time_function(self.beat, [], {}, int((60.0 / session.tempo) * 1000))
+            self.timestamp += int((60.0 / session.tempo) * 1000)                       
+            session.scheduler.time_function(self.beat, [], {}, self.timestamp)
             while not self.graph_queue.empty():
                 graph_start = self.graph_queue.get()
                 self.start_graph(graph_start[0])

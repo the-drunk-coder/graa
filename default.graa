@@ -2,76 +2,77 @@
 
 expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
-d1|dirt~0:bd:0,
-d2|dirt~0:sn:4,
+d1|dirt~0:bd:1,
+d2|dirt~0:sn:3,
 d1-500:100->d2,
 d2-500:100->d1
 
-play(("d", 0))
+expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
-# better ??
-hold(["d"])
-
-expand(circle(2, "gaa1|dirt~0:casio:0", "gaa1-500->gaa1"))
-
-from graa_session import GraaSession as session
-
-print(session())
-
-print(session.scheduler)
-
-session.beat.collect_garbage_players()
+guu1|dirt~4:bass:0,
+guu2|dirt~4:bass:1,
+guu1-500:100->guu2,
+guu2-500:100->guu1
 
 gaa1|dirt~1:casio:0,
 gaa1-500:100->gaa1
 
+play(("gaa", 0), ("guu", 0), ("d",0))
+play(("gaa", 0))
+play(("d", 0))
 
-hold(["all"])
-play(("p",0), ("gaa", 0))
+"guu" <<shift>> 100
+"gaa" <<shift>> 260
 
-"guu" <<shift>> 280
-"gaa" <<shift>> 125
+from graa_session import GraaSession as session
+
+print(session.players["x"].play())
+session.beat.collect_garbage_players()
 
 # needs a list!
 hold(["all"])
 
-expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
-
-
-
-play(("guu", 0))
-
-
-"guu" <<shift>> 250
-
 # generate a simple cylic list and expand it to this window 
 expand(circle(5, "p1|disk~c4:400:127", "p1-500->p1"))
 
-p1|disk~c4:400:90,
-p1-500:100->p1
-
-
-p2|disk~e4:40:80,
-p3|disk~c4:40:10,
-p4|disk~a4:40:127,
-p5|disk~e4:40:100,
-
-p2-50:100->p3,
-p3-50:100->p4,
-p4-100:100->p5,
+p1|disk~c4:40:127,
+p2|disk~d4:400:127,
+p3|disk~c4:40:127,
+p4|disk~e4:40:127,
+p5|disk~c6:40:127,
+p1-50:100->p2,
+p2-100:100->p3,
+p3-900:100->p4,
+p4-40:100->p5,
 p5-50:100->p1
 
+expand(circle(5, "x1|disk~c5:40:127", "x1-50->x1"))
+
+x1|disk~e4:200:127,
+x2|disk~c5:20:127,
+x3|disk~g2:200:127,
+x4|disk~c2:50:127,
+x5|disk~a4:200:100,
+x1-500:100->x2,
+x2-50:100->x3,
+x3-900:100->x4,
+x4-500:100->x5,
+x5-50:100->x1
+
+#debug stuff
+session.active = False
+session.scheduler.active = False
+
+print(session.scheduler.schedict)
+print(session.now)
 
 
-# hit C-a to add the region to graa
+play(("x",0), ("p",0))
 
-play(("p",0))
 
-hold(["p"])
 
-# hit C-c to evaluate single lines
-"d" <<plus>> "ol"
 
-"gaa" <<shift>> 200
+
+
 
 
