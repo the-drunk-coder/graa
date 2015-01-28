@@ -13,14 +13,7 @@ from pygame import midi
 from pygame import time as pg_time 
 from music21 import note
 
-"""
-Procedure to send an event to Alex McLean's marvellous dirt sample player!
 
-The dirt player takes osc messages as input, via udp, on port 7771
-
-Each source port is interpretad as a road to dirt ...
-
-"""
 dc = []
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44442))
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44448))
@@ -32,7 +25,15 @@ dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44476))
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44482))
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44488))
 
-def dirt(*args, **kwargs):   
+def dirt(*args, **kwargs):
+    """
+    Procedure to send an event to Alex McLean's marvellous dirt sample player!
+
+    The dirt player takes osc messages as input, via udp, on port 7771
+
+    Each source port is interpretad as an output to dirt ...
+
+    """
     msg = osc_message_builder.OscMessageBuilder(address = "/play")
     msg.add_arg(int(time.time()))
     msg.add_arg(datetime.datetime.now().microsecond + 4)
@@ -90,13 +91,16 @@ atexit.register(del_out)
 # naive note mutex
 notes_on = {}
 
-# play midi note and make sure each note is only played once, for disklavier compat
-# the waiting her as ok, as the function is only executed asynchronously
-def disk(*args, **kwargs):    
+def disk(*args, **kwargs):
+    """
+    Function to output midi. Can be used with disklavier,
+    as there won't be two notes played at the same time.
+    """
     play_note = args[0]
     play_note.vel = args[2]
     play_note.absolute_duration = args[1]
     play_pitch = play_note.pitch.midi
+    log.beat("playing: {}".format(play_pitch))
     if play_pitch not in notes_on:
         notes_on[play_pitch] = True
         midi_out.note_on(play_pitch, play_note.vel)
@@ -104,4 +108,4 @@ def disk(*args, **kwargs):
         midi_out.note_off(play_pitch,play_note.vel)
         del notes_on[play_pitch]
     else:    
-        print("midi fail")
+        log.action("MIDI fail, note already on!")

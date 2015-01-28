@@ -31,7 +31,12 @@ class GraaPlayer():
         self.active = True
         self.started = True
         self.timestamp = session.now
-        self.play()
+        if(self.delay != 0):
+            self.timestamp += self.delay
+            session.scheduler.time_function(self.play, [], {}, self.timestamp)
+            self.delay = 0
+        else:
+            self.play()
     def can_be_deleted(self):        
         # if a player has been started once, but is not active anymore, it can be deleted ...
         return not self.active and self.started
@@ -52,50 +57,45 @@ class GraaPlayer():
         updated_overlay.nodes[updated_overlay.current_node_id].meta = current_overlay.nodes[current_overlay.current_node_id].meta
         self.overlays[overlay_id] = updated_overlay
     def play(self, *args, **kwargs):        
-        if self.active:
-            # process initial delay
-            if not self.started and self.delay != 0:               
-                session.scheduler.time_function(self.play, [], {}, self.timestamp + self.delay)
-                self.delay = 0
-            else:
-                graph = session.graphs[self.graph_id]
-                current_node = graph.nodes[graph.current_node_id]
-                # collect overlay node functions in lists
-                current_overlay_dicts = []
-                current_overlay_steps = []
-                # collect edge modificator functions in list
-                dur_modificators = []
-                prob_modificators = []
-                ol_to_remove = []
-                for ol_key in self.overlays:
-                    overlay = self.overlays[ol_key]
-                    current_overlay_dicts.append(overlay.nodes[overlay.current_node_id].content)
-                    current_overlay_steps.append(overlay.nodes[overlay.current_node_id].meta)
-                    ol_edge_id = self.choose_overlay_edge(ol_key, overlay.current_node_id)
-                    if ol_edge_id == None:
-                        # overlay reached its end
-                        log.action("Overlay {} on graph {} reached its end, removing!".format(ol_key, graph_id))           
-                        ol_to_remove.append(ol_key)
-                    else:                            
-                        ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
-                        if ol_edge.dur != None:
-                            dur_modificators.append(ol_edge.dur)
-                        if ol_edge.prob != None:
-                            prob_modificators.append(ol_edge.prob)
-                        # forward incrementation of step counter
-                        overlay.nodes[ol_edge.dest].meta = overlay.nodes[overlay.current_node_id].meta + 1
-                        overlay.current_node_id = ol_edge.dest
-                while len(ol_to_remove) != 0:
-                    del self.overlays[ol_to_remove.pop()]
-                try:
-                    self.sched_next_node(session, self.graph_id, graph.current_node_id)            
-                except Exception as e:                    
-                    log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
-                    self.active = False
-                    self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
-                    return
-                # otherwise, just eval 
+        if self.active:                                     
+            graph = session.graphs[self.graph_id]
+            current_node = graph.nodes[graph.current_node_id]
+            # collect overlay node functions in lists
+            current_overlay_dicts = []
+            current_overlay_steps = []
+            # collect edge modificator functions in list
+            dur_modificators = []
+            prob_modificators = []
+            ol_to_remove = []
+            for ol_key in self.overlays:
+                overlay = self.overlays[ol_key]
+                current_overlay_dicts.append(overlay.nodes[overlay.current_node_id].content)
+                current_overlay_steps.append(overlay.nodes[overlay.current_node_id].meta)
+                ol_edge_id = self.choose_overlay_edge(ol_key, overlay.current_node_id)
+                if ol_edge_id == None:
+                    # overlay reached its end
+                    log.action("Overlay {} on graph {} reached its end, removing!".format(ol_key, graph_id))           
+                    ol_to_remove.append(ol_key)
+                else:                            
+                    ol_edge = overlay.edges[overlay.current_node_id][ol_edge_id]
+                    if ol_edge.dur != None:
+                        dur_modificators.append(ol_edge.dur)
+                    if ol_edge.prob != None:
+                        prob_modificators.append(ol_edge.prob)
+                    # forward incrementation of step counter
+                    overlay.nodes[ol_edge.dest].meta = overlay.nodes[overlay.current_node_id].meta + 1
+                    overlay.current_node_id = ol_edge.dest
+            while len(ol_to_remove) != 0:
+                del self.overlays[ol_to_remove.pop()]
+            try:
+                self.sched_next_node(session, self.graph_id, graph.current_node_id)            
+            except Exception as e:                    
+                log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
+                self.active = False
                 self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
+                return
+            # otherwise, just eval 
+            self.eval_node(session, current_node, current_overlay_dicts, current_overlay_steps)
     # TBD : apply edge mod, use step from node
     # schedule next node
     def sched_next_node(self, session, graph_id, current_node_id):

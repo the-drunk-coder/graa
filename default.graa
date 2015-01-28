@@ -2,36 +2,26 @@
 
 expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
-add("""
-d1|dirt~0:bd:0,
-d2|dirt~0:bd:0,
-d1-500:100->d2,
-d2-500:100->d1
-
-""")
-
-add("""
-d1|dirt~0:bd:1,
-d2|dirt~0:sn:3,
-d1-500:100->d2,
-d2-500:100->d1
-""")
 
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
+
 add("""
-guu1|dirt~4:bass:0,
-guu2|dirt~4:bass:1,
-guu1-500:100->guu2,
-guu2-500:100->guu1
+gaa1|dirt~0:casio:0,
+gaa1-500->gaa1
 """)
 
 add("""
-gaa1|dirt~1:casio:0,
-gaa1-500:100->gaa1
+ol1|$3=mod<step:4>,
+ol1->ol1
 """)
 
-play("gaa" <<shift>> 300, "d")
+
+
+play("gaa" <<shift>> 300)
+
+"gaa" <<plus>> "ol"
+
 
 "guu" <<shift>> 100
 "gaa" <<shift>> 10
@@ -45,37 +35,37 @@ hold("all")
 expand(circle(5, "p1|disk~c4:400:127", "p1-500->p1"))
 
 add("""
-p1|disk~c4:40:127,
-p2|disk~d4:400:127,
-p3|disk~c4:40:127,
-p4|disk~e4:40:127,
-p5|disk~c6:40:127,
-p1-50:100->p2,
-p2-100:100->p3,
-p3-900:100->p4,
-p4-40:100->p5,
+p1|disk~a4:400:127,
+p2|disk~c4:400:127,
+p3|disk~e4:400:127,
+p4|disk~c4:400:127,
+p5|disk~g4:400:127,
+p1-500:100->p2,
+p2-500:100->p3,
+p3-500:100->p4,
+p4-110:100->p5,
 p5-50:100->p1
 """)
 
 expand(circle(5, "x1|disk~c5:40:127", "x1-50->x1"))
 
 add("""
-x1|disk~e4:200:127,
-x2|disk~c5:20:127,
-x3|disk~g2:200:127,
-x4|disk~c2:50:127,
-x5|disk~a4:200:100,
-x1-500:100->x2,
-x2-50:100->x3,
-x3-900:100->x4,
-x4-500:100->x5,
-x5-50:100->x1
+x1|disk~c5:400:127,
+x2|disk~g5:40:127,
+x3|disk~c5:40:127,
+x4|disk~e5:400:127,
+x5|disk~c5:40:127,
+x1-50:100->x2,
+x2-80:100->x3,
+x3-500:100->x4,
+x4-50:100->x5,
+x5-500:100->x1
 """)
-
 
 play("x,p")
 
 
+hold("all")
 
 
 
