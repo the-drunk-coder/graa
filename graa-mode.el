@@ -11,10 +11,10 @@
 
 (defvar graa-events
   '("triforce1"
-   "circle" "plus" "minus" "shift"))
+   "circle"))
 
 (defvar graa-keywords
-      '("play" "expand"))
+      '("play" "expand" "add" "minus" "shift" "plus" "quit_graa"))
 
 (defvar graa-font-lock-defaults
   `((
@@ -127,7 +127,9 @@
   (next-line)
   (accept-process-output (get-buffer-process graa-buffer) 30)
   (newline)
+  (insert "add(\"\"\"\n")
   (insert graa-output)
+  (insert "\"\"\")")
 )
 
 
@@ -145,23 +147,6 @@
      )
     )
   )
-
-(defun graa-add-multiple-lines ()
-  "Send the current region to the interpreter as a single line."
-  (interactive)
-  (save-excursion
-   (mark-paragraph)
-   (let* ((s (buffer-substring-no-properties (region-beginning)
-                                             (region-end)))
-          )
-     (graa-send-string  "add(\"\"\"")
-     (graa-send-string  s)
-     (graa-send-string  "\"\"\")")     
-     (mark-paragraph)
-     (pulse-momentary-highlight-region (mark) (point))
-     )
-    )
- )
 
 
 (defun graa-interrupt ()
@@ -181,8 +166,7 @@
   (define-key map [?\C-c ?\C-q] 'graa-quit)
   (define-key map [?\C-c ?\C-c] 'graa-run-line)
   (define-key map [?\C-c ?\C-x] 'graa-expand-line)
-  (define-key map [?\C-c ?\C-e] 'graa-run-multiple-lines)
-  (define-key map [?\C-c ?\C-a] 'graa-add-multiple-lines)
+  (define-key map [?\C-c ?\C-a] 'graa-run-multiple-lines)
   (define-key map (kbd "<C-return>") 'graa-run-multiple-lines)
   (define-key map [?\C-c ?\C-i] 'graa-interrupt)
   )
@@ -193,8 +177,7 @@
   (local-set-key [?\C-c ?\C-v] 'graa-see-output)
   (local-set-key [?\C-c ?\C-q] 'graa-quit)
   (local-set-key [?\C-c ?\C-c] 'graa-run-line)
-  (local-set-key [?\C-c ?\C-e] 'graa-run-multiple-lines)
-  (local-set-key [?\C-c ?\C-a] 'graa-add-multiple-lines)
+  (local-set-key [?\C-c ?\C-a] 'graa-run-multiple-lines)
   (local-set-key (kbd "<C-return>") 'graa-run-multiple-lines)  
   (local-set-key [?\C-c ?\C-i] 'graa-interrupt)
   )

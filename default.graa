@@ -2,39 +2,49 @@
 
 expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
+add("""
+d1|dirt~0:bd:0,
+d2|dirt~0:bd:0,
+d1-500:100->d2,
+d2-500:100->d1
+
+""")
+
+add("""
 d1|dirt~0:bd:1,
 d2|dirt~0:sn:3,
 d1-500:100->d2,
 d2-500:100->d1
+""")
 
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
+add("""
 guu1|dirt~4:bass:0,
 guu2|dirt~4:bass:1,
 guu1-500:100->guu2,
 guu2-500:100->guu1
+""")
 
+add("""
 gaa1|dirt~1:casio:0,
 gaa1-500:100->gaa1
+""")
 
-play(("gaa", 0), ("guu", 0), ("d",0))
-play(("gaa", 0))
-play(("d", 0))
+play("gaa" <<shift>> 300, "d")
 
 "guu" <<shift>> 100
-"gaa" <<shift>> 260
-
-from graa_session import GraaSession as session
-
-print(session.players["x"].play())
-session.beat.collect_garbage_players()
+"gaa" <<shift>> 10
 
 # needs a list!
-hold(["all"])
+hold("guu")
+
+hold("all")
 
 # generate a simple cylic list and expand it to this window 
 expand(circle(5, "p1|disk~c4:400:127", "p1-500->p1"))
 
+add("""
 p1|disk~c4:40:127,
 p2|disk~d4:400:127,
 p3|disk~c4:40:127,
@@ -45,9 +55,11 @@ p2-100:100->p3,
 p3-900:100->p4,
 p4-40:100->p5,
 p5-50:100->p1
+""")
 
 expand(circle(5, "x1|disk~c5:40:127", "x1-50->x1"))
 
+add("""
 x1|disk~e4:200:127,
 x2|disk~c5:20:127,
 x3|disk~g2:200:127,
@@ -58,16 +70,10 @@ x2-50:100->x3,
 x3-900:100->x4,
 x4-500:100->x5,
 x5-50:100->x1
-
-#debug stuff
-session.active = False
-session.scheduler.active = False
-
-print(session.scheduler.schedict)
-print(session.now)
+""")
 
 
-play(("x",0), ("p",0))
+play("x,p")
 
 
 

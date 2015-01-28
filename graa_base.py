@@ -179,7 +179,7 @@ class GraaBeat():
             session.scheduler.time_function(self.beat, [], {}, self.timestamp)
             while not self.graph_queue.empty():
                 graph_start = self.graph_queue.get()
-                self.start_graph(graph_start[0])
+                self.start_graph(graph_start)
     def start_graph(self, graph_id):
         if graph_id not in session.players:
             session.players[graph_id] = GraaPlayer(graph_id)            

@@ -10,8 +10,9 @@ from graa_dispatcher import DispatcherError
 from graa_parser import GraaParser as parser
 
 
-# setup and start
+
 def start_graa():
+    """Initialize the graa> session."""    
     session.active = True
     session.scheduler = scheduler()
     session.beat = beat()
@@ -30,8 +31,9 @@ Welcome, dear follower of the cult of graa> !
 """)    
 # end start_graa()
 
-# clean up and quit
+
 def quit_graa():
+    """Quit graa> and all it's functions."""
     log.action("Quitting graa on next beat ... ")
     session.active = False
     session.scheduler.active = False
@@ -46,9 +48,13 @@ def quit_graa():
     quit()
 # end quit_graa()
    
-# HOLD - hold a list of graphs
-def hold(players):                   
-    for key in players:
+
+def hold(players):
+    """
+    Hold the specified graphs. Graphs should be specified in a string,
+    as a comma-separated list of identifiers.
+    """
+    for key in players.split(","):
         if key == "all":
             for player_key in session.players:
                 try:
@@ -64,8 +70,9 @@ def hold(players):
                 log.action("Couldn't hold graph, probably not played yet!")
 # end hold()    
 
-# TEMPO - change beat tempo
+
 def tempo(arg):
+    """Change tempo of underlying beat. Should adapt to your desired playing speed. """
     try:
         session.tempo = int(arg)
         log.action("Beat tempo set to {} bpm!".format(session.tempo))
@@ -73,9 +80,18 @@ def tempo(arg):
         log.action("Invalid tempo specification! - " + arg)
 # end tempo()
 
-# delete a list of graphs or overlays
+
 def delete(keys):
-    for key in keys:
+    """
+    Delete specified graphs, with all consequences.
+    Graphs should be specified in a string, as a comma-separated list of identifiers.
+
+    Example:
+
+    delete("a,b,c") - will delete graphs a, b and c
+    
+    """
+    for key in keys.split(","):
         # stop and remove player if playing
         if key in session.players:
             if session.players[key].active:
@@ -92,38 +108,76 @@ def delete(keys):
                 del session.overlays[key]
 # end delete()
 
-# command format: (graph_id, delay)
+
+
 def play(*args, **kwargs):
-    #session.beat.collect_garbage_players()
-    for command in args:              
-        if command[0] not in session.graphs:
-            log.action("{} not found!".format(command[0]))
-        elif command[0] in session.players and session.players[command[0]].active:
-            log.action("{} already playing!".format(command[0]))
-        else:
-            if command[1] == "now":
-                session.beat.start_graph(command[0])
+    """
+    Play graphs. You may specify the graphs as one or more comma-separated list in one
+    string, or multiple strings, or anything that returns a graph id ...
+
+    You may specify an "imd" flag. If True, the graph will be started at once, if False (default),
+    the graph will be started on next beats (faciliates synchronous start of multiple graphs).
+
+    Example:
+    
+    play("a,b","c", d <<shift>> 256, imd=True) -- will immediately play graphs a,b,c, plus graph d with a timeshift.
+
+    """
+    session.beat.collect_garbage_players()
+    for command in args:
+        for key in command.split(","):
+            key = key.strip()
+            if key not in session.graphs:
+                log.action("{} not found!".format(key))
+            elif key in session.players and session.players[key].active:
+                log.action("{} already playing!".format(key))
             else:
-                session.beat.queue_graph(command)
+                immediately = kwargs.get("imd", False)
+                if immediately:
+                    session.beat.start_graph(key)
+                else:
+                    session.beat.queue_graph(key)
 # end play()    
 
 # shift a player by some milliseconds
 @infix
 def shift(graph_ids, delay):
-    for graph_id in graph_ids.split(":"):
+    """
+    Shift a graph by a specified amount of milliseconds. Use as infix:
+
+    "graph_id" <<shift>> 256
+    
+    """
+    for graph_id in graph_ids.split(","):
         if graph_id not in session.players:                            
             session.players[graph_id] = player(graph_id)
         session.players[graph_id].delay = delay
+    return graph_ids
 # end shift()
 
-# expand a graph, that is, show all nodes and edges
 def expand(graph_id):
+    """
+    Expand a graph, that is, print its textual representation to the shell.
+
+    You may specify a single graph.
+
+    Mostly important for the emacs mode.
+    
+    """
     log.shell(session.graphs[graph_id])
 # end expand()    
 
-# add overlays
+
 @infix
-def plus(graph_ids, overlay_ids):        
+def plus(graph_ids, overlay_ids):
+    """
+    Add a non-destructive overlay graph to a graph. Use as infix.
+
+    Example:
+
+    "foo" <<plus>> "foo_ol" -- adds foo_ol to foo.
+    
+    """
     if type(graph_ids) is str and graph_ids == "all":                    
         for key in session.graphs:
             for overlay_id in overlay_ids:
@@ -140,11 +194,20 @@ def plus(graph_ids, overlay_ids):
                     session.players[graph_id] = player(graph_id)
                 session.players[graph_id].add_overlay(overlay_id)
                 log.action("Added overlay: {} to graph: {}'".format(overlay_id, graph_id))
+    return graph_ids
 # end plus_ol()
 
-# remove overlays
+
 @infix
-def minus(self, graph_ids, overlay_ids):        
+def minus(self, graph_ids, overlay_ids):
+    """
+    Remove an overlay graph from a graph. Use as infix.
+
+    Example:
+
+    "foo" <<minus>> "foo_ol" -- removes foo_ol from foo.
+    
+    """
     if type(graph_ids) is str and graph_ids == "all":                    
         for key in session.graphs:
             for overlay_id in overlay_ids:                
@@ -163,8 +226,19 @@ def minus(self, graph_ids, overlay_ids):
                 log.action("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id))                    
 # end minus_ol()
 
-# add graph data
+
 def add(string):
+    """
+    Add graph data. The given data will be parsed and added as Nodes and Edges.
+
+    Example:
+
+    gaa1|dirt~1:casio:0,
+    gaa1-500:100->gaa1
+    
+    This will add a graph with id 'gaa', containing one node and one edge.
+    
+    """
     for command in string.split(","):
         try:
             session.dispatcher.dispatch(parser.parse(command))
