@@ -63,7 +63,7 @@ class Node():
             for key in self.content:
                 node_string += str(key) + "=" + str(self.content[key][0]) + "<"
                 for arg in self.content[key][1]:
-                    node_string += str(arg) + ","
+                    node_string += str(arg) + ":"
                 node_string = node_string[:-1]
                 node_string += ">:"
             # remove last ':'

@@ -29,22 +29,27 @@ class GraaDispatcher():
             raise DispatcherError("Can't add overlay element to a graph!")            
         if ol_id not in session.overlays:
             session.overlays[ol_id] = Graph()
-            log.action("Initialized overlay with id: {}".format(ol_id))            
+            log.action("Initialized overlay with id: '{}'".format(ol_id))            
         #initialize step counter with 0
         ol_node.meta = 0
-        log.action("Adding node: {} to overlay: {}'".format(ol_node, ol_id))
+        session.overlays[ol_id].add_node(ol_node)
+        # updating player copies of overlays
+        for player_id in session.players:
+            if ol_id in session.players[player_id].overlays:
+                session.players[player_id].update_overlay(ol_id)
+        log.action("Adding node: {} to overlay: '{}'".format(ol_node, ol_id))
     def dispatch_overlay_edge(self, ol_id, ol_edge, src):
         if ol_id not in session.overlays:
             raise DispatcherError("Overlay {} not present, can't add edge!".format(ol_id))            
         overlay = session.overlays[ol_id]
         if src not in overlay.nodes or ol_edge.dest not in overlay.nodes:
-            raise DispatcherError("Invalid overlay edge, source or destination node not present!")
+            raise DispatcherError("Invalid overlay edge, source or destination node not present! Src: {} Dest: {}".format(src, ol_edge.dest))
         overlay.add_edge(src, ol_edge)
         # updating player copies of overlays
         for player_id in session.players:
             if ol_id in session.players[player_id].overlays:
                 session.players[player_id].update_overlay(ol_id)                
-        log.action("Adding edge: {} to overlay: {}'".format(ol_edge, ol_id))
+        log.action("Adding edge: {} to overlay: '{}'".format(ol_edge, ol_id))
     # dispatch command to add a normal graph node
     def dispatch_normal_node(self, graph_id, node):                
         if graph_id in session.overlays:

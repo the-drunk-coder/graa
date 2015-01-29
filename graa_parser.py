@@ -91,13 +91,14 @@ class GraaParser():
                 node_params["args"].append(param)
         # create and return node
         return (GraaParser.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
-    def parse_ol_node(arg):        
+    def parse_ol_node(arg):
         graph_id = arg[0]
         node_id = arg[1]
         node_params = {}
         for param in arg[2:]:
-            node_params[param[0]] = param[1]        
-        return (GraaParser.OVERLAY_NODE, graph_id, Node(graph_id, node_id, node_params))
+            node_params[param[0]] = param[1]
+        node = Node(graph_id, node_id, node_params)
+        return (GraaParser.OVERLAY_NODE, graph_id, node)
     def parse_ol_edge(arg):
         graph_id = arg[0]
         source_node_id = arg[1]
@@ -109,7 +110,7 @@ class GraaParser():
             if len(transition) == 2:
                 edge.prob = transition[1]
         else:            
-            edge = Edge(graph_id, source_node_id, destination_node_id, None)        
+            edge = Edge(graph_id, source_node_id, destination_node_id, None)
         return (GraaParser.OVERLAY_EDGE, graph_id, edge, source_node_id)    
     def parse(arg):
         return GraaParser.line.parseString(arg)

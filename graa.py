@@ -9,7 +9,7 @@ from graa_language_functions import *
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE:
-# FIX OVERLAYS!
+# PAUSE/PLAY structure
 # tbd: precise scheduler ...
 # tbd: resetting graphs
 # tbd: validation: all nodes reachable etc ?

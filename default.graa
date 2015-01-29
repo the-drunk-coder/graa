@@ -2,23 +2,32 @@
 
 expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
+add("""
+d1|dirt~0:bd:0,
+d2|dirt~0:sn:4,
+d1-128:100->d2,
+d2-128:100->d1
+""")
 
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
-
 add("""
 gaa1|dirt~0:casio:0,
-gaa1-500->gaa1
+gaa1-512->gaa1
 """)
 
 add("""
-ol1|$3=mod<step:4>,
+ol1|$3=mod<step:4>
+""")
+
+add("""
 ol1->ol1
 """)
 
+session.players["gaa"].overlays
 
-
-play("gaa" <<shift>> 300)
+play("gaa" <<shift>> 256)
+play("d", "gaa" <<shift>> 256)
 
 "gaa" <<plus>> "ol"
 
@@ -27,39 +36,39 @@ play("gaa" <<shift>> 300)
 "gaa" <<shift>> 10
 
 # needs a list!
-hold("guu")
+hold("gaa")
 
 hold("all")
 
+add("""
+... """)
 # generate a simple cylic list and expand it to this window 
 expand(circle(5, "p1|disk~c4:400:127", "p1-500->p1"))
 
 add("""
-p1|disk~a4:400:127,
-p2|disk~c4:400:127,
-p3|disk~e4:400:127,
-p4|disk~c4:400:127,
-p5|disk~g4:400:127,
-p1-500:100->p2,
-p2-500:100->p3,
-p3-500:100->p4,
-p4-110:100->p5,
-p5-50:100->p1
+p1|disk~a0:28:80,
+p2|disk~cis1:28:80,
+p3|disk~e1:28:80,
+p4|disk~b1:28:80,
+p5|disk~ges1:28:80,
+p1-64:100->p2,
+p2-64:100->p3,
+p3-64:100->p4,
+p4-64:100->p5,
+p5-128:100->p1
 """)
 
-expand(circle(5, "x1|disk~c5:40:127", "x1-50->x1"))
-
 add("""
-x1|disk~c5:400:127,
-x2|disk~g5:40:127,
-x3|disk~c5:40:127,
-x4|disk~e5:400:127,
-x5|disk~c5:40:127,
-x1-50:100->x2,
-x2-80:100->x3,
-x3-500:100->x4,
-x4-50:100->x5,
-x5-500:100->x1
+x1|disk~f5:32:90,
+x2|disk~g5:32:45,
+x3|disk~b5:256:80,
+x4|disk~e5:32:100,
+x5|disk~c6:128:80,
+x1-64:100->x2,
+x2-64:100->x3,
+x3-64:100->x4,
+x4-64:100->x5,
+x5-80:100->x1
 """)
 
 play("x,p")

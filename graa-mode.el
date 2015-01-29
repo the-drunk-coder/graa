@@ -82,7 +82,15 @@
       (let ((window (display-buffer (current-buffer))))
 	(goto-char (point-max))
 	(save-selected-window
-	  (set-window-point window (point-max)))))))
+	  (set-window-point window (point-max))
+	  )
+	)   
+      )
+    ;(select-window (get-buffer-window graa-buffer))
+    ;(split-window-vertically)
+    
+   )
+)
 
 (defun graa-quit ()
   "Quit graa."

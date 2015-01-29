@@ -49,7 +49,7 @@ def quit_graa():
 # end quit_graa()
    
 
-def hold(players):
+def stop(players):
     """
     Hold the specified graphs. Graphs should be specified in a string,
     as a comma-separated list of identifiers.
@@ -58,16 +58,16 @@ def hold(players):
         if key == "all":
             for player_key in session.players:
                 try:
-                    session.players[player_key].hold()
+                    session.players[player_key].stop()
                     session.players={}
                 except:
                     log.action("Couldn't hold graph, probably not played yet!")
         else:
             try:
-                session.players[key].hold()                   
+                session.players[key].stop()                   
                 del session.players[key]
             except:
-                log.action("Couldn't hold graph, probably not played yet!")
+                log.action("Couldn't hold graph '{}', probably not played yet!".format(key))
 # end hold()    
 
 
@@ -177,25 +177,25 @@ def plus(graph_ids, overlay_ids):
 
     "foo" <<plus>> "foo_ol" -- adds foo_ol to foo.
     
-    """
-    if type(graph_ids) is str and graph_ids == "all":                    
-        for key in session.graphs:
-            for overlay_id in overlay_ids:
-                # if no player present for current graph, create one                        
-                if key not in session.players:                            
-                    session.players[key] = player(key)
-                session.players[key].add_overlay(overlay_id)
-                log.action("Added overlay: {} to all graphs'".format(overlay_id))
-    elif type(graph_ids) is list:
-        for graph_id in graph_ids:
-            for overlay_id in overlay_ids:
+    """    
+    for graph_id in graph_ids.split(","):
+        if graph_id is "all":
+            for key in session.graphs:
+                for overlay_id in overlay_ids.split(","):
+                    # if no player present for current graph, create one                        
+                    if key not in session.players:                            
+                        session.players[key] = player(key)
+                    session.players[key].add_overlay(overlay_id)
+            log.action("Added overlay: {} to all graphs'".format(overlay_id))
+        else:
+            for overlay_id in overlay_ids.split(","):
                 # if no player present for current graph, create one                        
                 if graph_id not in session.players:                            
                     session.players[graph_id] = player(graph_id)
                 session.players[graph_id].add_overlay(overlay_id)
                 log.action("Added overlay: {} to graph: {}'".format(overlay_id, graph_id))
     return graph_ids
-# end plus_ol()
+# end plus()
 
 
 @infix

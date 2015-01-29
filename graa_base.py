@@ -8,29 +8,31 @@ from graa_logger import GraaLogger as log
 # default sound function library
 import graa_sound_functions
 
-"""
-The Graa Player.
 
-Handles one graph and all its overlays.
+class GraaPlayer():
+    """
+    The Graa Player.
 
-Each graph lives in its own player.
+    Handles one graph and all its overlays.
 
-Each player con only be started once. That is, if you restart the graph,
-a new player will be spawned
+    Each graph lives in its own player.
 
-"""
-class GraaPlayer():   
+    Each player con only be started once. That is, if you restart the graph,
+    a new player will be spawned
+
+    """
     def __init__(self, graph_id):        
         self.overlays = {}
         self.graph_id = graph_id        
         self.started = False
         self.active = False
+        self.pause = False
         self.timestamp = 0
         self.delay = 0        
     def start(self):
         self.active = True
         self.started = True
-        self.timestamp = session.now
+        self.timestamp = session.now        
         if(self.delay != 0):
             self.timestamp += self.delay
             session.scheduler.time_function(self.play, [], {}, self.timestamp)
@@ -41,9 +43,12 @@ class GraaPlayer():
         # if a player has been started once, but is not active anymore, it can be deleted ...
         return not self.active and self.started
     # method only to be called from outside
-    def hold(self):
+    def stop(self):
         self.active = False
-        self.graph_thread.join() 
+    def pause(self):
+        self.pause = True
+    def resume(self):
+        self.pause = False
     def add_overlay(self, overlay_id):
         # add a copy of the overlay, as each overlay should act independent for each player
         self.overlays[overlay_id] = copy.deepcopy(session.overlays[overlay_id])                                                      
@@ -51,13 +56,13 @@ class GraaPlayer():
         del self.overlays[overlay_id]
     def update_overlay(self, overlay_id):
         current_overlay = self.overlays[overlay_id] 
-        updated_overlay = copy.deepcopy(self.session.overlays[overlay_id])
+        updated_overlay = copy.deepcopy(session.overlays[overlay_id])
         # update current node and step counter
         updated_overlay.current_node_id = current_overlay.current_node_id
         updated_overlay.nodes[updated_overlay.current_node_id].meta = current_overlay.nodes[current_overlay.current_node_id].meta
         self.overlays[overlay_id] = updated_overlay
     def play(self, *args, **kwargs):        
-        if self.active:                                     
+        if self.active and not self.pause:                                     
             graph = session.graphs[self.graph_id]
             current_node = graph.nodes[graph.current_node_id]
             # collect overlay node functions in lists
