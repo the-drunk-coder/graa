@@ -59,11 +59,11 @@ def stop(players):
         if key == "all":
             for player_key in session.players:
                 try:
-                    session.players[player_key].stop()
-                    session.players={}
+                    session.players[player_key].stop()                    
                 except Exception as e:
                     log.action("Couldn't hold graph, probably not played yet!")
                     raise e
+            session.players={}
         else:
             try:
                 session.players[key].stop()                   
