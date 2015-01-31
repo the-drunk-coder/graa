@@ -30,7 +30,7 @@ class GraaParser():
     func_assign.setParseAction(lambda t: t.asList())
     var_assign = Group(func_param + Suppress("=") + func_param)
     var_assign.setParseAction(lambda t: t.asList())
-    ol_node_def = node_id + Suppress("|") + OneOrMore(func_assign + Optional(param_divider))
+    ol_node_def = node_id + Suppress("|") + OneOrMore((func_assign + Optional(param_divider)) ^ Literal("nil") ^ Literal("mute"))
     ol_node_def.setParseAction(lambda t: GraaParser.parse_ol_node(t))
     node_def = node_id + Suppress("|") + node_type + Suppress("~") + Group(ZeroOrMore((func_param ^ var_assign) + Optional(param_divider)))
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
@@ -92,11 +92,15 @@ class GraaParser():
         # create and return node
         return (GraaParser.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
     def parse_ol_node(arg):
+        print(arg)
         graph_id = arg[0]
         node_id = arg[1]
         node_params = {}
         for param in arg[2:]:
-            node_params[param[0]] = param[1]
+            if type(param) is str:
+                node_params = param
+            else:                
+                node_params[param[0]] = param[1]
         node = Node(graph_id, node_id, node_params)
         return (GraaParser.OVERLAY_NODE, graph_id, node)
     def parse_ol_edge(arg):
@@ -105,7 +109,7 @@ class GraaParser():
         destination_node_id = arg[-1]
         edge = None
         if(len(arg) == 5):
-            transition = arg[2]
+            transition = arg[2]         
             edge = Edge(graph_id, source_node_id, destination_node_id, transition[0])
             if len(transition) == 2:
                 edge.prob = transition[1]

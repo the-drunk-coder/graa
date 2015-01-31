@@ -9,8 +9,6 @@ from graa_dispatcher import GraaDispatcher as dispatcher
 from graa_dispatcher import DispatcherError
 from graa_parser import GraaParser as parser
 
-
-
 def start_graa():
     """Initialize the graa> session."""    
     session.active = True
@@ -51,7 +49,10 @@ def quit_graa():
 
 def stop(players):
     """
-    Hold the specified graphs. Graphs should be specified in a string,
+    Stop the specified graphs. Think of 'stop' as an your cd player.
+    The graphs will be reset, overlays removed.
+
+    Graphs should be specified in a string,
     as a comma-separated list of identifiers.
     """
     for key in players.split(","):
@@ -60,15 +61,42 @@ def stop(players):
                 try:
                     session.players[player_key].stop()
                     session.players={}
-                except:
+                except Exception as e:
                     log.action("Couldn't hold graph, probably not played yet!")
+                    raise e
         else:
             try:
                 session.players[key].stop()                   
                 del session.players[key]
-            except:
+            except Exception as e:
                 log.action("Couldn't hold graph '{}', probably not played yet!".format(key))
-# end hold()    
+                raise e
+# end stop()    
+
+
+def pause(players):
+    """
+    Pause the specified graphs.
+    Think of 'pause' as on your cd player. You can resume the graph in
+    its current state.
+
+    Graphs should be specified in a string,
+    as a comma-separated list of identifiers.
+    """
+    for key in players.split(","):
+        if key == "all":
+            for player_key in session.players:
+                try:
+                    session.players[player_key].pause()
+                except:
+                    log.action("Couldn't pause graph, probably not played yet!")
+        else:
+            try:
+                session.players[key].pause()                   
+            except:
+                log.action("Couldn't pause graph '{}', probably not played yet!".format(key))
+# end pause()    
+
 
 
 def tempo(arg):
@@ -95,7 +123,7 @@ def delete(keys):
         # stop and remove player if playing
         if key in session.players:
             if session.players[key].active:
-                session.players[key].hold()               
+                session.players[key].stop()               
             del session.players[key]
             # remove graph
         if key in session.graphs:
@@ -129,7 +157,7 @@ def play(*args, **kwargs):
             key = key.strip()
             if key not in session.graphs:
                 log.action("{} not found!".format(key))
-            elif key in session.players and session.players[key].active:
+            elif key in session.players and session.players[key].active and not session.players[key].paused:
                 log.action("{} already playing!".format(key))
             else:
                 immediately = kwargs.get("imd", False)
@@ -161,10 +189,16 @@ def expand(graph_id):
 
     You may specify a single graph.
 
+    If the graph is playing, the player copy will be expanded, if not, the
+    base graph will be used ...
+
     Mostly important for the emacs mode.
     
     """
-    log.shell(session.graphs[graph_id])
+    try:
+        log.shell(session.players[graph_id].player_copy)
+    except KeyError as e:
+        log.shell(session.graphs[graph_id])        
 # end expand()    
 
 
@@ -199,7 +233,37 @@ def plus(graph_ids, overlay_ids):
 
 
 @infix
-def minus(self, graph_ids, overlay_ids):
+def permaplus(graph_ids, permalay_ids):
+    """
+    Add a destructive overlay (permalay) graph to a graph. Use as infix.
+
+    Example:
+
+    "foo" <<plus>> "foo_ol" -- adds foo_ol to foo.
+    
+    """    
+    for graph_id in graph_ids.split(","):
+        if graph_id is "all":
+            for key in session.graphs:
+                for permalay_id in permalay_ids.split(","):
+                    # if no player present for current graph, create one                        
+                    if key not in session.players:                            
+                        session.players[key] = player(key)
+                    session.players[key].add_permalay(permalay_id)
+            log.action("Added permalay: {} to all graphs'".format(permalay_id))
+        else:
+            for permalay_id in permalay_ids.split(","):
+                # if no player present for current graph, create one                        
+                if graph_id not in session.players:                            
+                    session.players[graph_id] = player(graph_id)
+                session.players[graph_id].add_permalay(permalay_id)
+                log.action("Added permalay: {} to graph: {}'".format(permalay_id, graph_id))
+    return graph_ids
+# end permaplus
+
+
+@infix
+def minus(graph_ids, overlay_ids):
     """
     Remove an overlay graph from a graph. Use as infix.
 
@@ -208,23 +272,19 @@ def minus(self, graph_ids, overlay_ids):
     "foo" <<minus>> "foo_ol" -- removes foo_ol from foo.
     
     """
-    if type(graph_ids) is str and graph_ids == "all":                    
-        for key in session.graphs:
-            for overlay_id in overlay_ids:                
-                try:
+    for graph_id in graph_ids.split(","):
+        if graph_id is "all":
+            for key in session.graphs:
+                for overlay_id in overlay_ids.split(","):                    
                     session.players[key].remove_overlay(overlay_id)
-                except:
-                    log.action("Removing {} from {} failed, probably not added!".format(overlay_id, key))
-                log.action("Removed overlay: {} from all graphs'".format(overlay_id))
-    elif type(graph_ids) is list:
-        for graph_id in graph_ids:            
-            for overlay_id in overlay_ids:               
-                try:
-                    session.players[graph_id].remove_overlay(overlay_id)
-                except:
-                    log.action("Removing {} from {} failed, probably not added!".format(overlay_id, graph_id))
-                log.action("Removing overlay: {} from graph: {}'".format(overlay_id, graph_id))                    
-# end minus_ol()
+                    session.players[key].remove_permalay(overlay_id)
+            log.action("Remove over-/permalay: {} to all graphs'".format(overlay_id))
+        else:
+            for overlay_id in overlay_ids.split(","):
+                session.players[graph_id].remove_overlay(overlay_id)
+                log.action("Remove over-/permalay: {} to graph: {}'".format(overlay_id, graph_id))
+    return graph_ids
+# end minus()
 
 
 def add(string):

@@ -9,8 +9,10 @@ from graa_language_functions import *
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE:
-# PAUSE/PLAY structure
-# tbd: precise scheduler ...
+# tbd: SESSION LEAK ??
+# tbd: expand player copy ??
+# tbd: selctively expand edges and nodes ??
+# tbd: precise scheduling ...
 # tbd: resetting graphs
 # tbd: validation: all nodes reachable etc ?
 # tbd: re-sync graphs on beat (restart command ?)
@@ -19,7 +21,7 @@ from graa_language_functions import *
 # tbd: edge duration modification
 # tbd: peristent modifications ?
 # tbd: supercollider backend
-# tbd: edge rebalancing (subtract equally from existing edges if not enough prob left)
+# tbd: edge rebalancing (subtract equally from existing edges if not enough prob left) (ESP for edge mods!!)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
 # tbd: add overlay kwargs if not present

@@ -4,77 +4,221 @@ expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
 add("""
 d1|dirt~0:bd:0,
-d2|dirt~0:sn:4,
-d1-128:100->d2,
-d2-128:100->d1
+d2|dirt~0:sn:0,
+d1-512:100->d2,
+d2-512:100->d1
 """)
+
+
+stop("all")
+play("d")
+delete("d")
 
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
 add("""
-gaa1|dirt~0:casio:0,
-gaa1-512->gaa1
+gaa1|dirt~0:casio:1,
+gaa1-24->gaa1
 """)
 
-add("""
-ol1|$3=mod<step:4>
-""")
+expand("gaa")
 
-add("""
-ol1->ol1
-""")
-
-session.players["gaa"].overlays
+session.players["gaa"].permalays
 
 play("gaa" <<shift>> 256)
-play("d", "gaa" <<shift>> 256)
+play("gaa, gau")
 
+"gaa" <<permaplus>> "ol"
 "gaa" <<plus>> "ol"
+"gaa" <<minus>> "ol"
 
 
 "guu" <<shift>> 100
-"gaa" <<shift>> 10
+"gau" <<shift>> 50
 
-# needs a list!
-hold("gaa")
 
-hold("all")
+add(""" 
+ol1|$3=reflect<$3:1:1:127>:$2=reflect<$2:1:4:200>,
+ol1-reflect<dur:1:5:300>->ol1		
+""")
 
-add("""
-... """)
+pause("all")
+
+play("gaa")
+
+stop("all")
+
 # generate a simple cylic list and expand it to this window 
 expand(circle(5, "p1|disk~c4:400:127", "p1-500->p1"))
 
 add("""
-p1|disk~a0:28:80,
-p2|disk~cis1:28:80,
-p3|disk~e1:28:80,
-p4|disk~b1:28:80,
-p5|disk~ges1:28:80,
-p1-64:100->p2,
-p2-64:100->p3,
-p3-64:100->p4,
-p4-64:100->p5,
-p5-128:100->p1
+p1|disk~f3:1:1,
+p2|disk~d3:1:1,
+p3|disk~e3:1:1,
+p4|disk~b3:1:1,
+p5|disk~g6:1:1,
+p1-2:100->p2,
+p2-2:100->p3,
+p3-2:100->p4,
+p4-2:100->p5,
+p5-2:100->p1
 """)
 
 add("""
-x1|disk~f5:32:90,
-x2|disk~g5:32:45,
-x3|disk~b5:256:80,
-x4|disk~e5:32:100,
-x5|disk~c6:128:80,
-x1-64:100->x2,
-x2-64:100->x3,
-x3-64:100->x4,
-x4-64:100->x5,
-x5-80:100->x1
+x1|disk~a4:1:1,
+x2|disk~d4:1:1,
+x3|disk~e4:1:1,
+x4|disk~b4:1:1,
+x5|disk~a4:1:1,
+x1-2:100->x2,
+x2-2:100->x3,
+x3-2:100->x4,
+x4-2:100->x5,
+x5-2:100->x1
 """)
 
 play("x,p")
 
+stop("all")
 
-hold("all")
+expand("x")
+
+add("""
+x1|disk~a4:200:128,
+x2|disk~d4:200:128,
+x3|disk~e4:200:128,
+x4|disk~b4:200:128,
+x5|disk~a4:201:127,
+x1-301:100->x2,
+x2-301:100->x3,
+x3-301:100->x4,
+x4-301:100->x5,
+x5-300:100->x1
+""")
+add("""
+x1|disk~a4:201:127,
+x2|disk~d4:200:128,
+x3|disk~e4:200:128,
+x4|disk~b4:200:128,
+x5|disk~a4:201:127,
+x1-300:100->x2,
+x2-301:100->x3,
+x3-301:100->x4,
+x4-301:100->x5,
+x5-300:100->x1
+""")
+add("""
+x1|disk~a4:201:127,
+x2|disk~d4:201:127,
+x3|disk~e4:200:128,
+x4|disk~b4:200:128,
+x5|disk~a4:201:127,
+x1-300:100->x2,
+x2-300:100->x3,
+x3-301:100->x4,
+x4-301:100->x5,
+x5-300:100->x1
+""")
+add("""
+x1|disk~a4:201:127,
+x2|disk~d4:201:127,
+x3|disk~e4:201:127,
+x4|disk~b4:201:127,
+x5|disk~a4:201:127,
+x1-300:100->x2,
+x2-300:100->x3,
+x3-300:100->x4,
+x4-300:100->x5,
+x5-300:100->x1
+
+""")
+add("""
+x1|disk~a4:201:127,
+x2|disk~d4:201:127,
+x3|disk~e4:201:127,
+x4|disk~b4:201:127,
+x5|disk~a4:200:128,
+x1-300:100->x2,
+x2-300:100->x3,
+x3-300:100->x4,
+x4-300:100->x5,
+x5-301:100->x1
+
+""")
+add("""
+x1|disk~a4:201:127,
+x2|disk~d4:201:127,
+x3|disk~e4:201:127,
+x4|disk~b4:201:127,
+x5|disk~a4:200:128,
+x1-300:100->x2,
+x2-300:100->x3,
+x3-300:100->x4,
+x4-300:100->x5,
+x5-301:100->x1
+
+""")
+add("""
+x1|disk~a4:200:128,
+x2|disk~d4:200:128,
+x3|disk~e4:200:128,
+x4|disk~b4:201:127,
+x5|disk~a4:200:128,
+x1-301:100->x2,
+x2-301:100->x3,
+x3-301:100->x4,
+x4-300:100->x5,
+x5-301:100->x1
+
+""")
+add("""
+x1|disk~a4:200:128,
+x2|disk~d4:200:128,
+x3|disk~e4:200:128,
+x4|disk~b4:200:128,
+x5|disk~a4:200:128,
+x1-301:100->x2,
+x2-301:100->x3,
+x3-301:100->x4,
+x4-301:100->x5,
+x5-301:100->x1
+""")
+add("""
+x1|disk~a4:201:127,
+x2|disk~d4:200:128,
+x3|disk~e4:200:128,
+x4|disk~b4:200:128,
+x5|disk~a4:201:127,
+x1-300:100->x2,
+x2-301:100->x3,
+x3-301:100->x4,
+x4-301:100->x5,
+x5-300:100->x1
+""")
+add("""
+x1|disk~a4:200:128,
+x2|disk~d4:201:127,
+x3|disk~e4:201:127,
+x4|disk~b4:201:127,
+x5|disk~a4:200:128,
+x1-299:100->x2,
+x2-298:100->x3,
+x3-298:100->x4,
+x4-298:100->x5,
+x5-299:100->x1
+
+""")
+
+"x" <<permaplus>> "ol"
+"p" <<permaplus>> "ol"
+
+
+
+expand("p")
+
+
+
+stop("all")
 
 
 

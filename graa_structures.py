@@ -58,14 +58,17 @@ class Node():
                 node_string += str(key) + "=" + str(self.content["kwargs"][key]) + ":"
             # remove last ':'
             node_string = node_string[:-1] 
-        except KeyError:
+        except (KeyError, TypeError):
             # this should mean it's an ol node
-            for key in self.content:
-                node_string += str(key) + "=" + str(self.content[key][0]) + "<"
-                for arg in self.content[key][1]:
-                    node_string += str(arg) + ":"
-                node_string = node_string[:-1]
-                node_string += ">:"
+            if type(self.content) is str:
+                node_string += self.content
+            else:
+                for key in self.content:
+                    node_string += str(key) + "=" + str(self.content[key][0]) + "<"
+                    for arg in self.content[key][1]:
+                        node_string += str(arg) + ":"
+                    node_string = node_string[:-1]
+                    node_string += ">:"
             # remove last ':'
             node_string = node_string[:-1] 
         return node_string

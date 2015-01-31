@@ -17,6 +17,10 @@ def replace_args(args, functions, step):
     return processed_values
 
 def process_mod_function(key, orig_value, step, functions):
+    # print("PROCESS MOD: {} {} {} {}".format(key, orig_value, step, functions))
+    # this is NOT a loop !!!
+    if type(functions) is str:
+        return orig_value
     if key in functions.keys():
         # get the function representation (list of strings)
         func_list = functions[key]

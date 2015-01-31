@@ -14,7 +14,7 @@
    "circle"))
 
 (defvar graa-keywords
-      '("play" "expand" "add" "minus" "shift" "plus" "quit_graa"))
+      '("play" "expand" "add" "minus" "shift" "plus" "quit_graa" "stop" "pause"))
 
 (defvar graa-font-lock-defaults
   `((
