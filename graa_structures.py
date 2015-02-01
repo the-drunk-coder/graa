@@ -46,6 +46,7 @@ class Node():
         self.content = node_content
         # space for arbitrary meta information
         self.meta = meta
+        self.mute = False
     def __repr__(self):
         node_string="{}{}|".format(self.graph_id, self.id)
         # have to decide between normal and overlay nodes here ... 

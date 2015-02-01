@@ -30,7 +30,7 @@ class GraaParser():
     func_assign.setParseAction(lambda t: t.asList())
     var_assign = Group(func_param + Suppress("=") + func_param)
     var_assign.setParseAction(lambda t: t.asList())
-    ol_node_def = node_id + Suppress("|") + OneOrMore((func_assign + Optional(param_divider)) ^ Literal("nil") ^ Literal("mute"))
+    ol_node_def = node_id + Suppress("|") + OneOrMore((func_assign + Optional(param_divider)) ^ Literal("nil") ^ Literal("mute") ^ Literal("unmute"))
     ol_node_def.setParseAction(lambda t: GraaParser.parse_ol_node(t))
     node_def = node_id + Suppress("|") + node_type + Suppress("~") + Group(ZeroOrMore((func_param ^ var_assign) + Optional(param_divider)))
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
@@ -61,7 +61,7 @@ class GraaParser():
     def parse_pitch(arg):
         try:
             note_string = arg[0]
-            if len(arg[0]) == 3:
+            if len(arg) == 3:
                 note_string += acc_mapping[arg[1]]
             note_string += str(arg[-1])        
             parsed_note = GraaNote(note_string)
@@ -92,7 +92,6 @@ class GraaParser():
         # create and return node
         return (GraaParser.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
     def parse_ol_node(arg):
-        print(arg)
         graph_id = arg[0]
         node_id = arg[1]
         node_params = {}

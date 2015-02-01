@@ -83,10 +83,10 @@ class GraaPlayer():
             overlay_infos = self.collect_overlay_infos(self.overlays)
             permalay_infos = self.collect_overlay_infos(self.permalays)
             # remove finished over- and permalays
-            while len(overlay_infos[4]) != 0:
-                del self.overlays[overlay_infos[4].pop()]
-            while len(permalay_infos[4]) != 0:
-                del self.permalays[permalay_infos[4].pop()]
+            while len(overlay_infos[3]) != 0:
+                del self.overlays[overlay_infos[3].pop()]
+            while len(permalay_infos[3]) != 0:
+                del self.permalays[permalay_infos[3].pop()]
             current_node = self.player_copy.nodes[self.player_copy.current_node_id]
             # schedule the next node and end graph in case it's not possible
             try:
@@ -108,8 +108,9 @@ class GraaPlayer():
         lay_to_remove = []
         for lay_key in lays:
             lay = lays[lay_key]                
-            current_lay_dicts.append(lay.nodes[lay.current_node_id].content)
-            current_lay_steps.append(lay.nodes[lay.current_node_id].meta)
+            step = lay.nodes[lay.current_node_id].meta
+            # tuple format: (step, functions)
+            current_lay_dicts.append((step, lay.nodes[lay.current_node_id].content))
             lay_edge_id = self.choose_edge(lay)
             if lay_edge_id == None:
                 # overlay reached its end
@@ -118,25 +119,25 @@ class GraaPlayer():
             else:                    
                 lay_edge = lay.edges[lay.current_node_id][lay_edge_id]
                 if lay_edge.dur != None:
-                    dur_modificators.append(lay_edge.dur)
+                    dur_modificators.append((step, lay_edge.dur))
                 if lay_edge.prob != None:
-                    prob_modificators.append(lay_edge.prob)
+                    prob_modificators.append((step, lay_edge.prob))
                 # forward incrementation of step counter
                 lay.nodes[lay_edge.dest].meta = lay.nodes[lay.current_node_id].meta + 1
                 lay.current_node_id = lay_edge.dest
-        return (current_lay_dicts, current_lay_steps, dur_modificators, prob_modificators, lay_to_remove)
+        return (current_lay_dicts, dur_modificators, prob_modificators, lay_to_remove)
     def sched_next_node(self, overlay_infos, permalay_infos):
         #if there is no edge left, end this player!   
         edge = self.player_copy.edges[self.player_copy.current_node_id][self.choose_edge(self.player_copy)]
         self.player_copy.current_node_id = edge.dest
         # apply permanent duration mods
         current_dur = edge.dur
-        for dur_mod in permalay_infos[2]:
-            current_dur = process_mod_function("dur", current_dur, 0, {"dur":dur_mod})
+        for step, dur_mod in permalay_infos[1]:
+            current_dur = int(process_mod_function("dur", current_dur, step, {"dur":dur_mod}))
             edge.dur = current_dur
         # apply non-permanent duration mods
-        for dur_mod in overlay_infos[2]:
-            current_dur = process_mod_function("dur", current_dur, 0, {"dur":dur_mod})
+        for step, dur_mod in overlay_infos[1]:
+            current_dur = int(process_mod_function("dur", current_dur, step, {"dur":dur_mod}))
         # apply only permanent probability mods -- tbd later
         # current_prob = edge.prob
         # for prob_mod in permalay_infos[3]:
@@ -159,23 +160,40 @@ class GraaPlayer():
     # eval node content
     def eval_node(self, node, overlay_infos, permalay_infos):
         try:
-            # process permanant overlays
-            #print(node.content["args"])
-            #print(node.content["kwargs"])
-            for functions, step in zip(permalay_infos[0], permalay_infos[1]):
-                node.content["args"] = replace_args(node.content["args"], functions, step)
-                node.content["kwargs"] = replace_kwargs(node.content["kwargs"], functions, step)
+            # process permanant overlays            
+            skip = False
+            for step, functions in permalay_infos[0]:
+                if type(functions) is str:
+                    if functions == "nil":
+                        continue
+                    elif functions == "mute":
+                        node.mute = True
+                    elif functions == "unmute":
+                        node.mute = False
+                else:
+                    node.content["args"] = replace_args(node.content["args"], functions, step)
+                    node.content["kwargs"] = replace_kwargs(node.content["kwargs"], functions, step)
             # process non-permanant overlays
             trans_args = copy.deepcopy(node.content["args"])
             trans_kwargs = copy.deepcopy(node.content["kwargs"])
-            for functions, step in zip(overlay_infos[0], overlay_infos[1]):
-                trans_args = replace_args(node.content["args"], functions, step)
-                trans_kwargs = replace_kwargs(node.content["kwargs"], functions, step)
+            trans_mute = False
+            for step, functions in overlay_infos[0]:
+                if type(functions) is str:
+                    if functions == "nil":
+                        continue
+                    elif functions == "mute":
+                        trans_mute = True
+                    elif functions == "unmute":
+                        trans_mute = False
+                else:
+                    trans_args = replace_args(node.content["args"], functions, step)
+                    trans_kwargs = replace_kwargs(node.content["kwargs"], functions, step)
             # try loading function from default library
             # evaluating the function string at runtime here, as
             # here might be a dynamic function library in the future ...                
-            # print(args, file=session.outfile, flush=True)            
-            getattr(graa_sound_functions, node.content["type"])(*trans_args, **trans_kwargs)            
+            # print(args, file=session.outfile, flush=True)
+            if not (node.mute or trans_mute):
+                getattr(graa_sound_functions, node.content["type"])(*trans_args, **trans_kwargs)            
         except:
             log.action("Couldn't evaluate a node. Please try again!")           
             raise

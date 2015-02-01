@@ -1,4 +1,4 @@
-import random
+import random, math
 
 def rndvow():
     return random.choice(['a', 'e', 'i', 'o', 'u'])
@@ -8,13 +8,19 @@ def stepvow(step):
     return vowels[step % 5]
 
 def mod(i, j):
-    return int(i % j)
+    return i % j
 
 def add(i, j):
-    return i + j  
+    return i + j
 
 def sub(i, j):
     return i - j  
+
+def mul(i, j):
+    return i * j  
+
+def div(i, j):
+    return i / j 
 
 def stepadd(i, j, step):
     return i + j + step
@@ -22,10 +28,11 @@ def stepadd(i, j, step):
 def stra(s, step):
     return s + ":" + str(step)
 
-# THIS CANT WORK STATELESS; FUCK IT!!!
-def reflect(val, inc, min_bound, max_bound):
-    if val <= max_bound:
-        val += inc
-    elif val >= max_bound:
-        val -= inc
-    return val
+# value, incrementing param, steps for one cycle, range 
+def sinstretch(val, inc, cyc, min_bound, max_bound):
+    degree_increment = 360 / cyc
+    degree = ((inc % cyc) * degree_increment) % 360
+    abs_sin = abs(math.sin(math.radians(degree)))
+    stretch_range = max_bound - min_bound
+    return (abs_sin * stretch_range) + min_bound 
+    

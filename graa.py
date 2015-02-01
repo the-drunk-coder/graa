@@ -9,6 +9,7 @@ from graa_language_functions import *
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE:
+# tbd: yasnippets for functions
 # tbd: nested function evaluation for overlay functions
 # tbd: selctively expand edges and nodes ??
 # tbd: precise scheduling ...
@@ -21,7 +22,6 @@ from graa_language_functions import *
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
 # tbd: add overlay kwargs if not present
-# tbd: mute nodes through overlays
 # tbd: graph generators: tree, triforce, bjoerklund, cross, etc (see notes)
 # tbd: write graph transformers, like, reverse, tournament, rotate (?) 
 

@@ -1,4 +1,5 @@
 import copy, graa_overlay_functions
+from graa_session import GraaSession as session
 
 # replace named args, where kwargs is a dictionary of arguments
 def replace_kwargs(kwargs, functions, step):
@@ -17,24 +18,26 @@ def replace_args(args, functions, step):
     return processed_values
 
 def process_mod_function(key, orig_value, step, functions):
-    # print("PROCESS MOD: {} {} {} {}".format(key, orig_value, step, functions))
     # this is NOT a loop !!!
-    if type(functions) is str:
-        return orig_value
     if key in functions.keys():
+        # preserve type
+        orig_type = type(orig_value)
         # get the function representation (list of strings)
         func_list = functions[key]
         # get the function from the modification module
         func = getattr(graa_overlay_functions,func_list[0])
         # replace step and variable id by actual value
-        func_args = []
+        func_args = []        
         for arg_id in func_list[1]:
             if arg_id == "step":
                 func_args.append(step)
+            elif arg_id == "time":
+                func_args.append(session.now)
             elif arg_id == key:
                 func_args.append(orig_value)
             else:
-                func_args.append(arg_id)                                 
-        return func(*func_args)
+                func_args.append(arg_id)
+        # return calculated value with original type
+        return orig_type(func(*func_args))
     else:
         return orig_value
