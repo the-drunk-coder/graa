@@ -11,6 +11,7 @@ fun void sine(float freq, float gain, int a, int d, int sus, int r)
 	e.keyOn();
 	sus::ms => now;
 	e.keyOff();
+	r::ms => now;
 }
 
 // create our OSC receiver

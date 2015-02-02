@@ -44,13 +44,33 @@ gaa2-256:100->gaa1
 """)
 
 add("""
-gui1|sine~c2:64:d=32:r=10:a=22:gain=0.2,
-gui2|sine~g2:64:d=32:r=10:a=22:gain=0.4,
-gui1-128:50->gui1,
-gui1-128:50->gui2,
-gui2-128:100->gui1
+gui1|sine~c2:348:a=20:d=82:r=62:gain=0.2,
+gui1-512:100->gui1
 """)
 
+add("""
+guz1|sine~cis2:348:a=20:d=82:r=62:gain=0.2,
+guz1-619:100->guz1
+""")
+
+play("guz")
+
+stop("guu")
+
+add("""
+guu1|disk~d2:40:30,
+guu2|disk~g2:40:30,
+guu1-142:100->guu2,
+guu2-61:100->guu1
+""")
+
+expand("gui");
+delete("guu,gui")
+
+play("gui, guu")
+play("guu")
+stop("all")
+stop("guu")
 
 add("""
 gau1|sine~250:110:a=20:d=20:r=10:gain=0.3,
