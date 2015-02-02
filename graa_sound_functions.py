@@ -11,8 +11,14 @@ from graa_logger import GraaLogger as log
 import dirt_client
 from pygame import midi
 from pygame import time as pg_time 
-from music21 import note
+from graa_structures import GraaNote as gnote
 
+
+
+"""
+Output "routes" to dirt ...
+
+"""
 
 dc = []
 dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44442))
@@ -93,8 +99,9 @@ notes_on = {}
 
 def disk(*args, **kwargs):
     """
-    Function to output midi. Can be used with disklavier,
-    as there won't be two notes played at the same time.
+    Function to output midi.
+
+    Can be used with disklavier, as there won't be two notes played at the same time.
     """
     play_note = args[0]
     play_note.vel = args[2]
@@ -109,3 +116,35 @@ def disk(*args, **kwargs):
         del notes_on[play_pitch]
     else:    
         log.action("MIDI fail, note already on!")
+
+
+
+
+chuck_client = dirt_client.UDPClient("127.0.0.1", 6449, 54442)
+
+def sine(*args, **kwargs):
+    """
+    play a sine wave with chuck
+    """
+    freq = None
+    if type(args[0]) is gnote:
+        freq = args[0].pitch.frequency
+    else:
+        freq = args[0]    
+    gain = float(kwargs.get("gain", 0.5))
+    sus = args[1]
+    attack = kwargs.get("a", 2);
+    decay = kwargs.get("d", 1);
+    release = kwargs.get("r", 1);
+    msg = osc_message_builder.OscMessageBuilder(address = "/sine")
+    msg.add_arg(float(freq));
+    msg.add_arg(gain);
+    msg.add_arg(int(attack))
+    msg.add_arg(int(decay))
+    msg.add_arg(int(sus))
+    msg.add_arg(int(release))        
+    msg = msg.build()
+    chuck_client.send(msg)
+
+
+

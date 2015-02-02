@@ -4,11 +4,10 @@ expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
 add("""
 d1|dirt~0:bd:0,
-d2|dirt~0:sn:0,
+d2|dirt~0:sn:3,
 d1-512:100->d2,
 d2-512:100->d1
 """)
-
 
 stop("all")
 play("d")
@@ -17,27 +16,68 @@ delete("d")
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
 add("""
-gaa1|dirt~0:casio:1,
-gaa1-24->gaa1
+guu1|dirt~4:bass:1,
+guu2|dirt~4:bass:2,
+guu3|dirt~4:bass:4,
+guu1-256:60->guu2,
+guu2-256:100->guu1,
+guu1-256:40->guu3,
+guu3-64:40->guu3,
+guu3-256:60->guu1
+""")
+
+add("""
+gaa1|sine~120:128:a=54:d=64:r=10:gain=0.2,
+gaa2|sine~540:128:a=54:d=64:r=10:gain=0.2,
+gaa1-256->gaa2,
+gaa2-256->gaa1
+""")
+
+expand("gaa")
+
+add("""
+gaa1|sine~c3:128:d=64:r=10:a=54:gain=0.2,
+gaa2|sine~g5:128:d=64:r=10:a=54:gain=0.2,
+gaa1-256:50->gaa1,
+gaa1-128:50->gaa2,
+gaa2-256:100->gaa1
+""")
+
+add("""
+gui1|sine~c2:64:d=32:r=10:a=22:gain=0.2,
+gui2|sine~g2:64:d=32:r=10:a=22:gain=0.4,
+gui1-128:50->gui1,
+gui1-128:50->gui2,
+gui2-128:100->gui1
+""")
+
+
+add("""
+gau1|sine~250:110:a=20:d=20:r=10:gain=0.3,
+gau1-310->gau1
+""")
+
+add("""
+guu1|sine~1760:110:a=20:d=20:r=10:gain=0.1,
+guu1-190->guu1
 """)
 
 expand("gaa")
 
 session.players["gaa"].permalays
 
-play("gaa" <<shift>> 256)
-play("gaa, gau")
+play("gui" <<shift>> 256)
+play("guu" <<shift>> 128)
+
+"guu" <<shift>> -64
 
 "gaa" <<permaplus>> "ol"
 "gaa" <<plus>> "ol"
 "gaa" <<minus>> "ol"
 
 
-"guu" <<shift>> 100
+"gui" <<shift>> 128
 "gau" <<shift>> 50
-
-
-
 
 pause("all")
 
@@ -88,8 +128,6 @@ dx2|disk~gis6:100:127,
 dx1-100:100->dx2,
 dx2-100:100->dx1
 """)
-
-
 
 add(""" 
 ol1|nil,
