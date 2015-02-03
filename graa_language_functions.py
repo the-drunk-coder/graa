@@ -56,13 +56,15 @@ def stop(players):
     as a comma-separated list of identifiers.
     """
     for key in players.split(","):
+        key = key.strip()
         if key == "all":
             for player_key in session.players:
                 try:
                     session.players[player_key].stop()                    
                 except Exception as e:
                     log.action("Couldn't hold graph, probably not played yet!")
-                    raise e
+                    log.action(str(e))
+                    # raise e
             session.players={}
         else:
             try:
@@ -84,12 +86,14 @@ def pause(players):
     as a comma-separated list of identifiers.
     """
     for key in players.split(","):
+        key = key.strip()
         if key == "all":
             for player_key in session.players:
                 try:
                     session.players[player_key].pause()
                 except:
                     log.action("Couldn't pause graph, probably not played yet!")
+                    # raise
         else:
             try:
                 session.players[key].pause()                   
@@ -120,6 +124,7 @@ def delete(keys):
     
     """
     for key in keys.split(","):
+        key = key.strip()
         # stop and remove player if playing
         if key in session.players:
             if session.players[key].active:
@@ -177,6 +182,7 @@ def shift(graph_ids, delay):
     
     """
     for graph_id in graph_ids.split(","):
+        graph_id = graph_id.strip()
         if graph_id not in session.players:                            
             session.players[graph_id] = player(graph_id)
         session.players[graph_id].delay = delay
@@ -213,9 +219,11 @@ def plus(graph_ids, overlay_ids):
     
     """    
     for graph_id in graph_ids.split(","):
+        graph_id = graph_id.strip()
         if graph_id is "all":
             for key in session.graphs:
                 for overlay_id in overlay_ids.split(","):
+                    overlay_id = overlay_id.strip()
                     # if no player present for current graph, create one                        
                     if key not in session.players:                            
                         session.players[key] = player(key)
@@ -223,6 +231,7 @@ def plus(graph_ids, overlay_ids):
             log.action("Added overlay: {} to all graphs'".format(overlay_id))
         else:
             for overlay_id in overlay_ids.split(","):
+                overlay_id = overlay_id.strip()
                 # if no player present for current graph, create one                        
                 if graph_id not in session.players:                            
                     session.players[graph_id] = player(graph_id)
@@ -243,9 +252,11 @@ def permaplus(graph_ids, permalay_ids):
     
     """    
     for graph_id in graph_ids.split(","):
+        graph_id = graph_id.strip()
         if graph_id is "all":
             for key in session.graphs:
                 for permalay_id in permalay_ids.split(","):
+                    permalay_id = permalay_id.strip()
                     # if no player present for current graph, create one                        
                     if key not in session.players:                            
                         session.players[key] = player(key)
@@ -253,6 +264,7 @@ def permaplus(graph_ids, permalay_ids):
             log.action("Added permalay: {} to all graphs'".format(permalay_id))
         else:
             for permalay_id in permalay_ids.split(","):
+                permalay_id = permalay_id.strip()
                 # if no player present for current graph, create one                        
                 if graph_id not in session.players:                            
                     session.players[graph_id] = player(graph_id)
@@ -273,14 +285,17 @@ def minus(graph_ids, overlay_ids):
     
     """
     for graph_id in graph_ids.split(","):
+        graph_id = graph_id.strip()
         if graph_id is "all":
             for key in session.graphs:
-                for overlay_id in overlay_ids.split(","):                    
+                for overlay_id in overlay_ids.split(","):
+                    overlay_id = overlay_id.strip()
                     session.players[key].remove_overlay(overlay_id)
                     session.players[key].remove_permalay(overlay_id)
             log.action("Remove over-/permalay: {} to all graphs'".format(overlay_id))
         else:
             for overlay_id in overlay_ids.split(","):
+                overlay_id = overlay_id.strip()
                 session.players[graph_id].remove_overlay(overlay_id)
                 log.action("Remove over-/permalay: {} to graph: {}'".format(overlay_id, graph_id))
     return graph_ids

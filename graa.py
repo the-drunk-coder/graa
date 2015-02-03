@@ -9,7 +9,13 @@ from graa_language_functions import *
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE:
-# tbd: yasnippets for functions
+# tbd: add overlay kwargs if not present (in doubt on default value)
+# tbd: make default sine more intuitive (adsr defaults ...)
+# tbd: electric qoutes (emacs mode)
+# tbd: rock-solid division between graphs and overlays
+# tbd: template edges for generators, to avoid name collisions ...
+# tbd: emacs expand for moar lines !
+# tbd: MOAR yasnippets for functions
 # tbd: nested function evaluation for overlay functions
 # tbd: selctively expand edges and nodes ??
 # tbd: precise scheduling ...
@@ -21,7 +27,6 @@ from graa_language_functions import *
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left) (ESP for edge mods!!)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
-# tbd: add overlay kwargs if not present
 # tbd: graph generators: tree, triforce, bjoerklund, cross, etc (see notes)
 # tbd: write graph transformers, like, reverse, tournament, rotate (?) 
 
