@@ -1,0 +1,157 @@
+# Disklavier performance from scratch ...
+
+# Two circles ...
+
+expand(circle(3, "tris1|disk~c4:400:10", "tris1-600->tris1"))
+
+add("""
+tris1|disk~c4:400:10,
+tris2|disk~e4:400:10,
+tris3|disk~gis4:400:10,
+tris1-600:100->tris2,
+tris2-600:100->tris3,
+tris3-500:100->tris1
+""")
+
+expand(circle(4, "qua1|disk~c4:400:10", "qua1-700->qua1"))
+
+add("""
+qua1|disk~c2:400:20,
+qua2|disk~f2:400:20,
+qua3|disk~a4:400:20,
+qua4|disk~a2:500:20,
+qua1-700:100->qua2,
+qua2-700:100->qua3,
+qua3-700:100->qua4,
+qua4-900:100->qua1
+""")
+
+expand(circle(4, "quasin1|sine~c4:400:gain=0.5", "quasin1-700->quasin1"))
+
+add("""
+quasin1|sine~c2:400:gain=0.5,
+quasin2|sine~f2:400:gain=0.5,
+quasin3|sine~a4:400:gain=0.5,
+quasin4|sine~a2:400:gain=0.5,
+quasin1-700:100->quasin2,
+quasin2-700:100->quasin3,
+quasin3-700:100->quasin4,
+quasin4-900:100->quasin1
+""")
+
+stop("all")
+
+play("tris")
+play("qua")
+
+# Two overlays
+
+expand(circle(2, "qol1|$2=sinstretch<$2:step:60:400:600>:$3=sinstretch<$3:step:80:20:80>", "qol1-700->qol1"))
+
+
+add("""
+qol1|$2=sinstretch<$2:step:20:400:600>:$3=sinstretch<$3:step:20:20:80>,
+qol2|$2=sinstretch<$2:step:20:400:600>:$3=sinstretch<$3:step:20:20:80>,
+qol1-sinstretch<dur:step:200:900:1000>->qol2,
+qol2-sinstretch<dur:step:100:700:9000>->qol1
+""")
+
+add("""
+qsol1|$2=sinstretch<$2:step:60:800:1000>:gain=sinstretch<gain:step:80:0.3:0.5>,
+qsol2|$2=sinstretch<$2:step:60:900:1000>:gain=sinstretch<gain:step:80:0.4:0.7>,
+qsol1-sinstretch<dur:step:200:1100:1300>->qsol2,
+qsol2-sinstretch<dur:step:100:1000:3000>->qsol1
+""")
+
+"quasin" <<plus>> "qsol"
+
+add("""
+trol1|$2=sinstretch<$2:time:600:400:600>:$3=sinstretch<$3:time:800:20:60>,
+trol2|$2=sinstretch<$2:time:600:400:600>:$3=sinstretch<$3:time:800:20:60>,
+trol1-sinstretch<dur:time:200:900:1000>->trol2,
+trol2-sinstretch<dur:time:100:700:9000>->trol1
+""")
+
+play("tris")
+play("quasin, witch")
+
+"qua" <<plus>> "qol"
+"tris" <<plus>> "trol"
+
+# A circle of witches ...
+
+expand(circle(2, "witchol1|$2=sinstretch<$2:step:60:40:180>:$3=sinstretch<$3:step:150:10:80>", "witchol1->witchol1"))
+
+add("""
+witchol1|$2=sinstretch<$2:step:60:40:180>:$3=sinstretch<$3:step:150:10:80>,
+witchol2|$2=sinstretch<$2:step:120:40:180>:$3=sinstretch<$3:step:800:10:80>,
+witchol1->witchol2,
+witchol2->witchol1
+""")
+
+add("""
+wisol1|$2=sinstretch<$2:step:60:40:180>:gain=sinstretch<gain:step:80:0.01:0.5>,
+wisol2|$2=sinstretch<$2:step:120:40:180>:gain=sinstretch<gain:step:800:0.01:0.5>,
+wisol1-sinstretch<dur:step:200:150:600>->wisol2,
+wisol2-sinstretch<dur:step:200:150:600>->wisol1
+""")
+
+
+
+expand(circle(7, "witch1|disk~c3:400:10", "witch1-100->witch1"))
+
+add("""
+witch1|disk~c3:40:20,
+witch2|disk~cis3:40:10,
+witch3|disk~g3:40:15,
+witch4|disk~gis3:40:20,
+witch5|disk~a2:40:20,
+witch6|disk~b2:40:15,
+witch7|disk~c4:40:15,
+witch1-100:100->witch2,
+witch2-100:100->witch3,
+witch3-100:100->witch4,
+witch4-100:100->witch5,
+witch5-100:100->witch6,
+witch6-100:50->witch7,
+witch6-100:50->witch1,
+witch7-100:100->witch1
+""")
+
+add("""
+wisin1|sine~c3:40:gain=0.5,
+wisin2|sine~cis3:40:gain=0.5,
+wisin3|sine~g3:40:gain=0.5,
+wisin4|sine~gis3:40:gain=0.5,
+wisin5|sine~a2:40:gain=0.5,
+wisin6|sine~b2:40:gain=0.5,
+wisin7|sine~c4:40_gain=0.5,
+wisin1-100:100->wisin2,
+wisin2-100:100->wisin3,
+wisin3-100:100->wisin4,
+wisin4-100:100->wisin5,
+wisin5-100:100->wisin6,
+wisin6-100:50->wisin7,
+wisin6-100:50->wisin1,
+wisin7-100:100->wisin1
+""")
+
+"witch" <<plus>> "witchol"
+
+"wisin" <<plus>> "wisol"
+
+play("quasin")
+
+stop("qua,tris,quasin")
+
+"witch" <<minus>> "witchol"
+"wisin" <<minus>> "wisol"
+
+play("wisin")
+
+play("witch, wisin")
+
+play("witch")
+stop("all")
+
+# End of performance ...

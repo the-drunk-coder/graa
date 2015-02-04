@@ -58,16 +58,17 @@ play("guz")
 stop("guu")
 
 add("""
-guu1|disk~d2:40:30,
-guu2|disk~g2:40:30,
-guu1-142:100->guu2,
-guu2-61:100->guu1
+guu1|disk~d4:500:30,
+guu2|disk~g4:500:30,
+guu1-512:100->guu2,
+guu2-512:100->guu1
 """)
 
 expand("gui");
 delete("guu,gui")
 
-play("gui, guu")
+play("guu")
+
 play("guu")
 stop("all")
 stop("guu")
@@ -143,32 +144,32 @@ px2-100:100->px1
 """)
 
 add("""
-dx1|disk~d6:100:127,
-dx2|disk~gis6:100:127,
+dx1|disk~d3:80:1,
+dx2|disk~gis3:80:1,
 dx1-100:100->dx2,
 dx2-100:100->dx1
 """)
 
 add(""" 
-ol1|nil,
-ol1-sinstretch<dur:step:100:200:300>->ol1		
+ol1|$2=sinstretch<$2:step:110:300:400>:$3=sinstretch<$3:step:130:1:90>,
+ol1-sinstretch<dur:step:100:400:600>->ol1		
 """)
 
 add(""" 
-pol1|nil,
-pol1-sinstretch<dur:step:150:200:300>->pol1		
+pol1|$2=sinstretch<$2:step:180:300:400>:$3=sinstretch<$3:step:160:1:100>,
+pol1-sinstretch<dur:step:250:700:1000>->pol1		
 """)
 
 
 print(session.players)
 
-play("dx")
+play("x,dx")
 
 stop("all")
 
 expand("p")
 
-"px" <<plus>> "ol"
+"x" <<plus>> "ol"
 "dx" <<plus>> "pol"
 
 "px" <<minus>> "ol"
