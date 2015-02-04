@@ -11,7 +11,7 @@ fun void sub(float freq, float gain, int a, int d, int sus, int r)
 	30 => b.Q;
 	30 => res.Q;
 	
-	y.set( a::ms, d::ms, gain, r::ms );
+	e.set( a::ms, d::ms, gain, r::ms );
 	
 	e.keyOn();
 	sus::ms => now;

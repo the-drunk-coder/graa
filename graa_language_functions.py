@@ -290,13 +290,18 @@ def minus(graph_ids, overlay_ids):
             for key in session.graphs:
                 for overlay_id in overlay_ids.split(","):
                     overlay_id = overlay_id.strip()
-                    session.players[key].remove_overlay(overlay_id)
-                    session.players[key].remove_permalay(overlay_id)
+                    if overlay_id in session.players[key].overlays:
+                        session.players[key].remove_overlay(overlay_id)
+                    if overlay_id in session.players[key].permalays:
+                        session.players[key].remove_permalay(overlay_id)
             log.action("Remove over-/permalay: {} to all graphs'".format(overlay_id))
         else:
             for overlay_id in overlay_ids.split(","):
                 overlay_id = overlay_id.strip()
-                session.players[graph_id].remove_overlay(overlay_id)
+                if overlay_id in session.players[graph_id].overlays:
+                    session.players[graph_id].remove_overlay(overlay_id)
+                if overlay_id in session.players[graph_id].permalays:
+                    session.players[graph_id].remove_permalay(overlay_id)
                 log.action("Remove over-/permalay: {} to graph: {}'".format(overlay_id, graph_id))
     return graph_ids
 # end minus()

@@ -194,8 +194,7 @@ def buzz(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
-    cutoff = args[1]
-    sus = args[2]
+    sus = args[1]
     attack = kwargs.get("a", 4);
     decay = kwargs.get("d", 2);
     release = kwargs.get("r", 4);
