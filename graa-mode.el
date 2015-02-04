@@ -65,6 +65,8 @@
      "graa"
      graa-interpreter
      nil)
+    (graa-send-string "import sys")
+    (graa-send-string "sys.path.append(\"/home/nik/REPOSITORIES/graa\")")    
     (graa-send-string "from graa import *")
     (graa-send-string "start_graa()")    
     (graa-see-output)
