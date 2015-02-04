@@ -1,18 +1,16 @@
 """
-
 In this file, find the functions that actually trigger the sound generators.
 
 graa doesn't use it's own sound generation, but different backends, as seen below.
 
 """
-import datetime, time, threading, atexit
+import datetime, time, threading, atexit, os, fnmatch
 from pythonosc import osc_message_builder
 from graa_logger import GraaLogger as log
 import dirt_client
 from pygame import midi
 from pygame import time as pg_time 
 from graa_structures import GraaNote as gnote
-
 
 
 """
@@ -74,7 +72,7 @@ def dirt(*args, **kwargs):
 
 """
 
-Disklavier function, midi with "collision detection":
+Midi (Disklavier) function, midi with "collision detection":
 
 If a node is already playing, don't play again.
 
@@ -118,13 +116,23 @@ def disk(*args, **kwargs):
         log.action("MIDI fail, note already on!")
 
 
+"""
+Synthetic sounds, created with the ChucK backend ... so, yes, you need ChucK installed!
+"""
+
+# Collect shreds ...
+
+# shreds = for file in listdir("./shreds"):
+
+# Start chuck with respective shreds
 
 
+# Client to send OSC stuff to ChucK 
 chuck_client = dirt_client.UDPClient("127.0.0.1", 6449, 54442)
 
 def sine(*args, **kwargs):
     """
-    play a sine wave with chuck
+    Play a sine wave (with ChucK).
     """
     freq = None
     if type(args[0]) is gnote:
@@ -133,12 +141,70 @@ def sine(*args, **kwargs):
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
     sus = args[1]
-    attack = kwargs.get("a", 2);
-    decay = kwargs.get("d", 1);
-    release = kwargs.get("r", 1);
+    attack = kwargs.get("a", 4);
+    decay = kwargs.get("d", 2);
+    release = kwargs.get("r", 4);
+    sus = sus - attack - decay - release
+    if sus <= 0:
+        log.action("sine duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/sine")
     msg.add_arg(float(freq));
     msg.add_arg(gain);
+    msg.add_arg(int(attack))
+    msg.add_arg(int(decay))
+    msg.add_arg(int(sus))
+    msg.add_arg(int(release))        
+    msg = msg.build()
+    chuck_client.send(msg)
+
+def sub(*args, **kwargs):
+    """
+    Play a subtractive synth sound (with ChucK).
+    """
+    freq = None
+    if type(args[0]) is gnote:
+        freq = args[0].pitch.frequency
+    else:
+        freq = args[0]    
+    gain = float(kwargs.get("gain", 0.5))
+    sus = args[1]
+    attack = kwargs.get("a", 4);
+    decay = kwargs.get("d", 2);
+    release = kwargs.get("r", 4);
+    sus = sus - attack - decay - release
+    if sus <= 0:
+        log.action("sine duration too short!")
+    msg = osc_message_builder.OscMessageBuilder(address = "/sub")
+    msg.add_arg(float(freq));
+    msg.add_arg(gain);
+    msg.add_arg(int(attack))
+    msg.add_arg(int(decay))
+    msg.add_arg(int(sus))
+    msg.add_arg(int(release))        
+    msg = msg.build()
+    chuck_client.send(msg)
+
+def buzz(*args, **kwargs):
+    """
+    Play a buzz bass synth sound (with ChucK).
+    """
+    freq = None
+    if type(args[0]) is gnote:
+        freq = args[0].pitch.frequency
+    else:
+        freq = args[0]    
+    gain = float(kwargs.get("gain", 0.5))
+    cutoff = args[1]
+    sus = args[2]
+    attack = kwargs.get("a", 4);
+    decay = kwargs.get("d", 2);
+    release = kwargs.get("r", 4);
+    sus = sus - attack - decay - release
+    if sus <= 0:
+        log.action("sine duration too short!")
+    msg = osc_message_builder.OscMessageBuilder(address = "/buzz")
+    msg.add_arg(float(freq))
+    msg.add_arg(gain)
     msg.add_arg(int(attack))
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))

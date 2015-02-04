@@ -1,7 +1,6 @@
 from graa_generators import *
 from graa_language_functions import *
 
-
 # IDEAS:
 # learning: store paths, rate performances, automatically play on that basis ? 
 # centralized clock for collaborative graaing ?
@@ -11,7 +10,9 @@ from graa_language_functions import *
 # TO BE DONE:
 # tbd: add overlay kwargs if not present (in doubt on default value)
 # tbd: make default sine more intuitive (adsr defaults ...)
+# tbd: more ChucK backend functions
 # tbd: electric qoutes (emacs mode)
+# tbd: write abstractions / generators for common functions
 # tbd: rock-solid division between graphs and overlays
 # tbd: template edges for generators, to avoid name collisions ...
 # tbd: emacs expand for moar lines !
@@ -21,9 +22,8 @@ from graa_language_functions import *
 # tbd: precise scheduling ...
 # tbd: validation: all nodes reachable etc ?
 # tbd: re-sync graphs on beat (restart command ?)
-# tbd: graphs containing graphs, for longer compositions !
+# tbd: graphs containing graphs, for longer compositions ?
 # tbd: edge probability modification
-# tbd: supercollider backend
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left) (ESP for edge mods!!)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
