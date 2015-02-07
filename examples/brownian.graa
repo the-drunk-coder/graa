@@ -20,17 +20,22 @@ wisin6-100:50->wisin1,
 wisin7-100:100->wisin1
 """)
 
+
+""" 
+i really like the harmonic aspect of this 
+frequency ratios 
+"""
 add("""
-wisub1|sub~100:400:gain=0.5,
-wisub2|sub~150:400:gain=0.5,
-wisub3|sub~400:400:gain=0.5,
-wisub4|sub~450:400:gain=0.5,
-wisub5|sub~300:400:gain=0.5,
-wisub6|sub~350:400:gain=0.5,
-wisub7|sub~600:400:gain=0.5,
+wisub1|subt~100:400:gain=0.5,
+wisub2|subt~150:400:gain=0.5,
+wisub3|subt~400:400:gain=0.5,
+wisub4|subt~450:400:gain=0.5,
+wisub5|subt~300:400:gain=0.5,
+wisub6|subt~350:400:gain=0.5,
+wisub7|subt~600:400:gain=0.3,
 wisub1-400:100->wisub2,
 wisub2-400:100->wisub3,
-wisub3-400:100->wisub4,
+wisub3-900:100->wisub4,
 wisub4-400:100->wisub5,
 wisub5-400:100->wisub6,
 wisub6-400:50->wisub7,
@@ -42,7 +47,8 @@ play("wisub")
 stop("wisub")
 
 
-play("rebuzz")
+play("wisin")
+stop("wisin")
 
 add("""
 resin1|sine~100:40:gain=0.8,
@@ -85,7 +91,9 @@ rebuzz6-110:50->rebuzz1,
 rebuzz7-110:100->rebuzz1
 """)
 
-add
+
+
+
 
 add("""
 b1|dirt~0:bd:0:gain=1.5,
@@ -105,28 +113,48 @@ play("ca" <<shift>> 220)
 
 play("b")
 
-play("rebuzz")
+play("resin")
 
+stop("resin")
+
+play("rebuzz")
 stop("rebuzz")
 
 add("""
 wisol1|$1=brownian<$1:1:50:1000>,
-wisol1-brownian<dur:1:200:500>->wisol1
+wisol1-brownian<$dur:1:200:500>->wisol1
 """)
 
 add("""
-resol1|$1=brownian<$1:1:100:200>,
-resol1-brownian<dur:1:200:800>->resol1
+resol1|$1=brownian<$1:1:90:200>,
+resol1->resol1
 """)
 
-play("resin")
+add("""
+readd1|$1=add<$1:10>,
+readd1->readd1
+""")
 
-"wisub" <<permaplus>> "wisol"
+add("""
+bebuzz1|buzz~100:400:100:gain=0.3,
+bebuzz1-1000:100->bebuzz1
+""")
+
+play("bebuzz")
+stop("bebuzz")
+
+"bebuzz" <<permaplus>> "wisol"
 "resin" <<permaplus>> "resol"
 
-expand("wisin")
+expand("wisub")
 
-expand("resin")
+expand("bebuzz")
+
+
+add("""
+bebuzz1|buzz~100:400:100:gain=0.3,
+bebuzz1-1000:100->bebuzz1
+""")
 
 play("resin")
 

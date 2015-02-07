@@ -28,9 +28,6 @@ def mul(i, j):
 def div(i, j):
     return i / j 
 
-def stra(s, step):
-    return s + ":" + str(step)
-
 # value, incrementing param, steps for one cycle, range 
 def sinstretch(val, inc, cyc, min_bound, max_bound):
     """
@@ -44,13 +41,16 @@ def sinstretch(val, inc, cyc, min_bound, max_bound):
     
 
 def brownian(val, inc, min_bound, max_bound):
+    #print("VAL" + str(val) + "TYPE" + str(type(val)))
+    #print("INC" + str(inc) + "TYPE" + str(type(inc)))
+    
     """
     Simplified Wiener Process between certain bounds.
 
     Only works as permalay.
     
     """
-    random.seed()
+    random.seed()    
     val = val + random.choice([inc, -inc])
     if val < min_bound:
         return min_bound

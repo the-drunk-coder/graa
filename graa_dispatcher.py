@@ -11,9 +11,8 @@ class GraaDispatcher():
     def __init__(self):
        self.dispatcher_map = {}
        self.dispatcher_map[parser.OVERLAY_NODE] = self.dispatch_overlay_node
-       self.dispatcher_map[parser.OVERLAY_EDGE] = self.dispatch_overlay_edge
-       self.dispatcher_map[parser.NORMAL_NODE] = self.dispatch_normal_node
-       self.dispatcher_map[parser.NORMAL_EDGE] = self.dispatch_normal_edge        
+       self.dispatcher_map[parser.NORMAL_NODE] = self.dispatch_normal_node       
+       self.dispatcher_map[parser.EDGE] = self.dispatch_edge        
     # The main dispatcher function, bridge between parser and code execution
     def dispatch(self, parser_output):
         elem = parser_output[0]
@@ -40,9 +39,14 @@ class GraaDispatcher():
             if ol_id in session.players[player_id].permalays:
                 session.players[player_id].update_permalay(ol_id)
         log.action("Adding node: {} to overlay: '{}'".format(ol_node, ol_id))
-    def dispatch_overlay_edge(self, ol_id, ol_edge, src):
-        if ol_id not in session.overlays:
-            raise DispatcherError("Overlay '{}' not present, can't add edge!".format(ol_id))            
+    def dispatch_edge(self, graph_id, edge, src):
+        if graph_id in session.overlays:
+            self.dispatch_overlay_edge(graph_id, edge, src)
+        elif graph_id in session.graphs:
+            self.dispatch_normal_edge(graph_id, edge, src)
+        else:
+            raise DispatcherError("Graph '{}' not present, can't add edge!".format(ol_id))            
+    def dispatch_overlay_edge(self, ol_id, ol_edge, src):      
         overlay = session.overlays[ol_id]
         if src not in overlay.nodes or ol_edge.dest not in overlay.nodes:
             raise DispatcherError("Invalid overlay edge, source or destination node not present! Src: '{}' Dest: '{}'".format(src, ol_edge.dest))

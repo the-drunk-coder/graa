@@ -9,7 +9,9 @@ from graa_language_functions import *
 
 # TO BE DONE:
 # tbd: add overlay kwargs if not present (in doubt on default value)
-# tbd: make default sine more intuitive (adsr defaults ...)
+# tbd: enforce $ in lvars ?
+# tbd: avoid namespace conflicts between sound- and overlay functions ... 
+# tbd: division between lvars and named args ?
 # tbd: more ChucK backend functions
 # tbd: electric qoutes (emacs mode)
 # tbd: write abstractions / generators for common functions
@@ -17,7 +19,6 @@ from graa_language_functions import *
 # tbd: template edges for generators, to avoid name collisions ...
 # tbd: emacs expand for moar lines !
 # tbd: MOAR yasnippets for functions
-# tbd: nested function evaluation for overlay functions
 # tbd: selctively expand edges and nodes ??
 # tbd: precise scheduling ...
 # tbd: validation: all nodes reachable etc ?

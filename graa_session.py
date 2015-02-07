@@ -14,7 +14,8 @@ class GraaSession():
     overlays = {}
     # 117bpm results in 512ms per beat ... a nice, round number!
     tempo = 117
-    active = False    
+    active = False
+    # the 'executors' to render the statements to time
     beat = None    
     scheduler = None
     dispatcher = None

@@ -2,29 +2,38 @@
 
 expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
 
+# if you want to use globals like this, don't forget to declare them!
+t = 1024
+
 add("""
 d1|dirt~0:bd:0,
 d2|dirt~0:sn:3,
-d1-512:100->d2,
-d2-512:100->d1
+d1-div<%t:3>:100->d2,
+d2-%t:100->d1
 """)
 
 stop("all")
 play("d")
 delete("d")
 
+
+
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
 add("""
-guu1|dirt~4:bass:1,
-guu2|dirt~4:bass:2,
-guu3|dirt~4:bass:4,
+guu1|dirt~4:bass:0,
+guu2|dirt~4:bass:1,
+guu3|dirt~4:bass:2,
 guu1-256:60->guu2,
 guu2-256:100->guu1,
 guu1-256:40->guu3,
-guu3-64:40->guu3,
+guu3-256:40->guu3,
 guu3-256:60->guu1
 """)
+
+play("guu")
+
+"guu" <<shift>> -60
 
 add("""
 gaa1|sine~120:128:a=54:d=64:r=10:gain=0.2,

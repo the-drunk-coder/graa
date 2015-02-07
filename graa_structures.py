@@ -8,7 +8,6 @@ import graphviz
 
 from graphviz import Digraph
 
-
 class GraphError(Exception):
     def __init__(self, message):
         self.message = message
@@ -16,6 +15,32 @@ class GraphError(Exception):
         return repr(self.message)
 
 
+# class to mark global global variables as such ...
+class Gvar():
+    def __init__(self, key):
+        self.key = key
+    def __repr__(self):
+        return "%" + str(self.key)
+    
+# function for runtime evaluation ... see graa_function_evaluator for function evaluation
+class Func():
+    def __init__(self, name, func_args, func_kwargs):
+        self.name = name
+        self.args = func_args
+        self.kwargs = func_kwargs
+    # string to ensure output
+    def __repr__(self):
+        func_string = self.name + "<"
+        for arg in self.args:
+            func_string += str(arg) + ":"        
+        for key in self.kwargs:
+            func_string += str(key) + "=" + str(self.kwargs[key]) + ":"
+        func_string = func_string[:-1]
+        func_string += ">"
+        return func_string
+
+
+# some mappings to get a music21 note to a graa note
 duration_mapping = { "q":1.0, "h":2.0,"w":4.0,"e":0.5, "st":0.25, "ts":0.125, "sf":0.0625 }
 dot_mapping = { "d":1, "dd":2 }
 acc_mapping = { "is":"#", "es":"-", "isis": "##", "eses":"--" }
@@ -33,6 +58,7 @@ class GraaNote(note.Note):
         note_string.replace("#", "is")
         note_string.replace("-", "es")        
         return note_string
+
       
 """
 A node, consisting of an id, content and some meta information 
@@ -50,26 +76,23 @@ class Node():
     def __repr__(self):
         node_string="{}{}|".format(self.graph_id, self.id)
         # have to decide between normal and overlay nodes here ... 
-        try:
-            node_string += str(self.content["type"])
+        if type(self.content) is Func:
+            # a normal node contains just one function
+            node_string += self.content.name
             node_string += "~"
-            for arg in self.content["args"]:
+            for arg in self.content.args:
                 node_string += str(arg) + ":"
-            for key in self.content["kwargs"]:
-                node_string += str(key) + "=" + str(self.content["kwargs"][key]) + ":"
+            for key in self.content.kwargs:
+                node_string += str(key) + "=" + str(self.content.kwargs[key]) + ":"
             # remove last ':'
             node_string = node_string[:-1] 
-        except (KeyError, TypeError):
-            # this should mean it's an ol node
+        else:
+            # this should mean it's an ol node, as it contains a dict of functions
             if type(self.content) is str:
                 node_string += self.content
             else:
                 for key in self.content:
-                    node_string += str(key) + "=" + str(self.content[key][0]) + "<"
-                    for arg in self.content[key][1]:
-                        node_string += str(arg) + ":"
-                    node_string = node_string[:-1]
-                    node_string += ">:"
+                    node_string += str(key) + "=" + str(self.content[key]) + ":"
             # remove last ':'
             node_string = node_string[:-1] 
         return node_string

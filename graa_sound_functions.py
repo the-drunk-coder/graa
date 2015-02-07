@@ -156,8 +156,10 @@ def sine(*args, **kwargs):
     msg.add_arg(int(release))        
     msg = msg.build()
     chuck_client.send(msg)
+# end sine()
 
-def sub(*args, **kwargs):
+
+def subt(*args, **kwargs):    
     """
     Play a subtractive synth sound (with ChucK).
     """
@@ -183,6 +185,8 @@ def sub(*args, **kwargs):
     msg.add_arg(int(release))        
     msg = msg.build()
     chuck_client.send(msg)
+# end sub()
+
 
 def buzz(*args, **kwargs):
     """
@@ -210,6 +214,6 @@ def buzz(*args, **kwargs):
     msg.add_arg(int(release))        
     msg = msg.build()
     chuck_client.send(msg)
-
+# end buzz()
 
 

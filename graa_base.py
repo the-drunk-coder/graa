@@ -1,12 +1,9 @@
-import threading, copy, random
+import copy, random
 from queue import Queue
 from graa_structures import *
-from graa_overlay_processors import * 
 from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
-
-# default sound function library
-import graa_sound_functions
+from graa_function_evaluator import *
 
 class GraaPlayer():
     """
@@ -95,7 +92,7 @@ class GraaPlayer():
                 log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
                 self.active = False
                 self.eval_node(current_node, overlay_infos, permalay_infos)
-                #raise e
+                raise e
                 return
             # otherwise, just eval the current node
             self.eval_node(current_node, overlay_infos, permalay_infos)
@@ -118,6 +115,7 @@ class GraaPlayer():
                 lay_to_remove.append(lay_key)
             else:                    
                 lay_edge = lay.edges[lay.current_node_id][lay_edge_id]
+                # remember: lay and dur are functions!
                 if lay_edge.dur != None:
                     dur_modificators.append((step, lay_edge.dur))
                 if lay_edge.prob != None:
@@ -131,13 +129,13 @@ class GraaPlayer():
         edge = self.player_copy.edges[self.player_copy.current_node_id][self.choose_edge(self.player_copy)]
         self.player_copy.current_node_id = edge.dest
         # apply permanent duration mods
-        current_dur = edge.dur
+        current_dur = arg_eval(int, edge.dur, {})     
         for step, dur_mod in permalay_infos[1]:
-            current_dur = int(process_mod_function("dur", current_dur, step, {"dur":dur_mod}))
+            current_dur = func_eval(int, dur_mod, {"$step": step, "$dur":current_dur})
             edge.dur = current_dur
         # apply non-permanent duration mods
         for step, dur_mod in overlay_infos[1]:
-            current_dur = int(process_mod_function("dur", current_dur, step, {"dur":dur_mod}))
+            current_dur = func_eval(int, dur_mod, {"$step": step, "$dur":current_dur})
         # apply only permanent probability mods -- tbd later
         # current_prob = edge.prob
         # for prob_mod in permalay_infos[3]:
@@ -171,11 +169,11 @@ class GraaPlayer():
                     elif functions == "unmute":
                         node.mute = False
                 else:
-                    node.content["args"] = replace_args(node.content["args"], functions, step)
-                    node.content["kwargs"] = replace_kwargs(node.content["kwargs"], functions, step)
+                    #print("perma")
+                    #print("PRE" + str(node.content))
+                    process_arguments(node.content, functions, step)
             # process non-permanant overlays
-            trans_args = copy.deepcopy(node.content["args"])
-            trans_kwargs = copy.deepcopy(node.content["kwargs"])
+            trans_func = copy.deepcopy(node.content)
             trans_mute = False
             for step, functions in overlay_infos[0]:
                 if type(functions) is str:
@@ -186,14 +184,11 @@ class GraaPlayer():
                     elif functions == "unmute":
                         trans_mute = False
                 else:
-                    trans_args = replace_args(node.content["args"], functions, step)
-                    trans_kwargs = replace_kwargs(node.content["kwargs"], functions, step)
-            # try loading function from default library
-            # evaluating the function string at runtime here, as
-            # here might be a dynamic function library in the future ...                
-            # print(args, file=session.outfile, flush=True)
+                    print("over")
+                    process_arguments(trans_func, functions, step)
+            # evaluate transitory node function copy 
             if not (node.mute or trans_mute):
-                getattr(graa_sound_functions, node.content["type"])(*trans_args, **trans_kwargs)            
+                func_eval(None, trans_func, {"$time":session.now})
         except:
             log.action("Couldn't evaluate a node. Please try again!")           
             raise
@@ -210,9 +205,7 @@ class GraaBeat():
     """
     def __init__(self):        
         # LIFO Queue
-        self.graph_queue = Queue()
-        # needed because of shitty scheduler
-        # self.correction = 0
+        self.graph_queue = Queue()       
         self.starting_time = session.now
         self.timestamp = session.now
         self.beat()        
