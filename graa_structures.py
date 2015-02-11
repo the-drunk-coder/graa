@@ -1,6 +1,6 @@
 # Import graphviz
 import sys, os, copy
-from music21 import note, duration
+from music21 import pitch, duration
 sys.path.append('..')
 sys.path.append('/usr/lib/graphviz/python/')
 sys.path.append('/usr/lib64/graphviz/python/')
@@ -15,12 +15,12 @@ class GraphError(Exception):
         return repr(self.message)
 
 
-# class to mark global global variables as such ...
+# class to mark init variables as such ...
 class Gvar():
     def __init__(self, key):
         self.key = key
     def __repr__(self):
-        return "%" + str(self.key)
+        return "?" + str(self.key)
     
 # function for runtime evaluation ... see graa_function_evaluator for function evaluation
 class Func():
@@ -48,17 +48,44 @@ inv_duration_mapping = { "quarter":"q", "half":"h","whole":"w","eight":"e", "16t
 inv_dot_mapping = {v: k for k, v in dot_mapping.items()}
 
 # define note class to get representation right
-class GraaNote(note.Note):    
-    def __init__(self, *args, **kwargs):
+class GraaNote():    
+    def __init__(self, pitch_string):
+        self.pitch = pitch.Pitch(pitch_string)
         self.absolute_duration = None
-        self.vel = None
-        super().__init__(*args, **kwargs)
+        self.vel = None        
     def __repr__(self):
-        note_string = self.nameWithOctave.lower()
+        note_string = self.pitch.nameWithOctave.lower()
         note_string.replace("#", "is")
         note_string.replace("-", "es")        
         return note_string
-
+    def __add__(self, other):
+        other = int(other)
+        self.pitch.midi = self.pitch.midi + other
+        return self
+    def __hash__(self):
+        return str(self).__hash__()
+    def __lt__(self, other):
+        if type(other) is int:
+            return self.pitch.midi < other
+        else:
+            return self.pitch.midi < other.pitch.midi
+    def __le__(self, other):
+        if type(other) is int:
+            return self.pitch.midi <= other
+        else:
+            return self.pitch.midi <= other.pitch.midi
+    def __ge__(self, other):
+        #print(type(self), type(other))
+        #print("SELF " + str(self) + " OTHER " +  str(other))
+        if type(other) is int:
+            return self.pitch.midi >= other
+        else:
+            return self.pitch.midi >= other.pitch.midi
+    def __eq__(self, other):
+        if type(other) is int:
+            return self.pitch.midi == other
+        else:
+            return self.pitch.midi == other.pitch.midi
       
 """
 A node, consisting of an id, content and some meta information 
@@ -183,7 +210,7 @@ class Graph():
                 for edge in self.edges[source_node_id]:
                     edge.prob = new_prob
                 new_edge.prob = new_prob
-            self.edges[source_node_id].append(new_edge)                
+            self.edges[source_node_id].append(new_edge)
     def render(self, filename, render="content"):
         dot = Digraph(comment="",edge_attr={'len': '6', 'weight':'0.00001'})
         dot.engine = 'dot'

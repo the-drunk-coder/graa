@@ -1,5 +1,6 @@
 """
 Playing around with brownian motion ... very nice!
+
 """
 
 add("""
@@ -140,15 +141,15 @@ bebuzz1|buzz~100:400:100:gain=0.3,
 bebuzz1-1000:100->bebuzz1
 """)
 
-play("bebuzz")
+play("rebuzz")
 stop("bebuzz")
 
-"bebuzz" <<permaplus>> "wisol"
-"resin" <<permaplus>> "resol"
+"rebuzz" <<permaplus>> "wisol"
+"wisub" <<permaplus>> "resol"
 
 expand("wisub")
 
-expand("bebuzz")
+expand("rebuzz")
 
 
 add("""

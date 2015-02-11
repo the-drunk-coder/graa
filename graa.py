@@ -9,9 +9,8 @@ from graa_language_functions import *
 
 # TO BE DONE:
 # tbd: add overlay kwargs if not present (in doubt on default value)
-# tbd: enforce $ in lvars ?
-# tbd: avoid namespace conflicts between sound- and overlay functions ... 
-# tbd: division between lvars and named args ?
+# tbd: avoid namespace conflicts between sound- and overlay functions ...
+# tbd: avoid "hidden edges" ... ?
 # tbd: more ChucK backend functions
 # tbd: electric qoutes (emacs mode)
 # tbd: write abstractions / generators for common functions
@@ -28,7 +27,7 @@ from graa_language_functions import *
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left) (ESP for edge mods!!)
 # tbd: documentation
 # tbd: play modes: markov, manual, beat (?)
-# tbd: graph generators: tree, triforce, bjoerklund, cross, etc (see notes)
+# tbd: graph generators: grid, tree, triforce, bjoerklund, etc (see notes)
 # tbd: write graph transformers, like, reverse, tournament, rotate (?) 
 
 

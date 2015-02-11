@@ -12,7 +12,7 @@ from graa_session import GraaSession as session
 # Hack to access variabled defined in the main routine. 
 # Yes, i know this is not the way you ~should~ do this. Be quiet!
 import __main__
-
+#from graa_parser import *
 
 def process_arguments(func, arg_funcs, step):
     #print("PROC " + str(func))
@@ -22,15 +22,16 @@ def process_arguments(func, arg_funcs, step):
             #print("eval: " + str(key))
             orig_value = func.args[i]
             #print("ORIG_VAL " + str(orig_value))
-            func.args[i] = func_eval(type(orig_value), arg_funcs[key], {key:orig_value, "$step":step, "$time":session.now})
+            func.args[i] = func_eval(type(orig_value), arg_funcs[key], {key:orig_value, "step":step, "time":session.now})
             #print("MODIFIED VAL: " + str(func.args[i]))
     for key in func.kwargs:        
         if key in arg_funcs:
             orig_value = func.kwargs[key]
-            func.kwargs[key] = func_eval(type(orig_value), arg_funcs[key], {key:orig_value, "$step":step, "$time":session.now})
+            func.kwargs[key] = func_eval(type(orig_value), arg_funcs[key], {key:orig_value, "step":step, "time":session.now})
     return func
             
 def arg_eval(orig_type, arg, local_vars):
+    #print("EVALUATING ARGUMENT: " + str(arg))
     if type(arg) is Func:
         return func_eval(orig_type, arg, local_vars)
     elif type(arg) is Gvar:
@@ -57,16 +58,20 @@ def func_eval(orig_type, func, local_vars):
         # replace local variables from dict
         if func.args[i] in local_vars.keys():
             #print("REPLACING!!")
-            trans_args[i] = local_vars[func.args[i]]        
+            trans_args[i] = local_vars[func.args[i]]
+            #print("REPLACED: " + str(trans_args))
         else:
+            #print("EVALUATING!!")
             trans_args[i] = arg_eval(type(func.args[i]), func.args[i], local_vars)
+            #print("EVALUATED" + str(trans_args))
     for key in func.kwargs:        
-        # replace local variables from dict
+        #replace local variables from dict
         if func.kwargs[key] in local_vars.keys():            
             trans_kwargs[key] = local_vars[func.kwargs[key]]
         else:
             trans_kwargs[key] = arg_eval(type(func.kwargs[key]), func.kwargs[key], local_vars)   
-    if orig_type != None:
+    if orig_type != None and orig_type != Func and orig_type != GraaNote:
+        #print("NAME:" + str(func.name) + " " + str(orig_type))
         ret = orig_type(eval(func.name)(*trans_args, **trans_kwargs))
         #print("RET " + str(ret))
         return ret    
@@ -76,16 +81,13 @@ def func_eval(orig_type, func, local_vars):
         return ret
 
     
-"""
-def add(a, b):
+
+"""def add(a, b):
     return a + b
-
-if __name__ == "__main__":
-    local_vars = {"$step": 1, "$time" : 10000100}
-    a = 30
-
-    func = Func("add", [Func("add", ["%a", "$time"]), "$step"])
-    print(func_eval(func, local_vars))
-
 """
-   
+if __name__ == "__main__":
+    func = GraaParser.func.parseString("wrap<brownian<c4:10>:60:50>")
+    #func = GraaParser.func.parseString("brownian<c4:2>")
+    #func = GraaParser.func.parseString("bounds<10:500:300>")
+    #func = GraaParser.func.parseString("brownian<10:5>")    
+    print(func_eval(GraaNote, func[0], {}))   

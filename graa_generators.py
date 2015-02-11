@@ -9,7 +9,7 @@ from graa_session import GraaSession as session
 from graa_parser import GraaParser as parser
 
 def circle(size, def_node_tpl, def_edge_tpl):
-    "Generate a simple cyclic list"
+    """Generate a simple cyclic list"""
     # parse templates
     # data is the third element in the tuple the parser returns ...
     def_node = parser.parse(def_node_tpl)[0][2]
@@ -35,3 +35,33 @@ def circle(size, def_node_tpl, def_edge_tpl):
     session.graphs[cycle_id] = cycle
     return cycle_id
 # end cycle
+
+
+def star(size, def_node_tpl, def_edge_tpl):
+    """Generate a star graph."""
+    # parse templates
+    # data is the third element in the tuple the parser returns ...
+    def_node = parser.parse(def_node_tpl)[0][2]
+    def_edge = parser.parse(def_edge_tpl)[0][2]
+    star = Graph()
+    center_node = copy.deepcopy(def_node)
+    center_node.id = 1
+    star.add_node(center_node)
+    for i in range(2,size+1):       
+        node = copy.deepcopy(def_node)
+        node.id = i
+        star.add_node(node)
+        in_edge = copy.deepcopy(def_edge)
+        in_edge.source = center_node.id
+        in_edge.dest = node.id        
+        star.add_edge(in_edge.source, in_edge)
+        out_edge = copy.deepcopy(def_edge)
+        out_edge.source = node.id
+        out_edge.dest = center_node.id        
+        star.add_edge(out_edge.source, out_edge)                
+    star_id = def_node.graph_id
+    session.graphs[star_id] = star
+    return star_id
+# end star
+
+

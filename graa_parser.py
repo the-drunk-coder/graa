@@ -1,7 +1,9 @@
 from pyparsing import *
 from graa_structures import *
 from music21 import note, duration
-
+# Hack to access variabled defined in the main routine. 
+# Yes, i know this is not the way you ~should~ do this. Be quiet!
+import __main__
 
 class GraaParser():
     # command constants for dispatcher    
@@ -21,16 +23,18 @@ class GraaParser():
     dur_mod = Literal("d") ^ Literal("dd")
     dur = Group(Optional(dur_mod) + dur_base)      
     # ids and variables
-    gvar = Group(Suppress(Literal("%")) + Word(alphas))
+    gvar = Group(Suppress(Literal("?")) + Word(alphas))
     gvar.setParseAction(lambda t: GraaParser.parse_gvar(t.asList()))
+    ivar = Group(Suppress(Literal("!")) + Word(alphas))
+    ivar.setParseAction(lambda t: GraaParser.parse_ivar(t.asList()))
     lvar = Word("$." + alphanums)
     graph_id = Word(alphas)
-    node_id = graph_id + Word(nums)
+    node_id = graph_id + Word(nums).setParseAction(lambda t: GraaParser.typify(t[0]))
     node_type = Word(alphanums)
     func_id = Word(alphanums)
     # function parsing
     func = Forward()
-    param = gvar ^ pitch ^ lvar.setParseAction(lambda t: GraaParser.typify(t[0])) ^ func
+    param = gvar ^ ivar ^ pitch ^ lvar.setParseAction(lambda t: GraaParser.typify(t[0])) ^ func
     func_param = ZeroOrMore(param + Optional(PARAM_DIVIDER))
     func << func_id + LPAREN + func_param + RPAREN   
     func.setParseAction(lambda t: GraaParser.parse_func(t.asList()))    
@@ -39,7 +43,7 @@ class GraaParser():
     # node definitions
     ol_node_def = node_id + Suppress("|") + OneOrMore((assign + Optional(PARAM_DIVIDER)) ^ Literal("nil") ^ Literal("mute") ^ Literal("unmute"))
     ol_node_def.setParseAction(lambda t: GraaParser.parse_ol_node(t))
-    node_def = node_id + Suppress("|") + node_type + Suppress("~") + Group(ZeroOrMore((lvar ^ assign) + Optional(PARAM_DIVIDER)))
+    node_def = node_id + Suppress("|") + node_type + Suppress("~") + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
     #edge definitions    
     transition = Group(param + Optional(PARAM_DIVIDER + param))    
@@ -66,6 +70,8 @@ class GraaParser():
         #print(arg[0])
         key = str(arg[0][0])        
         return Gvar(key)
+    def parse_ivar(arg):        
+        return getattr(__main__, arg[0][0])        
     def parse_func(arg):
         #print(arg)
         return Func(arg[0], arg[1:], {})
@@ -126,14 +132,15 @@ class GraaParser():
 
 
 if __name__ == "__main__":
-    print(GraaParser.param.parseString("4"))
-    print(GraaParser.func.parseString("add<add<$3:4>:%as:4>"))
-    print(GraaParser.assign.parseString("$3=add<add<$3:4>:%as:>"))
+    #print(GraaParser.param.parseString("4"))
+    #print(GraaParser.func.parseString("add<add<$3:4>:%as:4>"))
+    #print(GraaParser.assign.parseString("$3=add<add<$3:4>:%as:>"))
     #print(GraaParser.assign.parseString("$step=5"))
-    print(GraaParser.node_def.parseString("d1|dirt~0:db:1:$gain=5"))
-    print(GraaParser.ol_node_def.parseString("d1|$3=add<$3:1>:$2=add<$2:1>"))
-    print("STRING: d1-add<$dur:add<1:%as>:4>:100->d1")
-    print(GraaParser.edge_def.parseString("d1-add<$dur:add<1:%as>:4>:100->d1"))
-    print(GraaParser.edge_def.parseString("d1->d1"))
-    print(GraaParser.line.parseString("d1-%t:100->d1"))
-    print(GraaParser.line.parseString("d1|rebuzz~150:100:245:$gain=10"))
+    #print(GraaParser.node_def.parseString("d1|dirt~0:db:1:$gain=5"))
+    #print(GraaParser.ol_node_def.parseString("d1|$3=add<$3:1>:$2=add<$2:1>"))
+    #print("STRING: d1-add<$dur:add<1:%as>:4>:100->d1")
+    #print(GraaParser.edge_def.parseString("d1-add<$dur:add<1:%as>:4>:100->d1"))
+    #print(GraaParser.edge_def.parseString("d1->d1"))
+    #print(GraaParser.line.parseString("d1-%t:100->d1"))
+    #print(GraaParser.line.parseString("d1|rebuzz~150:100:245:$gain=10"))
+    print(GraaParser.func.parseString("bounds<brownian<60:1>:500:300>"))

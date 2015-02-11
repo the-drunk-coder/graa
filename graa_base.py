@@ -131,11 +131,11 @@ class GraaPlayer():
         # apply permanent duration mods
         current_dur = arg_eval(int, edge.dur, {})     
         for step, dur_mod in permalay_infos[1]:
-            current_dur = func_eval(int, dur_mod, {"$step": step, "$dur":current_dur})
+            current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
             edge.dur = current_dur
         # apply non-permanent duration mods
         for step, dur_mod in overlay_infos[1]:
-            current_dur = func_eval(int, dur_mod, {"$step": step, "$dur":current_dur})
+            current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
         # apply only permanent probability mods -- tbd later
         # current_prob = edge.prob
         # for prob_mod in permalay_infos[3]:
@@ -184,7 +184,7 @@ class GraaPlayer():
                     elif functions == "unmute":
                         trans_mute = False
                 else:
-                    print("over")
+                    #print("over")
                     process_arguments(trans_func, functions, step)
             # evaluate transitory node function copy 
             if not (node.mute or trans_mute):

@@ -40,21 +40,47 @@ def sinstretch(val, inc, cyc, min_bound, max_bound):
     return (abs_sin * stretch_range) + min_bound 
     
 
-def brownian(val, inc, min_bound, max_bound):
-    #print("VAL" + str(val) + "TYPE" + str(type(val)))
-    #print("INC" + str(inc) + "TYPE" + str(type(inc)))
+def brownian(val, inc):
+    #print("br VAL " + str(val) + " TYPE " + str(type(val)))
+    #print("br INC " + str(inc) + " TYPE " + str(type(inc)))
     
     """
-    Simplified Wiener Process between certain bounds.
+    Simplified Wiener Process.
 
     Only works as permalay.
     
     """
     random.seed()    
     val = val + random.choice([inc, -inc])
-    if val < min_bound:
+    #print("br RET " + str(val))
+    return val
+
+def bounds(val, bounda, boundb):
+    #print("bounds")
+    """
+    Keep value between bounds.
+    """
+    max_bound = max(bounda, boundb)
+    min_bound = min(bounda, boundb)
+    if val <= min_bound:
         return min_bound
-    elif val > max_bound:
+    elif val >= max_bound:
         return max_bound
     else:
         return val
+    
+
+def wrap(val, bounda, boundb):
+    """
+    Wrap value if it hits a bound.
+    """
+    max_bound = max(bounda, boundb)
+    min_bound = min(bounda, boundb)
+    if val <= min_bound:
+        return max_bound
+    elif val >= max_bound:
+        return min_bound
+    else:
+        return val
+
+        
