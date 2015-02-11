@@ -219,6 +219,7 @@
   fundamental-mode
   "Graa"
   "Major mode for interacting with an inferior graa process."
+  (electric-pair-mode)
   (setq font-lock-defaults graa-font-lock-defaults)
   ;(set (make-local-variable 'paragraph-start) "\f\\|[ \t]*$")
   ;(set (make-local-variable 'paragraph-separate) "[ \t\f]*$")					
