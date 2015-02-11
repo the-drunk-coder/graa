@@ -18,7 +18,7 @@ def circle(size, def_node_tpl, def_edge_tpl):
     last_node = None
     for i in range(1,size+1):
         node = copy.deepcopy(def_node)
-        node.id = str(i)
+        node.id = i
         cycle.add_node(node)        
         edge = copy.deepcopy(def_edge)
         edge.dest = node.id        
@@ -28,8 +28,8 @@ def circle(size, def_node_tpl, def_edge_tpl):
         last_node = node
     # tie knot for cycle
     last_edge = copy.deepcopy(def_edge)
-    last_edge.dest = str(1)
-    last_edge.source = str(size)
+    last_edge.dest = 1
+    last_edge.source = size
     cycle.add_edge(last_edge.source, last_edge)
     cycle_id = def_node.graph_id
     session.graphs[cycle_id] = cycle
