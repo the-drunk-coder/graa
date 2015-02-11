@@ -4,7 +4,6 @@ var = 1000
 
 expand(star(5, "star1|buzz~!var:400:gain=0.3", "star1-mul<!var:2>->star1"))
 
-
 play("star")
 stop("star")
 
