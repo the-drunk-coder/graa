@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: expand
+# key: ex
+# --
+expand($0)

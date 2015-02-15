@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: play
+# key: pl
+# --
+play($0)

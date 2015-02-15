@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: pause
+# key: ps
+# --
+pause($0)

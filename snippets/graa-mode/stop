@@ -1,0 +1,5 @@
+# -*- mode: snippet -*-
+# name: stop
+# key: st
+# --
+stop($0)
