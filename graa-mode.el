@@ -135,7 +135,7 @@
     (graa-send-string s))
   (pulse-momentary-highlight-one-line (point))
   (next-line)
-  (accept-process-output (get-buffer-process graa-buffer) 30)
+  (accept-process-output (get-buffer-process graa-buffer) 200)
   (newline)
   (insert "add(\"\"\"\n")
   (insert graa-output)
