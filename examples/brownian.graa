@@ -69,11 +69,6 @@ resin6-100:50->resin1,
 resin7-100:100->resin1
 """)
 
-import sys
-sys.path.append("../")
-from graa import *
-start_graa()
-
 add("""
 rebuzz1|buzz~100:50:100:gain=0.3,
 rebuzz2|buzz~150:50:100:gain=0.4,
@@ -91,10 +86,6 @@ rebuzz6-110:50->rebuzz7,
 rebuzz6-110:50->rebuzz1,
 rebuzz7-110:100->rebuzz1
 """)
-
-
-
-
 
 add("""
 b1|dirt~0:bd:0:gain=1.5,

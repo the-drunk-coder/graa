@@ -35,10 +35,7 @@ stob1|nil,
 stob1-wrap<brownian<dur:10>:50:200>->stob1
 """)
 
-
 play("star")
-
-print(session.overlays["stob"].edges[1][0].dur)
 
 stop("all")
 

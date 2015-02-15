@@ -8,15 +8,13 @@ t = 1024
 add("""
 d1|dirt~0:bd:0,
 d2|dirt~0:sn:3,
-d1-div<%t:3>:100->d2,
-d2-%t:100->d1
+d1-div<?t:3>:100->d2,
+d2-?t:100->d1
 """)
 
 stop("all")
 play("d")
 delete("d")
-
-
 
 expand(circle(2, "guu1|dirt~4:bass:1", "guu1-500->guu1"))
 
@@ -34,8 +32,6 @@ guu3-256:60->guu1
 play("gaa")
 
 status()
-
-session.players
 
 "guu" <<shift>> -60
 
@@ -98,8 +94,6 @@ guu1-190->guu1
 
 expand("gaa")
 
-session.players["gaa"].permalays
-
 play("gui" <<shift>> 256)
 play("guu" <<shift>> 128)
 
@@ -148,7 +142,6 @@ x4-2:100->x5,
 x5-2:100->x1
 """)
 
-
 add("""
 px1|disk~d1:100:127,
 px2|disk~f6:100:100,
@@ -173,9 +166,6 @@ pol1|$2=sinstretch<$2:step:180:300:400>:$3=sinstretch<$3:step:160:1:100>,
 pol1-sinstretch<dur:step:250:700:1000>->pol1		
 """)
 
-
-print(session.players)
-
 play("x,dx")
 
 stop("all")
@@ -189,10 +179,7 @@ expand("p")
 "p" <<minus>> "ol"
 
 
-
 expand("p")
-
-
 
 stop("all")
 
