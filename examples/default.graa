@@ -1,7 +1,6 @@
 # example file for graa mode, this is a comment
 
-expand(circle(2, "d1|dirt~0:bd:0", "d1-500->d1"))
-
+expand(circle(10, "d1|dirt~0:bd:0", "d1-500->d1"))
 
 # if you want to use globals like this, don't forget to declare them!
 t = 1024
@@ -32,7 +31,11 @@ guu3-256:40->guu3,
 guu3-256:60->guu1
 """)
 
-play("guu")
+play("gaa")
+
+status()
+
+session.players
 
 "guu" <<shift>> -60
 
