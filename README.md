@@ -12,6 +12,7 @@ First of all, you'll need Python3, on which graa> is based.
 
 #### Required Python modules
 
+* pyparsing
 * pygame
 * pythonosc
 * infix
@@ -58,7 +59,7 @@ First of all, start the backends, and, if needed, patch up MIDI.
 The ChucK shreds currently need to be started manually (go to shreds folder and run 'chuck a.ck b.ck ...').
 
 If you want to use Linuxsampler (i use it quite often for piano samples), make sure to avoid the port conflict with
-Chuck, as both use port 8888 per default.
+ChucK, as both use port 8888 per default.
 
 Then, start graa> itself.
 * Load a graa> file with emacs (there are some in the examples folder you can check out)
