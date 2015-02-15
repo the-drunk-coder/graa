@@ -1,0 +1,17 @@
+#start
+
+add("""
+d1|disk~c5:800:64,
+d2|sine~c5:800:gain=0.4,
+d3|subt~c5:800:gain=0.4,
+d4|buzz~c5:800:gain=0.4,
+d1-900->d2,
+d2-900->d3,
+d3-900->d4,
+d4-900->d1
+""")
+
+play("d")
+stop("d")
+
+#end
