@@ -23,7 +23,7 @@ def start_graa():
 /  | /  |  /  |  /  |  
 \_/|/   |_/\_/|_/\_/|_/
   /|                   
-  \|        Release 1
+  \|       Snapshot 2
 
 Welcome, dear follower of the cult of graa> !
 """)    
