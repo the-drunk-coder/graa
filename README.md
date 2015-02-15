@@ -21,8 +21,10 @@ First of all, you'll need Python3, on which graa> is based.
 
 #### Backends to create sound
 
-* Alex McLean's [https://github.com/tidalcycles/Dirt](Dirt sampler)
-* [http://chuck.cs.princeton.edu/](ChucK)
+Install the following backends as needed ...
+
+* Alex McLean's [Dirt sampler](https://github.com/tidalcycles/Dirt)
+* [ChucK](http://chuck.cs.princeton.edu/)
 * MIDI Infrastructure
 
 #### Frontends to interact with graa>
@@ -40,6 +42,7 @@ is very tedious.
 #### Setting up emacs mode
 
 Add the following lines to your .emacs, where graa-path points to the repository you just checked out.
+Make sure to set the path, as it is required within graa-mode as well.
 
 ```lisp
 (setq graa-path "/path/to/graa")
@@ -51,6 +54,12 @@ Now you should be ready to use graa> !
 
 ## Usage
 
+First of all, start the backends, and, if needed, patch up MIDI.
+The ChucK shreds currently need to be started manually (go to shreds folder and run 'chuck a.ck b.ck ...')
+If you want to use Linuxsampler (i use it quite often for piano samples), make sure to avoid the port conflict with
+Chuck, as both use port 8888 per default.
+
+Then, start graa> itself.
 * Load a graa> file with emacs (there are some in the examples folder you can check out)
 * Use C-s to start graa>
 * Use C-c to execute a single line
