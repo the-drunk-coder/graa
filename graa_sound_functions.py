@@ -140,6 +140,7 @@ def sine(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
+    gain = gain * 0.46
     sus = args[1]
     attack = kwargs.get("a", 4);
     decay = kwargs.get("d", 2);
@@ -169,6 +170,7 @@ def subt(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
+    gain = gain * 0.65
     sus = args[1]
     attack = kwargs.get("a", 4);
     decay = kwargs.get("d", 2);
@@ -198,6 +200,7 @@ def buzz(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
+    gain = gain * 0.07
     sus = args[1]
     attack = kwargs.get("a", 4);
     decay = kwargs.get("d", 2);
