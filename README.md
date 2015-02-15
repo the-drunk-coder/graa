@@ -55,7 +55,8 @@ Now you should be ready to use graa> !
 ## Usage
 
 First of all, start the backends, and, if needed, patch up MIDI.
-The ChucK shreds currently need to be started manually (go to shreds folder and run 'chuck a.ck b.ck ...')
+The ChucK shreds currently need to be started manually (go to shreds folder and run 'chuck a.ck b.ck ...').
+
 If you want to use Linuxsampler (i use it quite often for piano samples), make sure to avoid the port conflict with
 Chuck, as both use port 8888 per default.
 
