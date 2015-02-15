@@ -53,10 +53,10 @@ class GraaNote():
         self.pitch = pitch.Pitch(pitch_string)
         self.absolute_duration = None
         self.vel = None        
-    def __repr__(self):
+    def __repr__(self):        
         note_string = self.pitch.nameWithOctave.lower()
-        note_string.replace("#", "is")
-        note_string.replace("-", "es")        
+        note_string = note_string.replace("#", "is")
+        note_string = note_string.replace("-", "es")        
         return note_string
     def __add__(self, other):
         other = int(other)
@@ -219,25 +219,16 @@ class Graph():
             node_content = "nil"
             # either use id or content to mark graph nodes
             if render == "id":
-                    node_content = str(self.nodes[node_key].id)
+                node_content = str(self.nodes[node_key].id)
             elif render == "content":
-                if len(self.nodes[node_key].content) > 0:
-                    node_content = ', '.join(str(x) for x in self.nodes[node_key].content)
+                node_content = str(self.nodes[node_key].content)
             else:
-                node_content = str(self.nodes[node_key].id) + ":"
-                if len(self.nodes[node_key].content) > 0:
-                    node_content += ', '.join(str(x) for x in self.nodes[node_key].content) + ":"
-                else:
-                    node_content += "nil:"
-                if len(self.nodes[node_key].meta) > 0:
-                    node_content += self.nodes[node_key].meta
-                else:
-                    node_content += "nil"
+                node_content = str(self.nodes[node_key].id) + ":" + str(self.nodes[node_key].content)
             dot.node(str(self.nodes[node_key].id), node_content)
         #add edges to dot graph
         for edge_key in self.edges.keys():
             for edge in self.edges[edge_key]:
-                dot.edge(str(edge_key), str(edge.dest))
+                dot.edge(str(edge_key), str(edge.dest), label="{}ms:{}%".format(edge.dur, edge.prob))
         if not os.path.exists("graph"):
             os.makedirs("graph")
         dot.render("graph/" + filename + ".gv")
