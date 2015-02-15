@@ -11,10 +11,11 @@
 
 (defvar graa-events
   '("triforce1"
-   "circle"))
+    "circle"
+    "star"))
 
 (defvar graa-keywords
-      '("play" "expand" "add" "minus" "shift" "plus" "quit_graa" "stop" "pause"))
+      '("play" "status" "expand" "add" "delete" "quit_graa" "stop" "pause"))
 
 (defvar graa-font-lock-defaults
   `((
@@ -66,7 +67,7 @@
      graa-interpreter
      nil)
     (graa-send-string "import sys")
-    (graa-send-string "sys.path.append(\"/home/nik/REPOSITORIES/graa\")")    
+    (graa-send-string (concat "sys.path.append(\"" graa-path "\")"))
     (graa-send-string "from graa import *")
     (graa-send-string "start_graa()")    
     (graa-see-output)
