@@ -326,3 +326,13 @@ def add(string):
             log.action(de.message)
 # end add()
         
+def status():
+    log.shell("Currently playing: ")
+    for key in session.players:
+        playline = "'" + str(key) + "' plus "
+        for ol_key in session.players[key].overlays:
+            playline += "'" + str(ol_key)  + "' "
+        playline += " permaplus "
+        for pl_key in session.players[key].permalays:
+            playline += "'" + str(pl_key) + "' "
+        log.shell(playline)
