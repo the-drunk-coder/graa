@@ -8,6 +8,7 @@ from graa_language_functions import *
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
 
 # TO BE DONE (for next releases ...)
+# tbd: fix wrap function
 # tbd: short syntax for microtonal elements in pitch notation
 # tbd: add overlay kwargs if not present (in doubt on default value)
 # tbd: avoid namespace conflicts between sound- and overlay functions ...

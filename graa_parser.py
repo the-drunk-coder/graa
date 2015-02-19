@@ -46,7 +46,7 @@ class GraaParser():
     node_def = node_id + Suppress("|") + node_type + Suppress("~") + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
     #edge definitions    
-    transition = Group(param + Optional(PARAM_DIVIDER + param))    
+    transition = Group((Literal("nil") ^ param) + Optional(PARAM_DIVIDER + param))    
     edge_def = node_id + Optional(Suppress("-") + transition) + Suppress("->") + node_id
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))    
     # line definition

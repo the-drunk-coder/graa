@@ -116,7 +116,7 @@ class GraaPlayer():
             else:                    
                 lay_edge = lay.edges[lay.current_node_id][lay_edge_id]
                 # remember: lay and dur are functions!
-                if lay_edge.dur != None:
+                if lay_edge.dur != None and lay_edge.dur != "nil":
                     dur_modificators.append((step, lay_edge.dur))
                 if lay_edge.prob != None:
                     prob_modificators.append((step, lay_edge.prob))
