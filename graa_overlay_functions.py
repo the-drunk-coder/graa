@@ -75,12 +75,13 @@ def wrap(val, bounda, boundb):
     Wrap value if it hits a bound.
     """
     max_bound = max(bounda, boundb)
-    min_bound = min(bounda, boundb)
-    if val <= min_bound:
-        return max_bound
-    elif val >= max_bound:
-        return min_bound
+    min_bound = min(bounda, boundb)    
+    retval = None
+    if val < min_bound:        
+        retval = max_bound
+    elif val > max_bound:        
+        retval = max_bound        
     else:
-        return val
-
-        
+        retval = val
+        #print("BOUNDA    {} BOUNDB   {}   VAL {}     MIN {}     MAX {}    RET {}".format(bounda, boundb, val, min_bound, max_bound, retval))
+    return retval
