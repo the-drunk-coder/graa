@@ -62,6 +62,10 @@ class GraaNote():
         other = int(other)
         self.pitch.midi = self.pitch.midi + other
         return self
+    def __sub__(self, other):
+        other = int(other)
+        self.pitch.midi = self.pitch.midi - other
+        return self
     def __hash__(self):
         return str(self).__hash__()
     def __lt__(self, other):
