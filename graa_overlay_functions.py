@@ -77,10 +77,10 @@ def wrap(val, bounda, boundb):
     max_bound = max(bounda, boundb)
     min_bound = min(bounda, boundb)    
     retval = None
-    if val < min_bound:        
+    if val <= min_bound:        
         retval = max_bound
-    elif val > max_bound:        
-        retval = max_bound        
+    elif val >= max_bound:        
+        retval = min_bound        
     else:
         retval = val
         #print("BOUNDA    {} BOUNDB   {}   VAL {}     MIN {}     MAX {}    RET {}".format(bounda, boundb, val, min_bound, max_bound, retval))
