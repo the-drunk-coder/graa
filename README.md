@@ -1,5 +1,5 @@
 # graa>
-A music livecoding eDSL using markoff chains.
+A music livecoding eDSL using Markov chains.
 
 ## Installation
 
