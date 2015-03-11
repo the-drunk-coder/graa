@@ -48,24 +48,24 @@ class GraaPlayer():
         self.play()
     def add_overlay(self, overlay_id):
         # add a copy of the overlay, as each overlay should act independent for each player
-        self.overlays[overlay_id] = copy.deepcopy(session.overlays[overlay_id])
+        self.overlays[overlay_id] = copy.deepcopy(session.graphs[overlay_id])
     def add_permalay(self, permalay_id):
         # add a copy of the overlay, as each overlay should act independent for each player
-        self.permalays[permalay_id] = copy.deepcopy(session.overlays[permalay_id])                                                      
+        self.permalays[permalay_id] = copy.deepcopy(session.graphs[permalay_id])                                                      
     def remove_overlay(self, overlay_id):
         del self.overlays[overlay_id]
     def remove_permalay(self, permalay_id):
         del self.permalays[permalay_id]
     def update_overlay(self, overlay_id):
         current_overlay = self.overlays[overlay_id] 
-        updated_overlay = copy.deepcopy(session.overlays[overlay_id])
+        updated_overlay = copy.deepcopy(session.graphs[overlay_id])
         # update current node and step counter
         updated_overlay.current_node_id = current_overlay.current_node_id
         updated_overlay.nodes[updated_overlay.current_node_id].meta = current_overlay.nodes[current_overlay.current_node_id].meta
         self.overlays[overlay_id] = updated_overlay
     def update_permalay(self, permalay_id):
         current_permalay = self.permalays[permalay_id] 
-        updated_permalay = copy.deepcopy(session.overlays[permalay_id])
+        updated_permalay = copy.deepcopy(session.graphs[permalay_id])
         # update current node and step counter
         updated_permalay.current_node_id = current_permalay.current_node_id
         updated_permalay.nodes[updated_permalay.current_node_id].meta = current_permalay.nodes[current_permalay.current_node_id].meta
@@ -97,7 +97,7 @@ class GraaPlayer():
             # otherwise, just eval the current node
             self.eval_node(current_node, overlay_infos, permalay_infos)
     # collect current nodes and edges from over- and permalays
-    def collect_overlay_infos(self, lays):
+    def collect_edge_mod_infos(self, lays):
         current_lay_dicts = []
         current_lay_steps = []
         dur_modificators = []

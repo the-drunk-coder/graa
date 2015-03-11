@@ -11,9 +11,10 @@ class GraaSession():
     delay = 4
     graphs = {}
     players = {}
-    overlays = {}
     # 117bpm results in 512ms per beat ... a nice, round number!
     tempo = 117
+    # one beat as default
+    default_duration = 512 
     active = False
     # the 'executors' to render the statements to time
     beat = None    
