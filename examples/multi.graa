@@ -3,7 +3,7 @@
 
 add("""
 a1|disk~c3:400:127|disk~e4:400:127|disk~a5:400:100,
-a1--1500-->a1
+a1--500-->a1
 """)
 
 add("""
@@ -12,7 +12,7 @@ c1--nil|add<dur:100>-->c1
 """)
 
 add("""
-d1|mute|mute|$1=add<$1:1>,
+d1|$1=add<$1:1>,
 d1-->d1
 """)
 
@@ -24,9 +24,11 @@ stop("a")
 
 # you can also use graphs to control graphs ...
 add("""
-b1|play#a,
+b1|play#a:imd=True|dirt~0:sn:3,
 b2|stop#a,
 b1--2000-->b2,
 b2--2000-->b1
 """)
 
+play("b")
+stop("b")
