@@ -11,14 +11,14 @@ wisin4|sine~450:40:gain=0.5,
 wisin5|sine~300:40:gain=0.5,
 wisin6|sine~350:40:gain=0.5,
 wisin7|sine~600:40_gain=0.5,
-wisin1-100:100->wisin2,
-wisin2-100:100->wisin3,
-wisin3-100:100->wisin4,
-wisin4-100:100->wisin5,
-wisin5-100:100->wisin6,
-wisin6-100:50->wisin7,
-wisin6-100:50->wisin1,
-wisin7-100:100->wisin1
+wisin1--100%100-->wisin2,
+wisin2--100%100-->wisin3,
+wisin3--100%100-->wisin4,
+wisin4--100%100-->wisin5,
+wisin5--100%100-->wisin6,
+wisin6--100%50-->wisin7,
+wisin6--100%50-->wisin1,
+wisin7--100%100-->wisin1
 """)
 
 
@@ -34,14 +34,14 @@ wisub4|subt~450:400:gain=0.5,
 wisub5|subt~300:400:gain=0.5,
 wisub6|subt~350:400:gain=0.5,
 wisub7|subt~600:400:gain=0.3,
-wisub1-400:100->wisub2,
-wisub2-400:100->wisub3,
-wisub3-900:100->wisub4,
-wisub4-400:100->wisub5,
-wisub5-400:100->wisub6,
-wisub6-400:50->wisub7,
-wisub6-400:50->wisub1,
-wisub7-400:100->wisub1
+wisub1--400%100-->wisub2,
+wisub2--400%100-->wisub3,
+wisub3--900%100-->wisub4,
+wisub4--400%100-->wisub5,
+wisub5--400%100-->wisub6,
+wisub6--400%50-->wisub7,
+wisub6--400%50-->wisub1,
+wisub7--400%100-->wisub1
 """)
 
 play("wisub")
@@ -59,14 +59,14 @@ resin4|sine~450:40:gain=0.8,
 resin5|sine~300:40:gain=0.8,
 resin6|sine~350:40:gain=0.8,
 resin7|sine~600:40:gain=0.8,
-resin1-100:100->resin2,
-resin2-100:100->resin3,
-resin3-100:100->resin4,
-resin4-100:100->resin5,
-resin5-100:100->resin6,
-resin6-100:50->resin7,
-resin6-100:50->resin1,
-resin7-100:100->resin1
+resin1--100%100-->resin2,
+resin2--100%100-->resin3,
+resin3--100%100-->resin4,
+resin4--100%100-->resin5,
+resin5--100%100-->resin6,
+resin6--100%50-->resin7,
+resin6--100%50-->resin1,
+resin7--100%100-->resin1
 """)
 
 add("""
@@ -77,26 +77,26 @@ rebuzz4|buzz~80:400:100:gain=0.5,
 rebuzz5|buzz~60:250:100:gain=0.2,
 rebuzz6|buzz~90:300:100:gain=0.5,
 rebuzz7|buzz~110:500:100:gain=0.7,
-rebuzz1-110:100->rebuzz2,
-rebuzz2-110:100->rebuzz3,
-rebuzz3-110:100->rebuzz4,
-rebuzz4-110:100->rebuzz5,
-rebuzz5-110:100->rebuzz6,
-rebuzz6-110:50->rebuzz7,
-rebuzz6-110:50->rebuzz1,
-rebuzz7-110:100->rebuzz1
+rebuzz1--110%100-->rebuzz2,
+rebuzz2--110%100-->rebuzz3,
+rebuzz3--110%100-->rebuzz4,
+rebuzz4--110%100-->rebuzz5,
+rebuzz5--110%100-->rebuzz6,
+rebuzz6--110%50-->rebuzz7,
+rebuzz6--110%50-->rebuzz1,
+rebuzz7--110%100-->rebuzz1
 """)
 
 add("""
 b1|dirt~0:bd:0:gain=1.5,
 b2|dirt~0:sn:4:gain=1.5,
-b1-440->b2,
-b2-440->b1
+b1--440-->b2,
+b2--440-->b1
 """)
 
 add("""
 ca1|dirt~1:casio:0,
-ca1-440->ca1
+ca1--440-->ca1
 """)
 
 play("ca" <<shift>> 220)
@@ -113,23 +113,23 @@ play("rebuzz")
 stop("rebuzz")
 
 add("""
-wisol1|$1=brownian<$1:1:50:1000>,
-wisol1-brownian<$dur:1:200:500>->wisol1
+wisol1|$1=wrap<brownian<$1:1>:50:1000>,
+wisol1--nil|wrap<brownian<$dur:1>:200:500>-->wisol1
 """)
 
 add("""
-resol1|$1=brownian<$1:1:90:200>,
-resol1->resol1
+resol1|$1=wrap<brownian<$1:1>90:200>,
+resol1-->resol1
 """)
 
 add("""
 readd1|$1=add<$1:10>,
-readd1->readd1
+readd1-->readd1
 """)
 
 add("""
 bebuzz1|buzz~100:400:100:gain=0.3,
-bebuzz1-1000:100->bebuzz1
+bebuzz1--1000%100-->bebuzz1
 """)
 
 play("rebuzz")
@@ -145,7 +145,7 @@ expand("rebuzz")
 
 add("""
 bebuzz1|buzz~100:400:100:gain=0.3,
-bebuzz1-1000:100->bebuzz1
+bebuzz1--1000%100-->bebuzz1
 """)
 
 play("resin")
