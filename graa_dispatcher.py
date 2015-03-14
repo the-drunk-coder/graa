@@ -35,6 +35,8 @@ class GraaDispatcher():
         except KeyError as e:            
             log.action(" No player copy for graph: '{}', not updating!".format(graph_id))
         log.action("Adding node: '{}' to graph: '{}'".format(node, graph_id))
+        # update eventual overlays
+        self.update_lays(graph_id)
     def dispatch_edge(self, graph_id, edge, src):
         if graph_id not in session.graphs:
             raise DispatcherError("Graph '{}' not present, can't add edge!".format(graph_id))            
@@ -48,7 +50,15 @@ class GraaDispatcher():
         except KeyError as e:            
             log.action(" No player copy for graph: '{}', not updating!".format(graph_id))
         log.action("Adding edge: '{}' to graph: '{}'".format(edge, graph_id))
-        
+        # update eventual overlays
+        self.update_lays(graph_id)
+    def update_lays(self, graph_id):
+        for player in session.players:
+            if graph_id in session.players[player].overlays:
+                session.players[player].update_overlay(graph_id)
+            if graph_id in session.players[player].permalays:
+                session.players[player].update_permalay(graph_id)
+                
 # class for dispatcher errors                
 class DispatcherError(Exception):
     def __init__(self, message):

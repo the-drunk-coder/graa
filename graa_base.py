@@ -1,4 +1,4 @@
-import copy, random
+import copy, random, threading
 from queue import Queue
 from graa_structures import *
 from graa_session import GraaSession as session
@@ -76,38 +76,42 @@ class GraaPlayer():
         elif type(node_or_edge) is Edge:
             self.player_copy.add_edge(node_or_edge.source, node_or_edge)
     def play(self, *args, **kwargs):        
+        
         if self.active and not self.paused:
+            
             overlay_infos = self.collect_overlay_infos(self.overlays)
             permalay_infos = self.collect_overlay_infos(self.permalays)
+
             # remove finished over- and permalays
             while len(overlay_infos[3]) != 0:
                 del self.overlays[overlay_infos[3].pop()]
             while len(permalay_infos[3]) != 0:
                 del self.permalays[permalay_infos[3].pop()]
+            
             current_node = self.player_copy.nodes[self.player_copy.current_node_id]
-            # schedule the next node and end graph in case it's not possible
+
+            # schedule the next node and end graph in case it's not possible            
             try:
-                self.sched_next_node(overlay_infos, permalay_infos)            
+                self.sched_next_node(permalay_infos[1], overlay_infos[1])
+                self.eval_node(current_node)
             except Exception as e:                    
                 log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
                 self.active = False
-                self.eval_node(current_node, overlay_infos, permalay_infos)
+                self.eval_node(current_node)
                 raise e
-                return
-            # otherwise, just eval the current node
-            self.eval_node(current_node, overlay_infos, permalay_infos)
+                return            
     # collect current nodes and edges from over- and permalays
-    def collect_edge_mod_infos(self, lays):
-        current_lay_dicts = []
+    def collect_overlay_infos(self, lays):
+        current_lay_functions = []
         current_lay_steps = []
         dur_modificators = []
         prob_modificators = []
         lay_to_remove = []
         for lay_key in lays:
             lay = lays[lay_key]                
-            step = lay.nodes[lay.current_node_id].meta
+            step = lay.nodes[lay.current_node_id].step
             # tuple format: (step, functions)
-            current_lay_dicts.append((step, lay.nodes[lay.current_node_id].content))
+            current_lay_functions.append((step, lay.nodes[lay.current_node_id].content))
             lay_edge_id = self.choose_edge(lay)
             if lay_edge_id == None:
                 # overlay reached its end
@@ -116,25 +120,29 @@ class GraaPlayer():
             else:                    
                 lay_edge = lay.edges[lay.current_node_id][lay_edge_id]
                 # remember: lay and dur are functions!
-                if lay_edge.dur != None and lay_edge.dur != "nil":
-                    dur_modificators.append((step, lay_edge.dur))
-                if lay_edge.prob != None:
-                    prob_modificators.append((step, lay_edge.prob))
+                if lay_edge.dur_mod != None:
+                    dur_modificators.append((step, lay_edge.dur_mod))
+                if lay_edge.prob_mod != None:
+                    prob_modificators.append((step, lay_edge.prob_mod))
                 # forward incrementation of step counter
-                lay.nodes[lay_edge.dest].meta = lay.nodes[lay.current_node_id].meta + 1
+                lay.nodes[lay_edge.dest].meta = lay.nodes[lay.current_node_id].step + 1
                 lay.current_node_id = lay_edge.dest
-        return (current_lay_dicts, dur_modificators, prob_modificators, lay_to_remove)
-    def sched_next_node(self, overlay_infos, permalay_infos):
-        #if there is no edge left, end this player!   
-        edge = self.player_copy.edges[self.player_copy.current_node_id][self.choose_edge(self.player_copy)]
+        return (current_lay_functions, dur_modificators, prob_modificators, lay_to_remove)
+    def sched_next_node(self, perma_dur_mods, temp_dur_mods):
+        print(perma_dur_mods, temp_dur_mods)
+        #if there is no edge left, end this player!
+        #print(self.player_copy.current_node_id)
+        chosen_one = self.choose_edge(self.player_copy)
+        # print(chosen_one)
+        edge = self.player_copy.edges[self.player_copy.current_node_id][chosen_one]
         self.player_copy.current_node_id = edge.dest
         # apply permanent duration mods
         current_dur = arg_eval(int, edge.dur, {})     
-        for step, dur_mod in permalay_infos[1]:
+        for step, dur_mod in perma_dur_mods:
             current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
             edge.dur = current_dur
         # apply non-permanent duration mods
-        for step, dur_mod in overlay_infos[1]:
+        for step, dur_mod in temp_dur_mods:
             current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
         # apply only permanent probability mods -- tbd later
         # current_prob = edge.prob
@@ -148,6 +156,7 @@ class GraaPlayer():
     # choose edge
     def choose_edge(self, graph):
         random.seed()
+        #print(len(graph.edges[graph.current_node_id]))
         if len(graph.edges[graph.current_node_id]) == 0:
             return None
         weights = [edge.prob for edge in graph.edges[graph.current_node_id]]
@@ -156,8 +165,10 @@ class GraaPlayer():
            choice_list += [str(i)] * weight
         return int(random.choice(choice_list))
     # eval node content
-    def eval_node(self, node, overlay_infos, permalay_infos):
+    def eval_node(self, node):
+        
         try:
+            """
             # process permanant overlays            
             skip = False
             for step, functions in permalay_infos[0]:
@@ -173,8 +184,11 @@ class GraaPlayer():
                     #print("PRE" + str(node.content))
                     process_arguments(node.content, functions, step)
             # process non-permanant overlays
+            """
             trans_func = copy.deepcopy(node.content)
+            
             trans_mute = False
+            """
             for step, functions in overlay_infos[0]:
                 if type(functions) is str:
                     if functions == "nil":
@@ -186,9 +200,14 @@ class GraaPlayer():
                 else:
                     #print("over")
                     process_arguments(trans_func, functions, step)
-            # evaluate transitory node function copy 
-            if not (node.mute or trans_mute):
-                func_eval(None, trans_func, {"$time":session.now})
+            # evaluate transitory node function copy
+            """
+            for func in trans_func:
+                if type(func) is Func:
+                    if not (node.mute or trans_mute):
+                        async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
+                        async.start()
+                        
         except:
             log.action("Couldn't evaluate a node. Please try again!")           
             raise
