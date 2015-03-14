@@ -6,8 +6,6 @@ from graa_language_functions import *
 # centralized clock for collaborative graaing ?
 # node locking mode ? (give nodes a duration ?)
 # configurable resolution for non-realtime systems ? how, if it's strongly timed ... :(
-# !!! give up division between graphs and overlays ??
-# !!!! graa language functions controlled by graphs - recursion and stuff ???
 # !! if recursion, instances ? or overlay on every instance ??
 # !! inject functions into nodes ????
 
@@ -23,7 +21,6 @@ from graa_language_functions import *
 # tbd: more precise scheduling ... ?
 # tbd: validation: all nodes reachable etc ?
 # tbd: re-sync graphs on beat (restart command ?)
-# tbd: graphs containing graphs, for longer compositions ?
 # tbd: edge probability modification
 # tbd: edge rebalancing (subtract equally from existing edges if not enough prob left) (ESP for edge mods!!)
 # tbd: documentation
