@@ -165,12 +165,12 @@ class GraaPlayer():
            choice_list += [str(i)] * weight
         return int(random.choice(choice_list))
     # eval node content
-    def eval_node(self, node, perma_mods, temp_mods):
+    def eval_node(self, node, perma_mods, temp_mods):        
         try:
             slot_index = 0
             for slot in node.content:
                 print("eval slot" + str(slot_index))
-                node.mute_mask.append(False)
+                node.mute_mask.append(None)
                 # process permanant overlays                            
                 for step, functions in perma_mods:
                     try:
@@ -183,7 +183,7 @@ class GraaPlayer():
                             elif ol_slot == "unmute":
                                 node.mute_mask[slot_index] = False
                         elif type(ol_slot) is Func:
-                            async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
+                            async = threading.Thread(target=func_eval, args=(None, ol_slot, {"$time":session.now}))
                             async.start()
                         else:
                             #print("perma")
@@ -193,33 +193,48 @@ class GraaPlayer():
                         # nothing to do here ... 
                         pass
                 slot_index += 1
-            # process non-permanant overlays
-            
-            trans_func = copy.deepcopy(node.content)
-            
-            trans_mute = False
-            """
-            for step, functions in overlay_infos[0]:
-                if type(functions) is str:
-                    if functions == "nil":
-                        continue
-                    elif functions == "mute":
-                        trans_mute = True
-                    elif functions == "unmute":
-                        trans_mute = False
-                else:
-                    #print("over")
-                    process_arguments(trans_func, functions, step)
-            # evaluate transitory node function copy
-            """
+            # process non-permanant overlays            
+            trans_func = copy.deepcopy(node.content)          
+            slot_index = 0
+            trans_mute_mask = []
+            for slot in trans_func:
+                trans_mute_mask.append(None)
+                for step, functions in temp_mods:
+                    try:
+                        ol_slot = functions[slot_index] 
+                        if type(functions) is str:
+                            if functions == "nil":
+                                continue
+                            elif functions == "mute":
+                                trans_mute_mask[slot_index] = True
+                            elif functions == "unmute":
+                                trans_mute_mask[slot_index] = False
+                        elif type(ol_slot) is Func:
+                            async = threading.Thread(target=func_eval, args=(None, ol_slot, {"$time":session.now}))
+                            async.start()
+                        else:
+                            #print("over")
+                            process_arguments(slot, ol_slot, step)
+                    except IndexError as ie:
+                        pass
+                slot_index += 1
+            # evaluate mutes
+            final_mute_mask = []
+            slot_index = 0
+            for flag in node.mute_mask:
+                final_mute_mask.append(False)
+                if flag or trans_mute_mask[slot_index]:
+                    final_mute_mask[slot_index] = True
+                if trans_mute_mask[slot_index] == False:
+                    final_mute_mask[slot_index] = False            
+            # reset slot index one last time 
             slot_index = 0
             for func in trans_func:
                 if type(func) is Func:
-                    if not node.mute_mask[slot_index]:
+                    if not final_mute_mask[slot_index]:
                         async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
                         async.start()
-                slot_index += 1
-                        
+                slot_index += 1                        
         except:
             log.action("Couldn't evaluate a node. Please try again!")           
             raise
