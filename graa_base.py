@@ -93,11 +93,11 @@ class GraaPlayer():
             # schedule the next node and end graph in case it's not possible            
             try:
                 self.sched_next_node(permalay_infos[1], overlay_infos[1])
-                self.eval_node(current_node)
+                self.eval_node(current_node, permalay_infos[0], overlay_infos[0])
             except Exception as e:                    
                 log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
                 self.active = False
-                self.eval_node(current_node)
+                self.eval_node(current_node, permalay_infos[0], overlay_infos[0])
                 raise e
                 return            
     # collect current nodes and edges from over- and permalays
@@ -165,26 +165,36 @@ class GraaPlayer():
            choice_list += [str(i)] * weight
         return int(random.choice(choice_list))
     # eval node content
-    def eval_node(self, node):
-        
+    def eval_node(self, node, perma_mods, temp_mods):
         try:
-            """
-            # process permanant overlays            
-            skip = False
-            for step, functions in permalay_infos[0]:
-                if type(functions) is str:
-                    if functions == "nil":
-                        continue
-                    elif functions == "mute":
-                        node.mute = True
-                    elif functions == "unmute":
-                        node.mute = False
-                else:
-                    #print("perma")
-                    #print("PRE" + str(node.content))
-                    process_arguments(node.content, functions, step)
+            slot_index = 0
+            for slot in node.content:
+                print("eval slot" + str(slot_index))
+                node.mute_mask.append(False)
+                # process permanant overlays                            
+                for step, functions in perma_mods:
+                    try:
+                        ol_slot = functions[slot_index]                       
+                        if type(ol_slot) is str:
+                            if ol_slot == "nil":
+                                continue
+                            elif ol_slot == "mute":
+                                node.mute_mask[slot_index] = True
+                            elif ol_slot == "unmute":
+                                node.mute_mask[slot_index] = False
+                        elif type(ol_slot) is Func:
+                            async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
+                            async.start()
+                        else:
+                            #print("perma")
+                            #print("PRE" + str(node.content))
+                            process_arguments(slot, ol_slot, step)
+                    except IndexError as ie:                        
+                        # nothing to do here ... 
+                        pass
+                slot_index += 1
             # process non-permanant overlays
-            """
+            
             trans_func = copy.deepcopy(node.content)
             
             trans_mute = False
@@ -202,11 +212,13 @@ class GraaPlayer():
                     process_arguments(trans_func, functions, step)
             # evaluate transitory node function copy
             """
+            slot_index = 0
             for func in trans_func:
                 if type(func) is Func:
-                    if not (node.mute or trans_mute):
+                    if not node.mute_mask[slot_index]:
                         async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
                         async.start()
+                slot_index += 1
                         
         except:
             log.action("Couldn't evaluate a node. Please try again!")           

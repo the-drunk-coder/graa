@@ -41,7 +41,7 @@ class GraaParser():
     sound_func = Word(alphas) + "~" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
     mod_func = assign + Optional(PARAM_DIVIDER)
     ctrl_func = Word(alphas) + "#" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
-    slot = Suppress("|") + Group(sound_func ^ mod_func ^ ctrl_func)
+    slot = Suppress("|") + Group(Literal("nil") ^ Literal("mute") ^ Literal("unmute") ^ sound_func ^ mod_func ^ ctrl_func)
     node_def = node_id + OneOrMore(slot)
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
     #edge definitions
@@ -97,8 +97,8 @@ class GraaParser():
         node_id = arg[1]
         node_params = []
         for param in arg[2:]:            
-            if isinstance(param[0], dict):
-                node_params.append(param[0])
+            if isinstance(param[0], dict) or param[0] is "nil" or param[0] is "mute" or param[0] is "unmute":
+                node_params.append(param[0])                
             else:
                 kwargs = {}
                 args = []

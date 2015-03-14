@@ -105,7 +105,7 @@ class Node():
         # space for arbitrary meta information
         self.meta = meta
         self.step = 0
-        self.mute = False
+        self.mute_mask = []
     def __repr__(self):
         node_string="{}{}".format(self.graph_id, self.id)
         # have to decide between normal and overlay nodes here ... 
@@ -130,7 +130,7 @@ class Node():
                     for key in slot:
                         node_string += str(key) + "=" + str(slot[key]) + ":"
                 # remove last ':'
-                node_string = node_string[:-1] 
+                    node_string = node_string[:-1] 
         return node_string
 
 """
