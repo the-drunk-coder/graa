@@ -92,7 +92,7 @@ class GraaParser():
         pass
         #tbd    
     def parse_node(arg):        
-        print("NODE: " + str(arg))
+        #print("NODE: " + str(arg))
         graph_id = arg[0]
         node_id = arg[1]
         node_params = []
@@ -111,7 +111,7 @@ class GraaParser():
         # create and return node
         return (GraaParser.NODE, graph_id, Node(graph_id, node_id, node_params))    
     def parse_edge(arg):
-        print("EDGE: " + str(arg))
+        #print("EDGE: " + str(arg))
         graph_id = arg[0]
         source_node_id = arg[1]
         destination_node_id = arg[-1]

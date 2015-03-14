@@ -154,8 +154,7 @@ class Edge():
     def __repr__(self):
         source_string = "{}{}".format(self.graph_id, self.source)
         dest_string = "-->{}{}".format(self.graph_id, self.dest)
-        trans_string = ""
-        print(self.dur)
+        trans_string = ""        
         if self.dur is not None:
             trans_string += "--"            
             trans_string += str(self.dur)
