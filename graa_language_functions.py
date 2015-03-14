@@ -55,24 +55,25 @@ def stop(players):
     Graphs should be specified in a string,
     as a comma-separated list of identifiers.
     """
-    for key in players.split(","):
-        key = key.strip()
-        if key == "all":
-            for player_key in session.players:
+    for arg in players:
+        for key in arg.split(","):
+            key = key.strip()
+            if key == "all":
+                for player_key in session.players:
+                    try:
+                        session.players[player_key].stop()                    
+                    except Exception as e:
+                        log.action("Couldn't hold graph, probably not played yet!")
+                        log.action(str(e))
+                        # raise e
+                session.players={}
+            else:
                 try:
-                    session.players[player_key].stop()                    
+                    session.players[key].stop()                   
+                    del session.players[key]
                 except Exception as e:
-                    log.action("Couldn't hold graph, probably not played yet!")
-                    log.action(str(e))
-                    # raise e
-            session.players={}
-        else:
-            try:
-                session.players[key].stop()                   
-                del session.players[key]
-            except Exception as e:
-                log.action("Couldn't hold graph '{}', probably not played yet!".format(key))
-                raise e
+                    log.action("Couldn't hold graph '{}', probably not played yet!".format(key))
+                    raise e
 # end stop()    
 
 

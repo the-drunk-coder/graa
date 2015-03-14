@@ -75,21 +75,16 @@ class GraaPlayer():
             self.player_copy.add_node(node_or_edge)
         elif type(node_or_edge) is Edge:
             self.player_copy.add_edge(node_or_edge.source, node_or_edge)
-    def play(self, *args, **kwargs):        
-        
-        if self.active and not self.paused:
-            
+    def play(self, *args, **kwargs):                
+        if self.active and not self.paused:            
             overlay_infos = self.collect_overlay_infos(self.overlays)
             permalay_infos = self.collect_overlay_infos(self.permalays)
-
             # remove finished over- and permalays
             while len(overlay_infos[3]) != 0:
                 del self.overlays[overlay_infos[3].pop()]
             while len(permalay_infos[3]) != 0:
-                del self.permalays[permalay_infos[3].pop()]
-            
+                del self.permalays[permalay_infos[3].pop()]            
             current_node = self.player_copy.nodes[self.player_copy.current_node_id]
-
             # schedule the next node and end graph in case it's not possible            
             try:
                 self.sched_next_node(permalay_infos[1], overlay_infos[1])
@@ -196,8 +191,7 @@ class GraaPlayer():
             for slot in trans_func:
                 for step, functions in temp_mods:
                     try:
-                        ol_slot = functions[slot_index]
-                        print(ol_slot)
+                        ol_slot = functions[slot_index]            
                         if type(ol_slot) is str:
                             if ol_slot == "nil":
                                 continue
@@ -214,12 +208,6 @@ class GraaPlayer():
                     except IndexError as ie:
                         pass
                 slot_index += 1
-
-
-            
-            print(node.mute_mask)
-            print(trans_mute_mask)
-            
             # reset slot index one last time 
             slot_index = 0
             for func in trans_func:
@@ -231,6 +219,7 @@ class GraaPlayer():
         except:
             log.action("Couldn't evaluate a node. Please try again!")           
             raise
+# end GraaPlayer
 
 
 class GraaBeat():

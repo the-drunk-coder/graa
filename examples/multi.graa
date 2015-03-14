@@ -2,29 +2,31 @@
 
 
 add("""
-a1|disk~c4:400:100|disk~e4:400:100|disk~a4:400:100,
-a1--500-->a1
+a1|disk~c3:400:127|disk~e4:400:127|disk~a5:400:100,
+a1--1500-->a1
 """)
-
-play("a")
-
 
 add("""
-c1|nil~,
-c1--nil|add<dur:1500>-->c1
+c1|nil,
+c1--nil|add<dur:100>-->c1
 """)
 
-"a" <<plus>> "c"
+add("""
+d1|mute|mute|$1=add<$1:1>,
+d1-->d1
+""")
 
-
-session.players["a"].overlays["c"].edges[1][0].dur
+"a" <<plus>> "d"
+"a" <<minus>> "d"
 
 play("a")
 stop("a")
 
+# you can also use graphs to control graphs ...
 add("""
 b1|play#a,
 b2|stop#a,
 b1--2000-->b2,
 b2--2000-->b1
 """)
+
