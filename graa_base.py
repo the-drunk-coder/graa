@@ -128,10 +128,8 @@ class GraaPlayer():
                 lay.nodes[lay_edge.dest].meta = lay.nodes[lay.current_node_id].step + 1
                 lay.current_node_id = lay_edge.dest
         return (current_lay_functions, dur_modificators, prob_modificators, lay_to_remove)
-    def sched_next_node(self, perma_dur_mods, temp_dur_mods):
-        print(perma_dur_mods, temp_dur_mods)
+    def sched_next_node(self, perma_dur_mods, temp_dur_mods):        
         #if there is no edge left, end this player!
-        #print(self.player_copy.current_node_id)
         chosen_one = self.choose_edge(self.player_copy)
         # print(chosen_one)
         edge = self.player_copy.edges[self.player_copy.current_node_id][chosen_one]
@@ -168,9 +166,7 @@ class GraaPlayer():
     def eval_node(self, node, perma_mods, temp_mods):        
         try:
             slot_index = 0
-            for slot in node.content:
-                print("eval slot" + str(slot_index))
-                node.mute_mask.append(None)
+            for slot in node.content:               
                 # process permanant overlays                            
                 for step, functions in perma_mods:
                     try:
@@ -196,18 +192,18 @@ class GraaPlayer():
             # process non-permanant overlays            
             trans_func = copy.deepcopy(node.content)          
             slot_index = 0
-            trans_mute_mask = []
+            trans_mute_mask = copy.deepcopy(node.mute_mask)
             for slot in trans_func:
-                trans_mute_mask.append(None)
                 for step, functions in temp_mods:
                     try:
-                        ol_slot = functions[slot_index] 
-                        if type(functions) is str:
-                            if functions == "nil":
+                        ol_slot = functions[slot_index]
+                        print(ol_slot)
+                        if type(ol_slot) is str:
+                            if ol_slot == "nil":
                                 continue
-                            elif functions == "mute":
+                            elif ol_slot == "mute":
                                 trans_mute_mask[slot_index] = True
-                            elif functions == "unmute":
+                            elif ol_slot == "unmute":
                                 trans_mute_mask[slot_index] = False
                         elif type(ol_slot) is Func:
                             async = threading.Thread(target=func_eval, args=(None, ol_slot, {"$time":session.now}))
@@ -218,20 +214,17 @@ class GraaPlayer():
                     except IndexError as ie:
                         pass
                 slot_index += 1
-            # evaluate mutes
-            final_mute_mask = []
-            slot_index = 0
-            for flag in node.mute_mask:
-                final_mute_mask.append(False)
-                if flag or trans_mute_mask[slot_index]:
-                    final_mute_mask[slot_index] = True
-                if trans_mute_mask[slot_index] == False:
-                    final_mute_mask[slot_index] = False            
+
+
+            
+            print(node.mute_mask)
+            print(trans_mute_mask)
+            
             # reset slot index one last time 
             slot_index = 0
             for func in trans_func:
                 if type(func) is Func:
-                    if not final_mute_mask[slot_index]:
+                    if not trans_mute_mask[slot_index]:
                         async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
                         async.start()
                 slot_index += 1                        

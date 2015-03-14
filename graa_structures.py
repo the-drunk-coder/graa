@@ -105,7 +105,7 @@ class Node():
         # space for arbitrary meta information
         self.meta = meta
         self.step = 0
-        self.mute_mask = []
+        self.mute_mask = [None] * len(node_content)
     def __repr__(self):
         node_string="{}{}".format(self.graph_id, self.id)
         # have to decide between normal and overlay nodes here ... 
