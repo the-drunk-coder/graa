@@ -1,5 +1,5 @@
 # Import graphviz
-import sys, os, copy
+import sys, os, copy, random
 from music21 import pitch, duration
 sys.path.append('..')
 sys.path.append('/usr/lib/graphviz/python/')
@@ -221,6 +221,59 @@ class Graph():
                     edge.prob = new_prob
                 new_edge.prob = new_prob
             self.edges[source_node_id].append(new_edge)
+    # method to rebalance edges in case the probability was changed ...
+    # somewhat naive ...
+    def rebalance_edges(self, node_id, edge_id, edge_mod):
+        # noting to do here in that case ...
+        if len(self.edges[node_id]) == 1:
+            return
+        current_edge = self.edges[node_id][edge_id]        
+        if edge_mod > 100:
+            edge_mod = 100
+        if edge_mod < 0:
+            edge_mod = 0
+        difference = current_edge.prob - edge_mod
+        current_edge.prob = edge_mod        
+        if difference == 0:
+            return
+        elif difference < 0:
+            # count edges with prob nonzero            
+            difference = abs(difference)
+            random.seed()
+            starting_point = random.randint(0, len(self.edges[node_id]))                                                       
+            while difference > 0:
+                # random starting point in list, to achieve some arbitration                
+                for i in range(0, len(self.edges[node_id])):
+                    j = (starting_point + i) % len(self.edges[node_id])
+                    edge = self.edges[node_id][j]
+                    if edge == current_edge:
+                        # in this case, there's nothing left to rebalance ... 
+                        if edge.prob == 100:
+                            return
+                        else:                     
+                            continue                    
+                    elif edge.prob > 0:
+                        edge.prob -= 1
+                        difference -= 1
+                    if difference <= 0:
+                        break
+        elif difference > 0:
+            random.seed()
+            starting_point = random.randint(0, len(self.edges[node_id]))                                                       
+            while difference > 0:
+                for i in range(0, len(self.edges[node_id])):
+                    j = (starting_point + i) % len(self.edges[node_id])
+                    edge = self.edges[node_id][j]
+                    if edge == current_edge:
+                        if edge.prob <= 0:
+                            return
+                        else:
+                            continue                
+                    elif edge.prob < 100:
+                        edge.prob += 1
+                        difference -= 1
+                    if difference <= 0:
+                        break                    
     def render(self, filename, render="content"):
         dot = Digraph(comment="",edge_attr={'len': '6', 'weight':'0.00001'})
         dot.engine = 'dot'

@@ -87,7 +87,7 @@ class GraaPlayer():
             current_node = self.player_copy.nodes[self.player_copy.current_node_id]
             # schedule the next node and end graph in case it's not possible            
             try:
-                self.sched_next_node(permalay_infos[1], overlay_infos[1])
+                self.sched_next_node(permalay_infos[1], overlay_infos[1], permalay_infos[2])
                 self.eval_node(current_node, permalay_infos[0], overlay_infos[0])
             except Exception as e:                    
                 log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
@@ -110,7 +110,7 @@ class GraaPlayer():
             lay_edge_id = self.choose_edge(lay)
             if lay_edge_id == None:
                 # overlay reached its end
-                log.action("Overlay {} on graph {} reached its end, marked to remove!".format(ol_key, graph_id))           
+                log.action("Overlay {} on graph {} reached its end, marked to remove!".format(lay_key, graph_id))           
                 lay_to_remove.append(lay_key)
             else:                    
                 lay_edge = lay.edges[lay.current_node_id][lay_edge_id]
@@ -123,7 +123,7 @@ class GraaPlayer():
                 lay.nodes[lay_edge.dest].meta = lay.nodes[lay.current_node_id].step + 1
                 lay.current_node_id = lay_edge.dest
         return (current_lay_functions, dur_modificators, prob_modificators, lay_to_remove)
-    def sched_next_node(self, perma_dur_mods, temp_dur_mods):        
+    def sched_next_node(self, perma_dur_mods, temp_dur_mods, prob_mods):        
         #if there is no edge left, end this player!
         chosen_one = self.choose_edge(self.player_copy)
         # print(chosen_one)
@@ -138,10 +138,10 @@ class GraaPlayer():
         for step, dur_mod in temp_dur_mods:
             current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
         # apply only permanent probability mods -- tbd later
-        # current_prob = edge.prob
-        # for prob_mod in permalay_infos[3]:
-        #    current_prob = process_mod_function("prob", current_prob, 0, {"prob" : prob_mod})
-        # edge.prob = current_prob
+        current_prob = edge.prob
+        for step, prob_mod in prob_mods:            
+            current_prob = func_eval(int,  prob_mod, {"step": step, "prob":current_prob})    
+        self.player_copy.rebalance_edges(edge.source, chosen_one, current_prob)            
         # set next timestamp
         self.timestamp += current_dur + self.delay        
         session.scheduler.time_function(self.play, [], {}, self.timestamp)
@@ -165,7 +165,8 @@ class GraaPlayer():
                 # process permanant overlays                            
                 for step, functions in perma_mods:
                     try:
-                        ol_slot = functions[slot_index]                       
+                        ol_slot = functions[slot_index]
+                        #print(type(ol_slot))
                         if type(ol_slot) is str:
                             if ol_slot == "nil":
                                 continue
