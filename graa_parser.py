@@ -39,7 +39,7 @@ class GraaParser():
     assign.setParseAction(lambda t: GraaParser.parse_assign(t.asList()))
     # node definitions
     sound_func = Word(alphas) + "~" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
-    mod_func = assign + Optional(PARAM_DIVIDER)
+    mod_func = OneOrMore(assign + Optional(PARAM_DIVIDER))
     ctrl_func = Word(alphas) + "#" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
     slot = Suppress("|") + Group(Literal("nil") ^ Literal("mute") ^ Literal("unmute") ^ sound_func ^ mod_func ^ ctrl_func)
     node_def = node_id + OneOrMore(slot)
@@ -96,18 +96,23 @@ class GraaParser():
         graph_id = arg[0]
         node_id = arg[1]
         node_params = []
-        for param in arg[2:]:            
-            if isinstance(param[0], dict) or param[0] is "nil" or param[0] is "mute" or param[0] is "unmute":
-                node_params.append(param[0])                
+        for slot in arg[2:]:            
+            if isinstance(slot[0], dict):
+                slot_dict = {}
+                for assign in slot:
+                    slot_dict.update(assign)
+                node_params.append(slot_dict)
+            elif slot[0] is "nil" or slot[0] is "mute" or slot[0] is "unmute":
+                node_params.append(slot[0])
             else:
                 kwargs = {}
                 args = []
-                for arg in param[2]:
-                    if type(arg) is dict:                        
+                for p_arg in slot[2]:
+                    if type(p_arg) is dict:                        
                         kwargs.update(arg)
                     else:
-                        args.append(arg)
-                node_params.append(Func(param[1], param[0], args, kwargs))
+                        args.append(p_arg)
+                node_params.append(Func(slot[1], slot[0], args, kwargs))
         # create and return node
         return (GraaParser.NODE, graph_id, Node(graph_id, node_id, node_params))    
     def parse_edge(arg):

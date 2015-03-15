@@ -126,7 +126,7 @@ class Node():
                 if type(slot) is str:
                     node_string += slot
                 else:
-                    print(type(slot))
+                    #print(type(slot))
                     for key in slot:
                         node_string += str(key) + "=" + str(slot[key]) + ":"
                 # remove last ':'
