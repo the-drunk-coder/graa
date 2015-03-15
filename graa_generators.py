@@ -65,3 +65,35 @@ def star(size, def_node_tpl, def_edge_tpl):
 # end star
 
 
+def grid(xsize, ysize, def_node_tpl, def_edge_tpl):
+    """ Generate a grid of type of size x*y"""
+    def_node = parser.parse(def_node_tpl)[0][2]
+    def_edge = parser.parse(def_edge_tpl)[0][2]
+    overall_size = xsize * ysize
+    grid = Graph()
+    # generate nodes
+    for i in range(1, overall_size + 1):
+        node = copy.deepcopy(def_node)
+        node.id = i
+        grid.add_node(node)
+    # generate edges
+    for i in range(1, overall_size):
+        if i % xsize != 0:
+            edge = copy.deepcopy(def_edge)
+            edge.source = i
+            edge.dest = i + 1        
+            grid.add_edge(edge.source, edge)
+        if i + xsize <= overall_size:
+            edge = copy.deepcopy(def_edge)
+            edge.source = i
+            edge.dest = i + xsize        
+            grid.add_edge(edge.source, edge)
+    # last edge
+    edge = copy.deepcopy(def_edge)
+    edge.source = overall_size
+    edge.dest = 1        
+    grid.add_edge(edge.source, edge)
+    grid_id = def_node.graph_id
+    session.graphs[grid_id] = grid
+    return grid_id
+# end grid
