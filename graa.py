@@ -21,8 +21,6 @@ from graa_language_functions import *
 # tbd: more precise scheduling ... ?
 # tbd: validation: all nodes reachable etc ?
 # tbd: re-sync graphs on beat (restart command ?)
-# tbd: edge probability modification
-# tbd: edge rebalancing (subtract equally from existing edges if not enough prob left) (ESP for edge mods!!)
 # tbd: documentation
 # tbd: graph generators: grid, tree, triforce, bjoerklund, etc (see notes)
 # tbd: write graph transformers, like, reverse, tournament, rotate (?) 
