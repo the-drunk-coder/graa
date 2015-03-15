@@ -1,0 +1,24 @@
+# a simple example of overlaying two non-modifying graphs ...
+
+add("""
+anote1|disk~c4:100:100,
+anote1--512-->anote1
+""")
+
+add("""
+bnote1|disk~cis4:100:100,
+bnote1--128-->bnote1
+""")
+
+# note that the first, basic layer takes the "lead" when it comes to edge duration ...
+play("anote")
+
+"anote" <<plus>> "bnote"
+
+stop("anote")
+
+play("bnote")
+
+"bnote" <<plus>> "anote"
+
+stop("bnote")
