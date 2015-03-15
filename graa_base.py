@@ -88,6 +88,7 @@ class GraaPlayer():
             # schedule the next node and end graph in case it's not possible            
             try:
                 self.sched_next_node(permalay_infos[1], overlay_infos[1], permalay_infos[2])
+                #print("Current Node: " + str(current_node))
                 self.eval_node(current_node, permalay_infos[0], overlay_infos[0])
             except Exception as e:                    
                 log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
@@ -137,7 +138,7 @@ class GraaPlayer():
         # apply non-permanent duration mods
         for step, dur_mod in temp_dur_mods:
             current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
-        # apply only permanent probability mods -- tbd later
+        # apply only permanent probability mods
         current_prob = edge.prob
         for step, prob_mod in prob_mods:            
             current_prob = func_eval(int,  prob_mod, {"step": step, "prob":current_prob})    
@@ -161,12 +162,17 @@ class GraaPlayer():
     def eval_node(self, node, perma_mods, temp_mods):        
         try:
             slot_index = 0
-            for slot in node.content:               
-                # process permanant overlays                            
+            for slot in node.content:
+                # if there's a modifcator or empty slot in the base graph, just ignore it ...
+                if slot == "nil" or slot == "mute" or slot == "unmute" or type(slot) == dict:
+                    slot_index += 1
+                    continue                
+                # process permanant overlays
+                # print(perma_mods)
                 for step, functions in perma_mods:
                     try:
                         ol_slot = functions[slot_index]
-                        #print(type(ol_slot))
+                        #print("index : {} type: {} content: {}".format(slot_index, type(ol_slot), ol_slot))                        
                         if type(ol_slot) is str:
                             if ol_slot == "nil":
                                 continue
@@ -180,6 +186,7 @@ class GraaPlayer():
                         else:
                             #print("perma")
                             #print("PRE" + str(node.content))
+                            #print("slot: {} ol_slot: {} step: {}".format(slot, ol_slot, step))
                             process_arguments(slot, ol_slot, step)
                     except IndexError as ie:                        
                         # nothing to do here ... 
@@ -190,6 +197,9 @@ class GraaPlayer():
             slot_index = 0
             trans_mute_mask = copy.deepcopy(node.mute_mask)
             for slot in trans_func:
+                if slot == "nil" or slot == "mute" or slot == "unmute" or type(slot) == dict:
+                    slot_index += 1
+                    continue                
                 for step, functions in temp_mods:
                     try:
                         ol_slot = functions[slot_index]            
