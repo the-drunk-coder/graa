@@ -133,15 +133,15 @@ class GraaPlayer():
         # apply permanent duration mods
         current_dur = arg_eval(int, edge.dur, {})     
         for step, dur_mod in perma_dur_mods:
-            current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
+            current_dur = func_eval(int, dur_mod, {"step": step, "dur": current_dur})
             edge.dur = current_dur
         # apply non-permanent duration mods
         for step, dur_mod in temp_dur_mods:
-            current_dur = func_eval(int, dur_mod, {"step": step, "dur":current_dur})
+            current_dur = func_eval(int, dur_mod, {"step": step, "dur": current_dur})
         # apply only permanent probability mods
         current_prob = edge.prob
         for step, prob_mod in prob_mods:            
-            current_prob = func_eval(int,  prob_mod, {"step": step, "prob":current_prob})    
+            current_prob = func_eval(int,  prob_mod, {"step": step, "prob": current_prob})    
         self.player_copy.rebalance_edges(edge.source, chosen_one, current_prob)            
         # set next timestamp
         self.timestamp += current_dur + self.delay        

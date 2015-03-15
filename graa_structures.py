@@ -227,13 +227,14 @@ class Graph():
         # noting to do here in that case ...
         if len(self.edges[node_id]) == 1:
             return
-        current_edge = self.edges[node_id][edge_id]        
+        current_edge = self.edges[node_id][edge_id]
         if edge_mod > 100:
             edge_mod = 100
         if edge_mod < 0:
             edge_mod = 0
         difference = current_edge.prob - edge_mod
-        current_edge.prob = edge_mod        
+        current_edge.prob = edge_mod
+        # print(difference)
         if difference == 0:
             return
         elif difference < 0:
@@ -247,12 +248,8 @@ class Graph():
                     j = (starting_point + i) % len(self.edges[node_id])
                     edge = self.edges[node_id][j]
                     if edge == current_edge:
-                        # in this case, there's nothing left to rebalance ... 
-                        if edge.prob == 100:
-                            return
-                        else:                     
-                            continue                    
-                    elif edge.prob > 0:
+                        continue                        
+                    elif edge.prob > 0:                        
                         edge.prob -= 1
                         difference -= 1
                     if difference <= 0:
@@ -265,10 +262,7 @@ class Graph():
                     j = (starting_point + i) % len(self.edges[node_id])
                     edge = self.edges[node_id][j]
                     if edge == current_edge:
-                        if edge.prob <= 0:
-                            return
-                        else:
-                            continue                
+                        continue                        
                     elif edge.prob < 100:
                         edge.prob += 1
                         difference -= 1
