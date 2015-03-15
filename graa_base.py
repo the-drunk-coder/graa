@@ -44,6 +44,7 @@ class GraaPlayer():
     def pause(self):
         self.paused = True
     def resume(self):
+        self.timestamp = session.now
         self.paused = False
         self.play()
     def add_overlay(self, overlay_id):
