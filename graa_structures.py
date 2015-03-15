@@ -1,5 +1,5 @@
 # Import graphviz
-import sys, os, copy
+import sys, os, copy, random
 from music21 import pitch, duration
 sys.path.append('..')
 sys.path.append('/usr/lib/graphviz/python/')
@@ -24,7 +24,8 @@ class Gvar():
     
 # function for runtime evaluation ... see graa_function_evaluator for function evaluation
 class Func():
-    def __init__(self, name, func_args, func_kwargs):
+    def __init__(self, func_type, name, func_args, func_kwargs):
+        self.func_type = func_type 
         self.name = name
         self.args = func_args
         self.kwargs = func_kwargs
@@ -103,29 +104,33 @@ class Node():
         self.content = node_content
         # space for arbitrary meta information
         self.meta = meta
-        self.mute = False
+        self.step = 0
+        self.mute_mask = [None] * len(node_content)
     def __repr__(self):
-        node_string="{}{}|".format(self.graph_id, self.id)
+        node_string="{}{}".format(self.graph_id, self.id)
         # have to decide between normal and overlay nodes here ... 
-        if type(self.content) is Func:
-            # a normal node contains just one function
-            node_string += self.content.name
-            node_string += "~"
-            for arg in self.content.args:
-                node_string += str(arg) + ":"
-            for key in self.content.kwargs:
-                node_string += str(key) + "=" + str(self.content.kwargs[key]) + ":"
-            # remove last ':'
-            node_string = node_string[:-1] 
-        else:
-            # this should mean it's an ol node, as it contains a dict of functions
-            if type(self.content) is str:
-                node_string += self.content
+        for slot in self.content:
+            node_string += "|"
+            if type(slot) is Func:
+                # a normal node contains just one function
+                node_string += slot.name                                   
+                node_string += slot.func_type                
+                for arg in slot.args:
+                    node_string += str(arg) + ":"
+                for key in slot.kwargs:
+                    node_string += str(key) + "=" + str(slot.kwargs[key]) + ":"
+                # remove last ':'
+                node_string = node_string[:-1] 
             else:
-                for key in self.content:
-                    node_string += str(key) + "=" + str(self.content[key]) + ":"
-            # remove last ':'
-            node_string = node_string[:-1] 
+                # this should mean it's an ol node, as it contains a dict of functions
+                if type(slot) is str:
+                    node_string += slot
+                else:
+                    #print(type(slot))
+                    for key in slot:
+                        node_string += str(key) + "=" + str(slot[key]) + ":"
+                # remove last ':'
+                    node_string = node_string[:-1] 
         return node_string
 
 """
@@ -135,38 +140,39 @@ If transition probability is None, it will be calculated when the edge is added.
 
 """
 class Edge():
-    def __init__(self, graph_id, source, destination_node_id, transition_duration, transition_probability=None, meta=""):
+    def __init__(self, graph_id, src, dest, dur=None, prob=None, dur_mod=None, prob_mod=None, meta=""):
         # source and graph id basically only needed for pretty printing
-        self.source = source
+        self.source = src
         self.graph_id = graph_id
-        self.dest = destination_node_id
-        self.prob = transition_probability
-        # might also contain function to modify duration
-        self.dur = transition_duration
-        # some meta information, like steps or so ... 
+        self.dest = dest
+        self.prob = prob
+        self.dur = dur
+        # modificators 
+        self.dur_mod = dur_mod
+        self.prob_mod = prob_mod
         self.meta = meta
     def __repr__(self):
         source_string = "{}{}".format(self.graph_id, self.source)
-        dest_string = "->{}{}".format(self.graph_id, self.dest)
-        trans_string = ""
+        dest_string = "-->{}{}".format(self.graph_id, self.dest)
+        trans_string = ""        
         if self.dur is not None:
-            trans_string += "-"
-            if type(self.dur) is list:
-                trans_string += self.dur[0] + "("
-                for arg in self.dur[1]:
-                    trans_string += str(arg) + ","
-                trans_string = trans_string[:-1] + ")"
-            else:
-                trans_string += str(self.dur)
+            trans_string += "--"            
+            trans_string += str(self.dur)
+        if self.dur_mod is not None:
+            if self.dur is None:
+                trans_string += "--nil"
+            trans_string += "|"            
+            trans_string += str(self.dur_mod)
         if self.prob is not None:
-            trans_string += ":"            
-            if type(self.prob) is list:                
-                trans_string += self.prob[0] + "("
-                for arg in self.prob[1]:
-                    trans_string += str(arg) + ","
-                trans_string = trans_string[:-1] + ")"
-            else:
-                trans_string += str(self.prob)
+            if self.dur == None and self.dur_mod is None:
+                trans_string += "--"
+            trans_string += "%"                        
+            trans_string += str(self.prob)
+        if self.prob_mod is not None:
+            if self.prob is None:
+                trans_string += "%nil"
+            trans_string += "|"                        
+            trans_string += str(self.prob_mod)
         return source_string + trans_string + dest_string
 
 
@@ -215,6 +221,59 @@ class Graph():
                     edge.prob = new_prob
                 new_edge.prob = new_prob
             self.edges[source_node_id].append(new_edge)
+    # method to rebalance edges in case the probability was changed ...
+    # somewhat naive ...
+    def rebalance_edges(self, node_id, edge_id, edge_mod):
+        # noting to do here in that case ...
+        if len(self.edges[node_id]) == 1:
+            return
+        current_edge = self.edges[node_id][edge_id]        
+        if edge_mod > 100:
+            edge_mod = 100
+        if edge_mod < 0:
+            edge_mod = 0
+        difference = current_edge.prob - edge_mod
+        current_edge.prob = edge_mod        
+        if difference == 0:
+            return
+        elif difference < 0:
+            # count edges with prob nonzero            
+            difference = abs(difference)
+            random.seed()
+            starting_point = random.randint(0, len(self.edges[node_id]))                                                       
+            while difference > 0:
+                # random starting point in list, to achieve some arbitration                
+                for i in range(0, len(self.edges[node_id])):
+                    j = (starting_point + i) % len(self.edges[node_id])
+                    edge = self.edges[node_id][j]
+                    if edge == current_edge:
+                        # in this case, there's nothing left to rebalance ... 
+                        if edge.prob == 100:
+                            return
+                        else:                     
+                            continue                    
+                    elif edge.prob > 0:
+                        edge.prob -= 1
+                        difference -= 1
+                    if difference <= 0:
+                        break
+        elif difference > 0:
+            random.seed()
+            starting_point = random.randint(0, len(self.edges[node_id]))                                                       
+            while difference > 0:
+                for i in range(0, len(self.edges[node_id])):
+                    j = (starting_point + i) % len(self.edges[node_id])
+                    edge = self.edges[node_id][j]
+                    if edge == current_edge:
+                        if edge.prob <= 0:
+                            return
+                        else:
+                            continue                
+                    elif edge.prob < 100:
+                        edge.prob += 1
+                        difference -= 1
+                    if difference <= 0:
+                        break                    
     def render(self, filename, render="content"):
         dot = Digraph(comment="",edge_attr={'len': '6', 'weight':'0.00001'})
         dot.engine = 'dot'
@@ -236,7 +295,7 @@ class Graph():
         if not os.path.exists("graph"):
             os.makedirs("graph")
         dot.render("graph/" + filename + ".gv")
-
+"""
 class GraphTool():
     # destructively reverse direction of edges 
     def reverse_digraph(self, graph):
@@ -320,4 +379,4 @@ class DfsTree():
         print("DISCOVERY TIMES:" + str(disc))
         print("COLORS:" + str(col))
         print("PREDECESSORS:" + str(pre))
- 
+""" 

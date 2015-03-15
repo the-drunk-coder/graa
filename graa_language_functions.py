@@ -47,7 +47,7 @@ def quit_graa():
 # end quit_graa()
    
 
-def stop(players):
+def stop(*args, **kwargs):
     """
     Stop the specified graphs. Think of 'stop' as an your cd player.
     The graphs will be reset, overlays removed.
@@ -55,28 +55,29 @@ def stop(players):
     Graphs should be specified in a string,
     as a comma-separated list of identifiers.
     """
-    for key in players.split(","):
-        key = key.strip()
-        if key == "all":
-            for player_key in session.players:
+    for arg in args:
+        for key in arg.split(","):
+            key = key.strip()
+            if key == "all":
+                for player_key in session.players:
+                    try:
+                        session.players[player_key].stop()                    
+                    except Exception as e:
+                        log.action("Couldn't hold graph, probably not played yet!")
+                        log.action(str(e))
+                        # raise e
+                session.players={}
+            else:
                 try:
-                    session.players[player_key].stop()                    
+                    session.players[key].stop()                   
+                    del session.players[key]
                 except Exception as e:
-                    log.action("Couldn't hold graph, probably not played yet!")
-                    log.action(str(e))
-                    # raise e
-            session.players={}
-        else:
-            try:
-                session.players[key].stop()                   
-                del session.players[key]
-            except Exception as e:
-                log.action("Couldn't hold graph '{}', probably not played yet!".format(key))
-                raise e
+                    log.action("Couldn't hold graph '{}', probably not played yet!".format(key))
+                    raise e
 # end stop()    
 
 
-def pause(players):
+def pause(*args, **kwargs):
     """
     Pause the specified graphs.
     Think of 'pause' as on your cd player. You can resume the graph in
@@ -85,20 +86,21 @@ def pause(players):
     Graphs should be specified in a string,
     as a comma-separated list of identifiers.
     """
-    for key in players.split(","):
-        key = key.strip()
-        if key == "all":
-            for player_key in session.players:
+    for arg in args:
+        for key in arg.split(","):
+            key = key.strip()
+            if key == "all":
+                for player_key in session.players:
+                    try:
+                        session.players[player_key].pause()
+                    except:
+                        log.action("Couldn't pause graph, probably not played yet!")
+                        # raise
+            else:
                 try:
-                    session.players[player_key].pause()
+                    session.players[key].pause()                   
                 except:
-                    log.action("Couldn't pause graph, probably not played yet!")
-                    # raise
-        else:
-            try:
-                session.players[key].pause()                   
-            except:
-                log.action("Couldn't pause graph '{}', probably not played yet!".format(key))
+                    log.action("Couldn't pause graph '{}', probably not played yet!".format(key))
 # end pause()    
 
 

@@ -6,8 +6,9 @@ but i think it's clearer this way ...
 """
 
 from graa_structures import *
-from graa_sound_functions import *
+import graa_sound_functions 
 from graa_overlay_functions import *
+import graa_language_functions
 from graa_session import GraaSession as session
 # Hack to access variabled defined in the main routine. 
 # Yes, i know this is not the way you ~should~ do this. Be quiet!
@@ -16,6 +17,7 @@ import __main__
 
 def process_arguments(func, arg_funcs, step):
     #print("PROC " + str(func))
+    #print(func)
     for i in range(0, len(func.args)):
         key = "$" + str(i+1) 
         if key in arg_funcs:
@@ -39,7 +41,6 @@ def arg_eval(orig_type, arg, local_vars):
         return(getattr(__main__, arg.key))
     else:
         return arg
-
 
 """
 Maybe i should overthink this, as i don't really like copying the args for replacement, seems like an unnecessary
@@ -72,11 +73,21 @@ def func_eval(orig_type, func, local_vars):
             trans_kwargs[key] = arg_eval(type(trans_kwargs[key]), trans_kwargs[key], local_vars)   
     if orig_type != None and orig_type != Func and orig_type != GraaNote:
         #print("NAME:" + str(func.name) + " " + str(orig_type))
-        ret = orig_type(eval(func.name)(*trans_args, **trans_kwargs))
+        if func.func_type == "#":
+            ret = orig_type(getattr(graa_language_functions, func.name)(*trans_args, **trans_kwargs))
+        elif func.func_type == "~":
+            ret = orig_type(getattr(graa_sound_functions, func.name)(*trans_args, **trans_kwargs))
+        else:
+            ret = orig_type(eval(func.name)(*trans_args, **trans_kwargs))
         #print("RET " + str(ret))
         return ret    
     else:
-        ret = eval(func.name)(*trans_args, **trans_kwargs)
+        if func.func_type == "#":
+            ret = getattr(graa_language_functions, func.name)(*trans_args, **trans_kwargs)
+        elif func.func_type == "~":
+            ret = getattr(graa_sound_functions, func.name)(*trans_args, **trans_kwargs)
+        else:
+            ret = eval(func.name)(*trans_args, **trans_kwargs)
         #print("VOIDRET " + str(ret))
         return ret
 

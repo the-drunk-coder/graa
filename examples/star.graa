@@ -2,7 +2,7 @@
 
 var = 1000
 
-expand(star(5, "star1|buzz~!var:400:gain=0.3", "star1-mul<!var:2>->star1"))
+expand(star(5, "star1|buzz~!var:400:gain=0.3", "star1--mul<!var:2>-->star1"))
 
 play("star")
 stop("star")
@@ -13,26 +13,26 @@ star2|sine~c3:90:gain=0.7,
 star3|sine~d5:90:gain=0.7,
 star4|sine~d4:90:gain=0.3,
 star5|sine~a5:90:gain=0.7,
-star1-100:25->star2,
-star1-100:25->star3,
-star1-100:25->star4,
-star1-100:25->star5,
-star2-100:100->star1,
-star3-100:100->star1,
-star4-100:100->star1,
-star5-100:100->star1
+star1--100%25-->star2,
+star1--100%25-->star3,
+star1--100%25-->star4,
+star1--100%25-->star5,
+star2--100%100-->star1,
+star3--100%100-->star1,
+star4--100%100-->star1,
+star5--100%100-->star1
 """)
 
 expand("star")
 
 add("""
 stol1|$1=wrap<brownian<$1:2>:c2:c5>,
-stol1-wrap<add<dur:2>:100:400>->stol1
+stol1--nil|wrap<add<dur:2>:100:400>-->stol1
 """)
 
 add("""
 stob1|nil,
-stob1-wrap<brownian<dur:10>:50:200>->stob1
+stob1--nil|wrap<brownian<dur:10>:50:200>-->stob1
 """)
 
 play("star")

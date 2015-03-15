@@ -7,9 +7,8 @@ import __main__
 
 class GraaParser():
     # command constants for dispatcher    
-    EDGE = "edge"
-    OVERLAY_NODE = "ol_node"
-    NORMAL_NODE = "n_node"    
+    EDGE = "edge"    
+    NODE = "node"    
     # some literals
     PARAM_DIVIDER = Suppress(Literal(":"))
     LPAREN = Suppress(Literal("<"))
@@ -30,27 +29,29 @@ class GraaParser():
     lvar = Word("$." + alphanums)
     graph_id = Word(alphas)
     node_id = graph_id + Word(nums).setParseAction(lambda t: GraaParser.typify(t[0]))
-    node_type = Word(alphanums)
-    func_id = Word(alphanums)
     # function parsing
     func = Forward()
     param = gvar ^ ivar ^ pitch ^ lvar.setParseAction(lambda t: GraaParser.typify(t[0])) ^ func
     func_param = ZeroOrMore(param + Optional(PARAM_DIVIDER))
-    func << func_id + LPAREN + func_param + RPAREN   
+    func << Word(alphanums) + LPAREN + func_param + RPAREN   
     func.setParseAction(lambda t: GraaParser.parse_func(t.asList()))    
     assign = lvar + Suppress("=") + param
     assign.setParseAction(lambda t: GraaParser.parse_assign(t.asList()))
     # node definitions
-    ol_node_def = node_id + Suppress("|") + OneOrMore((assign + Optional(PARAM_DIVIDER)) ^ Literal("nil") ^ Literal("mute") ^ Literal("unmute"))
-    ol_node_def.setParseAction(lambda t: GraaParser.parse_ol_node(t))
-    node_def = node_id + Suppress("|") + node_type + Suppress("~") + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
+    sound_func = Word(alphas) + "~" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
+    mod_func = OneOrMore(assign + Optional(PARAM_DIVIDER))
+    ctrl_func = Word(alphas) + "#" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
+    slot = Suppress("|") + Group(Literal("nil") ^ Literal("mute") ^ Literal("unmute") ^ sound_func ^ mod_func ^ ctrl_func)
+    node_def = node_id + OneOrMore(slot)
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
-    #edge definitions    
-    transition = Group((Literal("nil") ^ param) + Optional(PARAM_DIVIDER + param))    
-    edge_def = node_id + Optional(Suppress("-") + transition) + Suppress("->") + node_id
+    #edge definitions
+    trans_dur = Group((param ^ Literal("nil")) + Optional(Suppress("|") + param))
+    trans_prob = Group(Literal("%") + (param ^ Literal("nil")) + Optional(Suppress("|") + param))
+    transition = Suppress("--") + Group(Optional(trans_dur) + Optional(trans_prob)) + Suppress("-->")
+    edge_def = node_id + (transition ^ Suppress("-->")) + node_id
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))    
     # line definition
-    line = node_def ^ edge_def ^ ol_node_def  
+    line = node_def ^ edge_def
     line.setParseAction(lambda t: t.asList())    
     # convert string representation to actual (typed) value
     def typify(arg):
@@ -74,7 +75,7 @@ class GraaParser():
         return getattr(__main__, arg[0][0])        
     def parse_func(arg):
         #print(arg)
-        return Func(arg[0], arg[1:], {})
+        return Func("misc", arg[0], arg[1:], {})
     def parse_assign(arg):
         return {arg[0] : arg[1]}
     def parse_pitch(arg):
@@ -91,56 +92,62 @@ class GraaParser():
         pass
         #tbd    
     def parse_node(arg):        
+        #print("NODE: " + str(arg))
         graph_id = arg[0]
         node_id = arg[1]
-        node_params = Func(arg[2], [], {})        
-        for param in arg[3]:
-            if isinstance(param, dict):
-                node_params.kwargs.update(param)
+        node_params = []
+        for slot in arg[2:]:            
+            if isinstance(slot[0], dict):
+                slot_dict = {}
+                for assign in slot:
+                    slot_dict.update(assign)
+                node_params.append(slot_dict)
+            elif slot[0] is "nil" or slot[0] is "mute" or slot[0] is "unmute":
+                node_params.append(slot[0])
             else:
-                node_params.args.append(param)
+                kwargs = {}
+                args = []
+                for p_arg in slot[2]:
+                    if type(p_arg) is dict:                        
+                        kwargs.update(arg)
+                    else:
+                        args.append(p_arg)
+                node_params.append(Func(slot[1], slot[0], args, kwargs))
         # create and return node
-        return (GraaParser.NORMAL_NODE, graph_id, Node(graph_id, node_id, node_params))
-    def parse_ol_node(arg):
-        #print(arg)
-        graph_id = arg[0]
-        node_id = arg[1]
-        node_params = {}
-        for param in arg[2:]:
-            if type(param) is str:
-                node_params = param
-            else:                
-                node_params.update(param)
-        node = Node(graph_id, node_id, node_params)
-        return (GraaParser.OVERLAY_NODE, graph_id, node)
+        return (GraaParser.NODE, graph_id, Node(graph_id, node_id, node_params))    
     def parse_edge(arg):
-        #print(arg)
+        #print("EDGE: " + str(arg))
         graph_id = arg[0]
         source_node_id = arg[1]
         destination_node_id = arg[-1]
-        edge = None
+        edge = Edge(graph_id, source_node_id, destination_node_id)
         if(len(arg) == 5):
-            transition = arg[2]         
-            edge = Edge(graph_id, source_node_id, destination_node_id, transition[0])
-            if len(transition) == 2:
-                edge.prob = transition[1]
-        else:            
-            edge = Edge(graph_id, source_node_id, destination_node_id, None)
+            transition = arg[2]
+            for elem in transition:
+                if elem[0] == "%":
+                    if elem[1] != "nil":
+                        edge.prob = elem[1]
+                    if len(elem) == 3:
+                        edge.prob_mod = elem[2]
+                else:
+                    if elem[0] != "nil":
+                        edge.dur = elem[0]
+                    if len(elem) == 2:
+                        edge.dur_mod = elem[1]            
         return (GraaParser.EDGE, graph_id, edge, source_node_id)    
     def parse(arg):
         return GraaParser.line.parseString(arg)
 
 
 if __name__ == "__main__":
-    #print(GraaParser.param.parseString("4"))
-    #print(GraaParser.func.parseString("add<add<$3:4>:%as:4>"))
-    #print(GraaParser.assign.parseString("$3=add<add<$3:4>:%as:>"))
-    #print(GraaParser.assign.parseString("$step=5"))
-    #print(GraaParser.node_def.parseString("d1|dirt~0:db:1:$gain=5"))
-    #print(GraaParser.ol_node_def.parseString("d1|$3=add<$3:1>:$2=add<$2:1>"))
-    #print("STRING: d1-add<$dur:add<1:%as>:4>:100->d1")
-    #print(GraaParser.edge_def.parseString("d1-add<$dur:add<1:%as>:4>:100->d1"))
-    #print(GraaParser.edge_def.parseString("d1->d1"))
-    #print(GraaParser.line.parseString("d1-%t:100->d1"))
-    #print(GraaParser.line.parseString("d1|rebuzz~150:100:245:$gain=10"))
-    print(GraaParser.func.parseString("bounds<brownian<60:1>:500:300>"))
+    #print(GraaParser.edge_def.parseString("guu1-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--500-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--%50-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--500%25-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>-->guu2"))    
+    #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%25-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--%25|add<prob:10>-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%25|add<prob:10>-->guu2"))
+    print(GraaParser.edge_def.parseString("guu1--nil|add<dur:25>%25|add<prob:10>-->guu2"))
+    print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%nil|add<prob:10>-->guu2"))
+    #print(GraaParser.node_def.parseString("guu1|disk~c4:500:50:gain=0.05:acc=0.5|play#guu:gaa|$3=add<$3:4>"))

@@ -10,8 +10,7 @@ Dispatch parser output to session
 class GraaDispatcher():            
     def __init__(self):
        self.dispatcher_map = {}
-       self.dispatcher_map[parser.OVERLAY_NODE] = self.dispatch_overlay_node
-       self.dispatcher_map[parser.NORMAL_NODE] = self.dispatch_normal_node       
+       self.dispatcher_map[parser.NODE] = self.dispatch_node       
        self.dispatcher_map[parser.EDGE] = self.dispatch_edge        
     # The main dispatcher function, bridge between parser and code execution
     def dispatch(self, parser_output):
@@ -21,47 +20,9 @@ class GraaDispatcher():
         except KeyError:
             log.action("Can't dispatch '{}', no dispatcher present!".format(elem))
         except DispatcherError as de:
-            log.action(de.message)            
-    # dispatch overlay output from parser
-    def dispatch_overlay_node(self, ol_id, ol_node):
-        if ol_id in session.graphs:
-            raise DispatcherError("Can't add overlay element to a graph!")            
-        if ol_id not in session.overlays:
-            session.overlays[ol_id] = Graph()
-            log.action("Initialized overlay with id: '{}'".format(ol_id))            
-        #initialize step counter with 0
-        ol_node.meta = 0
-        session.overlays[ol_id].add_node(ol_node)
-        # updating player copies of overlays
-        for player_id in session.players:
-            if ol_id in session.players[player_id].overlays:
-                session.players[player_id].update_overlay(ol_id)
-            if ol_id in session.players[player_id].permalays:
-                session.players[player_id].update_permalay(ol_id)
-        log.action("Adding node: {} to overlay: '{}'".format(ol_node, ol_id))
-    def dispatch_edge(self, graph_id, edge, src):
-        if graph_id in session.overlays:
-            self.dispatch_overlay_edge(graph_id, edge, src)
-        elif graph_id in session.graphs:
-            self.dispatch_normal_edge(graph_id, edge, src)
-        else:
-            raise DispatcherError("Graph '{}' not present, can't add edge!".format(ol_id))            
-    def dispatch_overlay_edge(self, ol_id, ol_edge, src):      
-        overlay = session.overlays[ol_id]
-        if src not in overlay.nodes or ol_edge.dest not in overlay.nodes:
-            raise DispatcherError("Invalid overlay edge, source or destination node not present! Src: '{}' Dest: '{}'".format(src, ol_edge.dest))
-        overlay.add_edge(src, ol_edge)
-        # updating player copies of overlays
-        for player_id in session.players:
-            if ol_id in session.players[player_id].overlays:
-                session.players[player_id].update_overlay(ol_id)
-            if ol_id in session.players[player_id].permalays:
-                session.players[player_id].update_permalay(ol_id)                
-        log.action("Adding edge: '{}' to overlay: '{}'".format(ol_edge, ol_id))
+            log.action(de.message)                       
     # dispatch command to add a normal graph node
-    def dispatch_normal_node(self, graph_id, node):                
-        if graph_id in session.overlays:
-            raise DispatcherError("Can't add graph element to overlay!")            
+    def dispatch_node(self, graph_id, node):                        
         if graph_id not in session.graphs:
             session.graphs[graph_id] = Graph()
             log.action("Initialized graph with id: '{}'".format(graph_id)) 
@@ -74,7 +35,9 @@ class GraaDispatcher():
         except KeyError as e:            
             log.action(" No player copy for graph: '{}', not updating!".format(graph_id))
         log.action("Adding node: '{}' to graph: '{}'".format(node, graph_id))
-    def dispatch_normal_edge(self, graph_id, edge, src):
+        # update eventual overlays
+        self.update_lays(graph_id)
+    def dispatch_edge(self, graph_id, edge, src):
         if graph_id not in session.graphs:
             raise DispatcherError("Graph '{}' not present, can't add edge!".format(graph_id))            
         graph = session.graphs[graph_id]
@@ -87,7 +50,15 @@ class GraaDispatcher():
         except KeyError as e:            
             log.action(" No player copy for graph: '{}', not updating!".format(graph_id))
         log.action("Adding edge: '{}' to graph: '{}'".format(edge, graph_id))
-        
+        # update eventual overlays
+        self.update_lays(graph_id)
+    def update_lays(self, graph_id):
+        for player in session.players:
+            if graph_id in session.players[player].overlays:
+                session.players[player].update_overlay(graph_id)
+            if graph_id in session.players[player].permalays:
+                session.players[player].update_permalay(graph_id)
+                
 # class for dispatcher errors                
 class DispatcherError(Exception):
     def __init__(self, message):
