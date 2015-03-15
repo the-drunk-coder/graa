@@ -22,7 +22,7 @@ from graa_language_functions import *
 # tbd: validation: all nodes reachable etc ?
 # tbd: re-sync graphs on beat (restart command ?)
 # tbd: documentation
-# tbd: graph generators: grid, tree, triforce, bjoerklund, etc (see notes)
+# tbd: graph generators: tree, triforce, bjoerklund, etc (see notes)
 # tbd: write graph transformers, like, reverse, tournament, rotate (?) 
 # tbd: performance recorder ?
 # tbd: configurable default start mode ...
