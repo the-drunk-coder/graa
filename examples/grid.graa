@@ -1,7 +1,7 @@
 
 expand(grid(4,5,"gri1|disk~c2:100:100", "gri1--110-->gri1"))
 
-
+# a large grid
 add("""
 gri1|disk~c2:100:100,
 gri2|disk~e2:100:100,
@@ -57,16 +57,42 @@ gri19--110%100-->gri20,
 gri20--110%100-->gri1
 """)
 
-session.graphs["gri"].render("largegrid")
 
+expand(grid(2,2,"migri1|disk~c2:100:100", "migri1--110-->migri1"))
+
+# a small grid (more like a square)
 add("""
-probamp1|nil,
-probamp1--%nil|add<prob:10>-->probamp1
+migri1|disk~f2:100:100,
+migri2|disk~a2:100:100,
+migri3|disk~c2:100:100,
+migri4|disk~e2:100:100,
+migri1--110%50-->migri2,
+migri1--110%50-->migri3,
+migri2--110%100-->migri4,
+migri3--110%100-->migri4,
+migri4--110%100-->migri1
 """)
 
+
+# amplify probabilty of each chosen edge, so in the long run, one path will evolve ... 
+add("""
+probamp1|nil,
+probamp1--%nil|add<prob:5>-->probamp1
+""")
+
+# apply to large grid
 "gri" <<permaplus>> "probamp"
+
+# notice how one path gets carved out ?
+play("gri")
+stop("gri")
 
 expand("gri")
 
-play("gri")
-stop("gri")
+# also try with the small grid ! 
+"migri" <<permaplus>> "probamp"
+
+play("migri")
+stop("migri")
+
+
