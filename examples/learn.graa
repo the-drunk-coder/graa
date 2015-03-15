@@ -4,7 +4,7 @@ expand(star(6, "star1|disk~c4:300:100", "star1--400-->star1"))
 
 
 add("""
-star1|disk~c4:300:100,
+star1|disk~c4:300:100|disk~c2:300:300,
 star2|disk~e4:300:100,
 star3|disk~g4:300:100,
 star4|disk~f4:300:100,
@@ -22,7 +22,6 @@ star5--400%100-->star1,
 star6--400%100-->star1
 """)
 
-
 add("""
 stol1|$2=div<$2:4>|$2=div<$2:4>,
 stol1--nil|div<dur:4>-->stol1
@@ -30,7 +29,7 @@ stol1--nil|div<dur:4>-->stol1
 
 add("""
 stop1|nil,
-stop1--%nil|add<prob:2>-->stop1
+stop1--%nil|sub<prob:1>-->stop1
 """)
 
 "star"<<plus>> "stol"
@@ -39,3 +38,7 @@ stop1--%nil|add<prob:2>-->stop1
 
 play("star")
 stop("star")
+
+pause("star")
+
+expand("star")
