@@ -16,7 +16,7 @@ class GraaParser():
     # note shorthand
     pitch_class = Literal("c") ^ Literal("d") ^ Literal("e") ^ Literal("f") ^ Literal("g") ^ Literal("a") ^ Literal("b")
     pitch_mod = Literal("is") ^ Literal("es")  ^ Literal("isis") ^ Literal("eses")
-    pitch = pitch_class + Optional(pitch_mod) + Word(nums).setParseAction(lambda t: GraaParser.typify(t[0]))
+    pitch = pitch_class + Optional(pitch_mod) + Word(nums).setParseAction(lambda t: GraaParser.typify(t[0])) + Optional(Group((Literal("+") ^ Literal("-")) + Word(nums).setParseAction(lambda t: GraaParser.typify(t[0]))).setParseAction(lambda t: t.asList()))
     pitch.setParseAction(lambda t: GraaParser.parse_pitch(t))
     dur_base = Literal("w") ^ Literal("h") ^ Literal("q") ^ Literal("e") ^ Literal("st") ^ Literal("ts") ^ Literal("sf") ^ (Suppress("ms") + Word(nums).setParseAction(lambda t: GraaParser.typify(t[0])))
     dur_mod = Literal("d") ^ Literal("dd")
@@ -79,12 +79,24 @@ class GraaParser():
     def parse_assign(arg):
         return {arg[0] : arg[1]}
     def parse_pitch(arg):
+        #print(arg)
+        microtone = None
+        if type(arg[-1]) is list:
+            #print("yes")
+            microtone = arg[-1]
+            arg = arg[:-1]
+        #print(arg)
         try:
             note_string = arg[0]
             if len(arg) == 3:
                 note_string += acc_mapping[arg[1]]
             note_string += str(arg[-1])        
             parsed_note = GraaNote(note_string)
+            if microtone is not None:
+                if microtone[0] is "+":
+                    parsed_note.pitch.microtone = 0 + microtone[1]
+                if microtone[0] is "-":
+                    parsed_note.pitch.microtone = 0 - microtone[1]
             return parsed_note
         except Exception as e:
             print(e)
@@ -148,6 +160,18 @@ if __name__ == "__main__":
     #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%25-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--%25|add<prob:10>-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%25|add<prob:10>-->guu2"))
-    print(GraaParser.edge_def.parseString("guu1--nil|add<dur:25>%25|add<prob:10>-->guu2"))
-    print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%nil|add<prob:10>-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--nil|add<dur:25>%25|add<prob:10>-->guu2"))
+    #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%nil|add<prob:10>-->guu2"))
     #print(GraaParser.node_def.parseString("guu1|disk~c4:500:50:gain=0.05:acc=0.5|play#guu:gaa|$3=add<$3:4>"))
+    p = GraaParser.pitch.parseString("c4-20")
+    d = GraaParser.pitch.parseString("cis4-20")
+    e = GraaParser.pitch.parseString("cis4")
+    f = GraaParser.pitch.parseString("c4")
+    print(p[0].pitch.frequency)
+    print(d[0].pitch.frequency)
+    print(e[0].pitch.frequency)
+    print(f[0].pitch.frequency)
+    print(p[0].pitch.microtone)
+    print(d[0].pitch.microtone)
+    print(e[0].pitch.microtone)
+    print(f[0].pitch.microtone)

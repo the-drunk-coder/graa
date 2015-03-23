@@ -57,15 +57,50 @@ class GraaNote():
     def __repr__(self):        
         note_string = self.pitch.nameWithOctave.lower()
         note_string = note_string.replace("#", "is")
-        note_string = note_string.replace("-", "es")        
+        note_string = note_string.replace("-", "es")
+        cents = self.pitch.microtone.cents
+        if cents != 0:
+            if cents > 0:
+                note_string += "+"        
+            note_string += str(cents)
         return note_string
     def __add__(self, other):
-        other = int(other)
-        self.pitch.midi = self.pitch.midi + other
+        if type(other) is int:
+            self.pitch.midi = self.pitch.midi + other
+        if type(other) is float:
+            # calculate semitones and microtones
+            semitones = int(other)
+            micro_ratio = other - semitones
+            microtones = int(100 * micro_ratio)
+            if semitones > 0:
+                self.pitch.midi += semitones                        
+            if microtones > 0:
+                old_cents = self.pitch.microtone.cents
+                new_cents = old_cents + microtones
+                if new_cents >= 100:
+                    self.pitch.microtone = 0
+                    self.pitch.midi += 1
+                    new_cents -= 100
+                self.pitch.microtone = new_cents            
         return self
     def __sub__(self, other):
-        other = int(other)
-        self.pitch.midi = self.pitch.midi - other
+        if type(other) is int:
+            self.pitch.midi -= other
+        if type(other) is float:
+            # calculate semitones and microtones
+            semitones = int(other)
+            micro_ratio = other - semitones
+            microtones = int(100 * micro_ratio)
+            if semitones > 0:
+                self.pitch.midi -= semitones
+            if microtones > 0:
+                old_cents = self.pitch.microtone.cents                
+                new_cents = old_cents - microtones
+                if new_cents <= -100:
+                    self.pitch.microtone = 0
+                    self.pitch.midi -= 1
+                    new_cents += 100
+                self.pitch.microtone = new_cents                                                          
         return self
     def __hash__(self):
         return str(self).__hash__()
@@ -73,24 +108,24 @@ class GraaNote():
         if type(other) is int:
             return self.pitch.midi < other
         else:
-            return self.pitch.midi < other.pitch.midi
+            return self.pitch.frequency < other.pitch.frequency       
     def __le__(self, other):
         if type(other) is int:
             return self.pitch.midi <= other
         else:
-            return self.pitch.midi <= other.pitch.midi
+            return self.pitch.frequency <= other.pitch.frequency
     def __ge__(self, other):
         #print(type(self), type(other))
         #print("SELF " + str(self) + " OTHER " +  str(other))
         if type(other) is int:
             return self.pitch.midi >= other
         else:
-            return self.pitch.midi >= other.pitch.midi
+            return self.pitch.frequency >= other.pitch.frequency
     def __eq__(self, other):
         if type(other) is int:
             return self.pitch.midi == other
         else:
-            return self.pitch.midi == other.pitch.midi
+            return self.pitch.frequency == other.pitch.frequency
       
 """
 A node, consisting of an id, content and some meta information 

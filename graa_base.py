@@ -112,7 +112,7 @@ class GraaPlayer():
             lay_edge_id = self.choose_edge(lay)
             if lay_edge_id == None:
                 # overlay reached its end
-                log.action("Overlay {} on graph {} reached its end, marked to remove!".format(lay_key, graph_id))           
+                log.action("Overlay {} on graph {} reached its end, marked to remove!".format(lay_key, self.graph_id))           
                 lay_to_remove.append(lay_key)
             else:                    
                 lay_edge = lay.edges[lay.current_node_id][lay_edge_id]

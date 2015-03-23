@@ -1,0 +1,31 @@
+# Graa> supports micortones, if the backend supports it ..
+
+# add or subtract some cents from the sine wave, see below
+add("""
+beatings1|disk~c4:1000:100|sine~c4+30:1000,
+beatings1--1050-->beatings1
+""")
+
+play("beatings")
+stop("beatings")
+
+# you can also add float numbers as to do math with microtones
+
+# the base graph, both sine waves at same frequency
+# (watch the development of the first note on the right side !)
+add("""
+incbeatings1|sine~c4:1000|sine~c4:1000|expand#incbeatings,
+incbeatings1--1050-->incbeatings1
+""")
+
+# overlay to modify first note
+add("""
+incol1|$1=add<$1:0.1>,
+incol1-->incol1
+""")
+
+"incbeatings" <<permaplus>> "incol"
+
+play("incbeatings")
+stop("incbeatings")
+
