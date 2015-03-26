@@ -1,0 +1,140 @@
+# graa> Tutorial
+# Part 01
+
+# -- SOUNDS --
+
+# Ok, so assuming you have a graa setup ready, and you've started ...
+#
+# * the dirt sampler
+# * a MIDI backend (like, linuxsampler with the Salamander Grand Piano samples)
+# * the ChucK shreds from the shreds/ directory
+#
+# ... there are now some basic methods to create sound!
+#
+# Sound functions in graa> have (following the tradition of 
+# patcher languages like Pure Data or Max), the '~' suffix.
+
+
+# This is how to play a simple sine wave at 1000hz for 1500ms: 
+# (If you see an error to the right, just ignore i for now ... )
+
+# First, move cursor over region hit 'C-<RETURN>' 'C-c C-a' or to evaluate region!
+add("""
+sinewave1|sine~1000:1500
+""")
+
+# Then, hit 'C-c C-c' to evaluate a single line !
+play("sinewave")
+
+
+# - PITCH - 
+#
+# Pitch in graa> can be defined as a note or a frequency, if the latter is
+# supported. The MIDI-based 'disk~' function obviously doesn't support 
+# absolute pitches, whereas the synth-based sound functions support both.
+#
+# A note can be specified simply like this, by denoting pitch class and octave:
+#
+# c4     -- a middle c
+# cis2   -- a low cis
+# ges4   -- a ges
+#
+# Due to technical reasons, some notes don't follow the usual convetions, 
+
+# aes3 -- usual notation would be 'as'
+# ees2 -- usual notation would be 'es'
+# bes4 -- ...
+#
+# Shouldn't be too hard to get used to, right ?
+#
+# It's also possible to specifiy microtones:
+# 
+# c4+10 -- middle c, plus 10 cents
+# c4-10 -- middle c, plus 10 cents
+# 
+# and so forth ...
+#
+# Some pitch definitions for sine waves: 
+
+
+# Middle c for 1 second: 
+add("""
+midc1|sine~c4:1000 
+""")
+
+play("midc")
+
+# Middle c plus 50 cents for 1 second: 
+add("""
+midcmic1|sine~c4+50:1000 
+""")
+
+play("midcmic")
+
+
+
+# - SYNTH SOUNDS -
+#
+# Synth sounds usually take pitch and duration as arguments !
+#
+# We've already had sine waves above, and there are currently 
+# two more syntetic sounds available:
+
+
+# subt~: Subtractive synth sound, a little noisy ... 
+add("""
+subt1|subt~d4:1000 
+""")
+
+play("subt")
+
+# buzz~: moog-type bass sound ...
+add("""
+buzz1|buzz~d1:1000 
+""")
+
+play("buzz")
+
+# MORE ARGUMENTS
+# You can also specify more parameters using named arguments:
+add("""
+gain1|sine~c4:1000:gain=1.0
+""")
+
+play("gain")
+
+
+# - SAMPLES - 
+#
+# graa> uses the Dirt sampler to play samples ...
+
+# The first argument is the dirt stream (0-9), the second the sample (folder) name,
+# the third the name or position within that folder
+add("""
+bassdrum1|dirt~0:bd:1
+""")
+
+play("bassdrum")
+
+# TBD: dirt parameter documentation!
+
+
+# - MIDI -
+#
+# You can use one midi output (currently no support for channels or the like).
+# It's called "disk~", as my main usage for this is a disklavier (or piano sampler,
+# like linuxsampler, if a disklavier is not available ...)
+#
+# This functions needs midi intensity (0-127) as a third argument!
+# Microtones don't really work here (obviously ...)
+
+add("""
+piano1|disk~c4:400:100
+""")
+
+play("piano")
+
+# While this might seem pretty limited regarding sound design, please note that graa> is more
+# about structure (see next chapter), not so much about sound ... but still, dirt is quite
+# flexible and includes many options to manipulate samples, and new sounds can be added using
+# ChucK, which isn't exactly rocket science, either ! 

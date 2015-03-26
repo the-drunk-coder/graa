@@ -1,0 +1,92 @@
+# graa> tutorial
+# Part 03
+
+# -- VARIABLES AND FUNCTIONS --
+
+# Until now, we've written all values concerning our graphs individually.
+# In certain contexts, this might make things like tempo changes quite tedious.
+
+# Take, for example, a simple beat (512ms per quarter equals 117 BPM):
+
+add("""
+beat1|dirt~0:bd:0,
+beat2|dirt~0:sn:3,
+beat1--512-->beat2,
+beat2--512-->beat1
+""")
+
+play("beat")
+
+stop("beat")
+
+# Now, it we want to change the tempo, we'd need to modify both edges.
+# Quite inconvenient, especially if you imagine more complex examples ...
+
+# The solution: variables!
+
+# Define a variable 'q' for quarter ...
+
+# (hit 'C-c C-c' to evaluate the line, like usual ...)
+q = 512
+
+# ... and rewrite the graph, so that the variable is used:
+# (the '?' prefix will be explained later ...)
+
+add("""
+beat1|dirt~0:bd:0,
+beat2|dirt~0:sn:3,
+beat1--?q-->beat2,
+beat2--?q-->beat1
+""")
+
+play("beat")
+
+# Now play around with the variable:
+
+# Make it faster ...
+q = 256
+
+# ... or slower!
+q = 1024
+
+stop("beat")
+
+# Neat, right ? Now let's add an eigth-note hi-hat !
+# We could calculate the respective amount of milliseconds manually,
+# but this is programming, istn't it ? Let's make the computer do it !
+
+# first, back to 117 BPM!
+q = 512
+
+# Here, instead of using an explicit value, the variable 'q' is divided by two!
+add("""
+hihat1|dirt~1:hh:0,
+hihat1--div<?q:2>-->hihat1
+""")
+
+play("beat, hihat")
+
+# again, faster ...
+q = 256
+
+# ... and slower!
+q = 1024
+
+# If the two graphs get out ouf sync, you can re-adjust them manually,
+# using the shift function (you can also use this to create shuffle beats ...):
+"hihat" <<shift>> 5
+
+# (If you want to keep things in sync all the time, you should use one graph for the
+# complete beat!)
+
+# Functions can be applied instead of any variable, and can be nested, like in any
+# good programming language!
+
+stop("hihat, beat")
+
+# Furthermore, there are two ways to resolve a variable:
+# Using the '?' prefix, the variable will be evaluated at run-time of a graph.
+# Eventual modifiations will be ignored.
+
+# Using the '!' prefix, the variable will be evaluated only at parse-time, and
+# can be subject to manipulation later on!

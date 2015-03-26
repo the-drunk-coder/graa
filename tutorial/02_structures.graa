@@ -1,0 +1,167 @@
+# graa> Tutorial
+# Part 02
+
+# -- STRUCTURES --
+
+# As already mentioned in the previous part, graa> is all about structure.
+# In graa>, everything is a graph. If you don't know what a graph is, check
+# out this: http://en.wikipedia.org/wiki/Graph_%28mathematics%29 
+
+# More specifically, graa> makes heavy use of Markov chains (check Wikipedia,
+# while you're at it), which is quite a well known technique in aleatoric music.
+# graa> makes this technique pretty accessible, and enhances it to make things
+# more interesing, as we'll see later.
+
+# Simply put, a graph consists of nodes and edges.
+# In graa>, a node contains a list of events (sounds, commands or modificators)
+# to be processed at a certain point of time, while an edge defines the time
+# between two nodes.
+
+# The graa> data definition language makes the definition of those graphs quite 
+# convenient, so that you can code music on the fly ! 
+
+# To help you thinking in graphs, hold pen & paper ready, and make a drawing of each
+# graph you encounter in this tutorial! 
+
+# Here's a very simple example:
+
+# This is the node in the graph called 'graph' with id '1', containing just a
+# sinewave att 1000hz for 1 second:
+
+add("""
+graph1|sine~1000:1000
+""")
+
+# By executing this statement, a graph called 'graph' will automatically be
+# created within the current graa> session, which will contain one node with
+# id '1'.
+
+# Now, we'd want to repeat that sound, let's say, every two seconds. No problem,
+# just define an edge!
+
+add("""
+graph1--2000-->graph1
+""")
+
+# This edge connects node '1' in graph 'graph' to itself, while transitioning
+# the edge (not the guitar guy ...) will take two seconds. As we'll come out
+# where we've started, this graph will be played in an endless loop. Let's try!
+
+# To play, execute this line (remember: 'C-c C-c'):
+play("graph")
+
+# Neat, right ? In bad ASCII-art, this'd look somewhat like (your drawing will be
+# way more elaborate, i'm sure!):
+
+#  /-----\
+#  | '1' | ---\
+#  \-----/     \	  							
+#     ^     2000ms
+#     |       /
+#     \------/								
+	   
+# To stop, execute this line:
+stop("graph")
+
+# To pause, execute this line:
+pause("graph")
+
+# Think of 'stop' and 'pause' as on your cd player ... 'stop' will reset the graph,
+# while 'pause' will hold it in its current state. This will become more important
+# lateron, in more complex examples !
+
+# By the way, there's no need to add each node or edge individually, you can put them
+# in one 'add' statement (make sure the lines are comma-separated):
+
+add("""
+graph1|sine~1000:1000,
+graph1--2000-->graph1
+""")
+
+# Now, it'd be boring if each node could only contain one sound/command/whatever, right?
+# As a matter of fact, each node can contain an arbitrary number of slots, whereas slots
+# are separated by a pipe operator '|': 
+
+add("""
+graph1|sine~500:1000:gain=0.1|sine~1000:1000:gain=0.1|sine~2000:1000:gain=0.1,
+graph1--2000-->graph1
+""")
+
+play("graph")
+
+stop("graph")
+
+# Let's create a very simple, deterministic, repetetive melody now !
+
+add("""
+mel1|sine~c4:200,
+mel2|sine~d4:200,
+mel3|sine~e4:200,
+mel4|sine~f4:200,
+mel5|sine~g4:400,
+mel6|sine~g4:400,
+mel1--210-->mel2,
+mel2--210-->mel3,
+mel3--210-->mel4,
+mel4--210-->mel5,
+mel5--410-->mel6,
+mel6--820-->mel1
+""")
+
+# See how we've got all the parameters right at hand, ready to be modified ?
+# A serialist's wet dream, isn't it ?
+
+play("mel")
+
+# Sidenote: graphs in graa> don't have to be repetetive. If a node with no outgoing
+# edges is reached, the graph will simply stop playing. 
+
+stop("mel")
+
+# Now, what's that Markov stuff all about ?
+# Let's modify the graph a little and see!
+# (This will only re-specify these two edges, not the whole graph!)
+
+add("""
+mel1--210%50-->mel2,
+mel1--210%50-->mel6
+""")
+
+# If you've drawn this on paper, you'll see that node '1' now has two outgoing edges.
+# Each of this edges will be chosen with a probabilty of 50%. As you can see in the
+# modified edge definitions, the probablity is specified after the transition time,
+# with a '%' prefix! 
+
+# Let's hear it for MEL!
+
+play("mel")
+
+# You can modify the graph in its very structure while it's playing!
+# Let's deform the melody a little more !
+
+add("""
+mel6|sine~1200:400
+mel6--410%25-->mel2,
+mel6--410%25-->mel3,
+mel3--300%50-->mel1
+""")
+
+# This'll look quite twisted already on paper, right ?
+
+stop("mel")
+
+# You can play multiple graphs at a time, and the commands aren't limited to one graph
+# at a time, either!
+
+play("mel, graph")
+
+# 'play("mel", "graph")' would work as well!
+
+stop("mel", "graph")
+
+# Note that the graa> works on wall-clock time, and that graphs are not automatically
+# synchronized by any means, which makes creating beat-oriented music a little more
+# tedious, but it's far from impossible to do so!
+
+# As an exercise, try to create another graph (maybe some bass accompaniment using the buzz~
+# sound ?), and play both ! 
