@@ -103,8 +103,7 @@ class GraaParser():
     def parse_duration(arg):
         pass
         #tbd    
-    def parse_node(arg):        
-        #print("NODE: " + str(arg))
+    def parse_node(arg):
         graph_id = arg[0]
         node_id = arg[1]
         node_params = []
@@ -119,9 +118,9 @@ class GraaParser():
             else:
                 kwargs = {}
                 args = []
-                for p_arg in slot[2]:
+                for p_arg in slot[2]:                   
                     if type(p_arg) is dict:                        
-                        kwargs.update(arg)
+                        kwargs.update(p_arg)
                     else:
                         args.append(p_arg)
                 node_params.append(Func(slot[1], slot[0], args, kwargs))
