@@ -1,5 +1,5 @@
-SawOsc saw => LPF lp => ADSR e => dac;
-ADSR filt => Gain fg =>blackhole;
+SawOsc saw => LPF lp => ADSR e => Dyno dyn => dac;
+ADSR filt => Gain fg => blackhole;
 10 => fg.gain;
 
 Step s;
@@ -14,6 +14,14 @@ fun void buzz(float freq, float gain, int a, int d, int sus, int r)
 
 	e.set( a::ms, d::ms, gain, r::ms );
 	filt.set( a::ms, (sus - r)::ms, gain, r::ms );
+
+	dyn.limit;
+	gain / 4 => dyn.thresh;
+	
+	if(d == 0){
+		0 => e.decayRate;
+		0 => filt.decayRate;
+	}
 	
 	now + overall::ms => time then;	
 	spork ~ filteradsr(then, freq);

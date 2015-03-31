@@ -2,8 +2,8 @@
 // one-shot sine spork
 fun void sub(float freq, float gain, int a, int d, int sus, int r)
 {
-	Noise n => BPF b => ResonZ res => ADSR e => dac;
-	
+	Noise n => BPF b => ResonZ res => ADSR e => Dyno dyn => dac;
+
 	5 => b.gain;
 	freq => b.freq;
 	5 => res.gain;
@@ -12,6 +12,18 @@ fun void sub(float freq, float gain, int a, int d, int sus, int r)
 	30 => res.Q;
 	
 	e.set( a::ms, d::ms, gain, r::ms );
+
+	if (gain > 1.0){
+		1.0 => gain;
+    }
+	
+	dyn.limit;
+	gain / 4 => dyn.thresh;
+	
+	// ignore decay if zero
+	if(d == 0){
+		0 => e.decayRate;
+    }
 	
 	e.keyOn();
 	sus::ms => now;
