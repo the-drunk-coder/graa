@@ -12,9 +12,9 @@ d3--256-->d1
 """)
 
 add("""
-bu1|buzz~50:100:gain=0.3,
-bu2|buzz~100:100:gain=0.3,
-bu3|buzz~150:100:gain=0.3,
+bu1|buzz~50:100:gain=0.0,
+bu2|buzz~100:100:gain=0.0,
+bu3|buzz~150:100:gain=0.0,
 bu1--128-->bu2,
 bu2--256-->bu1,
 bu2--128-->bu3,
@@ -22,26 +22,25 @@ bu3--128-->bu1
 """)
 
 add("""
-fadeout1|gain=sub<gain:0.05>,
+fadeout1|gain=bounds<sub<gain:0.01>:0.0:1.0>,
 fadeout1-->fadeout1
 """)
 
 add("""
-fadein1|gain=add<gain:0.05>,
+fadein1|gain=bounds<add<gain:0.01>:0.0:1.0>,
 fadein1-->fadein1
 """)
 
+play("bu,d")
 
-"bu" <<permaplus>> "fadeout"
+"bu" <<permaplus>> "fadein"
+
 "bu" <<minus>> "fadein"
+"bu" <<permaplus>> "fadeout"
 
-delete("bu")
-
-play("bu")
-play("d")
+"bu" <<minus>> "fadeout"
 
 stop("all")
 
-play("bu" <<shift>> 256)
 
 #END
