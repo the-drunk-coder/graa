@@ -221,3 +221,34 @@ def buzz(*args, **kwargs):
 # end buzz()
 
 
+def sqr(*args, **kwargs):
+    """
+    Play a square wave synth sound (with ChucK).
+    """
+    freq = None
+    if type(args[0]) is gnote:
+        freq = args[0].pitch.frequency
+    else:
+        freq = args[0]    
+    gain = float(kwargs.get("gain", 0.5))
+    #gain = gain * 0.07
+    sus = args[1]
+    attack = kwargs.get("a", max(4, min(30, sus*0.1)));
+    decay = kwargs.get("d", max(4, min(30, sus*0.25)));
+    release = kwargs.get("r", max(4, min(50, sus*0.1)));    
+    sus = sus - attack - decay - release
+    if sus <= 0:
+        log.action("sine duration too short!")
+    msg = osc_message_builder.OscMessageBuilder(address = "/sqr")
+    #print("f {} g {} a {} d {} s {} r {}".format(freq, gain, attack, decay, sus, release))
+    msg.add_arg(float(freq))
+    msg.add_arg(gain)
+    msg.add_arg(int(attack))
+    msg.add_arg(int(decay))
+    msg.add_arg(int(sus))
+    msg.add_arg(int(release))        
+    msg = msg.build()
+    chuck_client.send(msg)
+# end sqr()
+
+
