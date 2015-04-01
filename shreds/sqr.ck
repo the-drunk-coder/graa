@@ -1,46 +1,48 @@
-// one-shot buzz spork
-fun void sqr(float freq, float gain, int a, int d, int sus, int r)
-{	
-	SqrOsc saw => LPF lp => ADSR e => Dyno dyn => dac;
+class MySqr{
+	SqrOsc sqrosc => LPF lp => ADSR e => Dyno dyn => dac;
 	ADSR filt => Gain fg => blackhole;
 	10 => fg.gain;
-
+	
 	Step s;
 	s => filt;
 	1 => s.next;
 	
-	a + d + sus + r => int overall;
-	freq => saw.freq;
-
-	e.set( a::ms, d::ms, gain, r::ms );
-	filt.set( a::ms, (sus - r)::ms, gain, r::ms );
-
-	dyn.limit;
-	gain / 4 => dyn.thresh;
+	fun void sqr(float freq, float gain, int a, int d, int sus, int r)
+	{	
 	
-	if(d == 0){
-		0 => e.decayRate;
-		0 => filt.decayRate;
+		a + d + sus + r => int overall;
+		freq => sqrosc.freq;
+
+		e.set( a::ms, d::ms, gain, r::ms );
+		filt.set( a::ms, (sus - r)::ms, gain, r::ms );
+
+		dyn.limit;
+		gain / 4 => dyn.thresh;
+		
+		if(d == 0){
+			0 => e.decayRate;
+			0 => filt.decayRate;
+		}
+		
+		now + overall::ms => time then;	
+		spork ~ filteradsr(then, freq);		
+		e.keyOn();
+		filt.keyOn();
+		sus::ms => now;
+		e.keyOff();
+		filt.keyOff();	
+		r::ms => now;
 	}
-	
-	now + overall::ms => time then;	
-	spork ~ filteradsr(filt, lp, then, freq);
-	e.keyOn();
-	filt.keyOn();
-	sus::ms => now;
-	e.keyOff();
-	filt.keyOff();	
-	r::ms => now;
-}
 
-fun void filteradsr (ADSR filt, LPF lp, time then, float freq)
-{
-	while (now < then)
+	fun void filteradsr (time then, float freq)
 	{
-		float currfilt;
-		filt.last() * 800 + 100 => currfilt;
-		currfilt => lp.freq;		
-		1::ms => now;
+		while (now < then)
+		{
+			float currfilt;
+			filt.last() * 800 + 100 => currfilt;
+			currfilt => lp.freq;		
+			1::ms => now;
+		}
 	}
 }
 
@@ -53,6 +55,11 @@ recv.listen();
 
 // create an address in the receiver, store in new variable
 recv.event( "/sqr, f f i i i i" ) @=> OscEvent @ oe;
+
+fun void sporkSqr(float freq, float gain, int a, int d, int sus, int r){
+	MySqr mysqr;
+	mysqr.sqr(freq, gain, a, d, sus, r);
+}
 
 // infinite event loop
 while( true )
@@ -70,6 +77,6 @@ while( true )
 		oe.getInt() => int s;
 		oe.getInt() => int r;
 		
-		spork ~ sqr(freq, gain, a, d, s, r);
+		spork ~ sporkSqr(freq, gain, a, d, s, r);
     }
 }

@@ -1,47 +1,56 @@
-// one-shot buzz spork
-fun void buzz(float freq, float gain, int a, int d, int sus, int r)
-{	
+class MyBuzzer {
+
 	SawOsc saw => LPF lp => ADSR e => Dyno dyn => dac;
 	ADSR filt => Gain fg => blackhole;
 	10 => fg.gain;
-
+	
 	Step s;
 	s => filt;
 	1 => s.next;
-	
-	a + d + sus + r => int overall;
-	freq => saw.freq;
 
-	e.set( a::ms, d::ms, gain, r::ms );
-	filt.set( a::ms, (sus - r)::ms, gain, r::ms );
+	// one-shot buzz spork
+	fun void buzz(float freq, float gain, int a, int d, int sus, int r)
+	{	
+				
+		a + d + sus + r => int overall;
+		freq => saw.freq;
 
-	dyn.limit;
-	gain / 4 => dyn.thresh;
-	
-	if(d == 0){
-		0 => e.decayRate;
-		0 => filt.decayRate;
+		e.set( a::ms, d::ms, gain, r::ms );
+		filt.set( a::ms, (sus - r)::ms, gain, r::ms );
+
+		dyn.limit;
+		gain / 4 => dyn.thresh;
+		
+		if(d == 0){
+			0 => e.decayRate;
+			0 => filt.decayRate;
+		}
+		
+		now + overall::ms => time then;	
+		spork ~ filteradsr(then, freq);
+		e.keyOn();
+		filt.keyOn();
+		sus::ms => now;
+		e.keyOff();
+		filt.keyOff();	
+		r::ms => now;
 	}
-	
-	now + overall::ms => time then;	
-	spork ~ filteradsr(filt, lp, then, freq);
-	e.keyOn();
-	filt.keyOn();
-	sus::ms => now;
-	e.keyOff();
-	filt.keyOff();	
-	r::ms => now;
+
+	fun void filteradsr (time then, float freq)
+	{
+		while (now < then)
+		{
+			float currfilt;
+			filt.last() * 800 + 100 => currfilt;
+			currfilt => lp.freq;		
+			1::ms => now;
+		}
+	}
 }
 
-fun void filteradsr (ADSR filt, LPF lp, time then, float freq)
-{
-	while (now < then)
-	{
-		float currfilt;
-		filt.last() * 800 + 100 => currfilt;
-		currfilt => lp.freq;		
-		1::ms => now;
-	}
+fun void sporkBuzzer(float freq, float gain, int a, int d, int sus, int r){
+	MyBuzzer buzzer;
+	buzzer.buzz(freq, gain, a, d, sus, r);
 }
 
 // create our OSC receiver
@@ -70,6 +79,6 @@ while( true )
 		oe.getInt() => int s;
 		oe.getInt() => int r;
 		
-		spork ~ buzz(freq, gain, a, d, s, r);
+		spork ~ sporkBuzzer(freq, gain, a, d, s, r);
     }
 }
