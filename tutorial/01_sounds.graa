@@ -95,6 +95,13 @@ buzz1|buzz~d1:1000
 
 play("buzz")
 
+# sqr~: simple squarewave sound ...
+add("""
+square1|sqr~c2:1000 
+""")
+
+play("square")
+
 # MORE ARGUMENTS
 # You can also specify more parameters using named arguments:
 add("""
