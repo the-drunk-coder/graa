@@ -1,0 +1,130 @@
+# graa> Tutorial
+# Part 04
+
+# -- OVERLAYS --
+
+# After a while, simple, deterministic graphs or markoff chains
+# can become a somewhat boring. So, wouldn't it be nice if we could
+# combine multiple graphs or markov chains somehow? Indeed, this is where
+# the unpredictable magic of graa> acutally happens! In the following,
+# In the following, this concept will be referred to as 'overlay'.
+
+# So, here's an easy use case ...
+# Imagine you have a three-note, non-deterministic melody:
+
+add("""
+melody1|disk~c4:250:100,
+melody2|disk~d4:250:100,
+melody3|disk~gis4:250:100,
+melody1--256%60-->melody2,
+melody1--256%40-->melody3,
+melody2--256-->melody3,
+melody3--256%60-->melody2,
+melody3--256%60-->melody1
+""")
+
+# Now, you'd might want to add a pedal-point type note under every note ...
+# As graphs are usually not synchronized, this seems like a hard task.
+# But it isnt't really!
+
+add("""
+pedal1|sine~c1:256:gain=0.5,
+pedal1--512-->pedal1
+""")
+
+# Just combine the two with the 'plus' command!
+
+"melody" <<plus>> "pedal"
+
+play("melody")
+
+# That way, the second layer will follow the edge durations of the first layer (thus,
+# the durations of the second layer's edges will be ingored ...), while the nodes are
+# evaluated at the same time.
+# Again, draw both graphs on paper, and imagine a way throgh them (or point a finger
+# to the actual node, if you like !)
+
+# Removing the second layer is simple ...
+
+"melody" <<minus>> "pedal"
+
+stop("melody")
+
+# You can also try it the other way round, now the edges of the 'pedal' graph are
+# dominant:
+
+"pedal" <<plus>> "melody"
+
+# Note that the 'play()' command only works on a base layer ! 
+play("pedal")
+
+stop("pedal")
+
+# You might have noticed that the '<<plus>>' operator isn't commutative here ...
+
+# Ok, that's nice, but there isn't really much of an interaction between the graphs.
+# No problem. You can also use an overlay to modify the base layer !
+
+# This is a modifying overlay, which will, with a probability of 20%, add two half tones
+# to the note actually played (note that you can leave nodes blank by typing 'nil')
+add("""
+mod1|nil,
+mod2|$1=add<$1:2>,
+mod1--%80-->mod1,
+mod1--%20-->mod2,
+mod2-->mod1
+""")
+
+"melody" <<plus>> "mod"
+
+# Note that this example only works in this direction, as the modifiying
+# graph doesn't produce any sound for itself.
+
+play("melody")
+
+# Remove it, and you'll retrieve the original melody
+
+"melody" <<minus>> "mod"
+
+# It's also possible to modify the base graph permanently:
+
+"melody" <<permaplus>> "mod"
+
+# Now, if you remove the modifier, the base graph will stay in the it's
+# current state:
+
+"melody" <<minus>> "mod"
+
+stop("melody")
+
+# You can also mute a note with an overlay ... with this one,
+# a note will be muted with a chance of 20% !
+add("""
+mute1|nil,
+mute2|mute,
+mute1--%80-->mute1,
+mute1--%20-->mute2,
+mute2-->mute1
+""")
+
+# Btw, i doesn't matter if you start the graph first,
+# then add the overlay, or vice versa ...
+play("melody")
+
+"melody" <<plus>> "mute"
+
+stop("melody")
+
+# Be careful if you use mutes in a permanent overlay ... in that case,
+# you migth have to use an explicit 'unmute' ...
+
+
+
+
+
+
+
+
+
+
+
