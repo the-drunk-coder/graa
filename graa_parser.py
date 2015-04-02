@@ -38,7 +38,7 @@ class GraaParser():
     assign = lvar + Suppress("=") + param
     assign.setParseAction(lambda t: GraaParser.parse_assign(t.asList()))
     # node definitions
-    sound_func = Word(alphas) + "~" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
+    sound_func = Word(alphas) + "~" + Group(ZeroOrMore((param ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
     mod_func = OneOrMore(assign + Optional(PARAM_DIVIDER))
     ctrl_func = Word(alphas) + "#" + Group(ZeroOrMore((gvar ^ ivar ^ pitch ^ lvar ^ assign) + Optional(PARAM_DIVIDER)))
     slot = Suppress("|") + Group(Literal("nil") ^ Literal("mute") ^ Literal("unmute") ^ sound_func ^ mod_func ^ ctrl_func)
