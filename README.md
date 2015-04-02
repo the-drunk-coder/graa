@@ -69,8 +69,10 @@ Then, start graa> itself.
 * Use C-x to expand a line to your current buffer (that is, the output is fed back as an add() statement ... useful for generators)
 * Use C-q to quit graa>
 
-So, that's the basic usage. I haven't gotten around to write any serious documentation so far, so for now, you'll have to rely on the
-examples in the examples folder. Sorry :(. 
+So, that's the basic usage.
+
+I've started writing a series of tutorial files (see tutorial folder) as of recently, but it isn't really complete yet.
+Once you're through with the tutorial files, you might check the examples folder for some more input.
 
 ## Demonstrations
 
