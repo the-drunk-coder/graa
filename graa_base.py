@@ -106,7 +106,7 @@ class GraaPlayer():
         lay_to_remove = []
         for lay_key in lays:
             lay = lays[lay_key]                
-            step = lay.nodes[lay.current_node_id].step
+            step = lay.nodes[lay.current_node_id].step            
             # tuple format: (step, functions)
             current_lay_functions.append((step, lay.nodes[lay.current_node_id].content))
             lay_edge_id = self.choose_edge(lay)
@@ -122,7 +122,7 @@ class GraaPlayer():
                 if lay_edge.prob_mod != None:
                     prob_modificators.append((step, lay_edge.prob_mod))
                 # forward incrementation of step counter
-                lay.nodes[lay_edge.dest].meta = lay.nodes[lay.current_node_id].step + 1
+                lay.nodes[lay_edge.dest].step = lay.nodes[lay.current_node_id].step + 1
                 lay.current_node_id = lay_edge.dest
         return (current_lay_functions, dur_modificators, prob_modificators, lay_to_remove)
     def sched_next_node(self, perma_dur_mods, temp_dur_mods, prob_mods):        

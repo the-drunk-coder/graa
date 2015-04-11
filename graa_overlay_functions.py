@@ -37,7 +37,9 @@ def sinstretch(val, inc, cyc, min_bound, max_bound):
     degree = ((inc % cyc) * degree_increment) % 360
     abs_sin = abs(math.sin(math.radians(degree)))
     stretch_range = max_bound - min_bound
-    return (abs_sin * stretch_range) + min_bound 
+    ret = (abs_sin * stretch_range) + min_bound    
+    return ret
+
     
 
 def brownian(val, inc):
