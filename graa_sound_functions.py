@@ -159,6 +159,28 @@ def sine(*args, **kwargs):
     chuck_client.send(msg)
 # end sine()
 
+def nois(*args, **kwargs):
+    """
+    Play a white noise (with ChucK).
+    """    
+    gain = float(kwargs.get("gain", 0.5))    
+    sus = args[0]
+    attack = kwargs.get("a", max(4, min(50, sus*0.25)));
+    decay = kwargs.get("d", 0);
+    release = kwargs.get("r", max(4, min(50, sus*0.1)));
+    sus = sus - attack - decay - release
+    if sus <= 0:
+        log.action("nois duration too short!")
+    msg = osc_message_builder.OscMessageBuilder(address = "/nois")
+    msg.add_arg(gain);
+    msg.add_arg(int(attack))
+    msg.add_arg(int(decay))
+    msg.add_arg(int(sus))
+    msg.add_arg(int(release))        
+    msg = msg.build()
+    chuck_client.send(msg)
+# end noiz()
+
 
 def subt(*args, **kwargs):    
     """
