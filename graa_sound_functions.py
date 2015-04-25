@@ -169,6 +169,7 @@ def nois(*args, **kwargs):
     attack = kwargs.get("a", max(4, min(50, sus*0.25)));
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
+    rev = kwargs.get("rev", 0.0)
     sus = sus - attack - decay - release
     if sus <= 0:
         log.action("nois duration too short!")
@@ -178,6 +179,7 @@ def nois(*args, **kwargs):
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))
     msg.add_arg(int(release))        
+    msg.add_arg(float(rev))
     msg = msg.build()
     chuck_client.send(msg)
 # end noiz()
@@ -260,6 +262,7 @@ def sqr(*args, **kwargs):
     decay = kwargs.get("d", max(4, min(30, sus*0.25)));
     release = kwargs.get("r", max(4, min(50, sus*0.1)));    
     sus = sus - attack - decay - release
+    rev = kwargs.get("rev", 0.0)
     if sus <= 0:
         log.action("sine duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/sqr")
@@ -269,7 +272,8 @@ def sqr(*args, **kwargs):
     msg.add_arg(int(attack))
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))
-    msg.add_arg(int(release))        
+    msg.add_arg(int(release))
+    msg.add_arg(float(rev)) 
     msg = msg.build()
     chuck_client.send(msg)
 # end sqr()

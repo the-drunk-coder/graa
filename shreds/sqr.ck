@@ -1,5 +1,5 @@
 class MySqr{
-	SqrOsc sqrosc => LPF lp => ADSR e => Dyno dyn => dac;
+	SqrOsc sqrosc => LPF lp => ADSR e => Dyno dyn => JCRev reverb => dac;
 	ADSR filt => Gain fg => blackhole;
 	10 => fg.gain;
 	
@@ -7,8 +7,7 @@ class MySqr{
 	s => filt;
 	1 => s.next;
 	
-	fun void sqr(float freq, float gain, int a, int d, int sus, int r)
-	{	
+	fun void sqr(float freq, float gain, int a, int d, int sus, int r, float rev) {	
 	
 		a + d + sus + r => int overall;
 		freq => sqrosc.freq;
@@ -19,10 +18,12 @@ class MySqr{
 		dyn.limit;
 		gain / 4 => dyn.thresh;
 		
-		if(d == 0){
+		if(d == 0) {
 			0 => e.decayRate;
 			0 => filt.decayRate;
 		}
+
+		rev => reverb.mix;
 		
 		now + overall::ms => time then;	
 		spork ~ filteradsr(then, freq);		
@@ -32,12 +33,14 @@ class MySqr{
 		e.keyOff();
 		filt.keyOff();	
 		r::ms => now;
+
+		if(rev > 0.0){
+			800::ms => now;
+	    }
 	}
 
-	fun void filteradsr (time then, float freq)
-	{
-		while (now < then)
-		{
+	fun void filteradsr (time then, float freq) {
+		while (now < then) {
 			float currfilt;
 			filt.last() * 800 + 100 => currfilt;
 			currfilt => lp.freq;		
@@ -54,11 +57,11 @@ OscRecv recv;
 recv.listen();
 
 // create an address in the receiver, store in new variable
-recv.event( "/sqr, f f i i i i" ) @=> OscEvent @ oe;
+recv.event( "/sqr, f f i i i i f" ) @=> OscEvent @ oe;
 
-fun void sporkSqr(float freq, float gain, int a, int d, int sus, int r){
+fun void sporkSqr(float freq, float gain, int a, int d, int sus, int r, float rev){
 	MySqr mysqr;
-	mysqr.sqr(freq, gain, a, d, sus, r);
+	mysqr.sqr(freq, gain, a, d, sus, r, rev);
 }
 
 // infinite event loop
@@ -76,7 +79,8 @@ while( true )
 		oe.getInt() => int d;
 		oe.getInt() => int s;
 		oe.getInt() => int r;
+		oe.getFloat() => float rev;
 		
-		spork ~ sporkSqr(freq, gain, a, d, s, r);
+		spork ~ sporkSqr(freq, gain, a, d, s, r, rev);
     }
 }
