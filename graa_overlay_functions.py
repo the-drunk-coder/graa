@@ -1,5 +1,16 @@
 import random, math
 
+def poisson(val, func, inc, cyc, lamb):
+    "Function eval by poisson distribution over a certain cyclicity"
+    index = int(inc % cyc)
+    prob = (pow(lamb, index) / math.factorial(index)) * math.exp(-lamb)
+    random.seed()
+    selecta = random.randint(0,99)
+    if selecta < (prob * 100):
+        return func
+    else:
+        return val
+    
 def rndvow():
     """
     Return a random vowel. Only really necessary for the vowel filter included in Dirt.
