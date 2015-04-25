@@ -1,10 +1,28 @@
 import random, math
 
+def binomial(x, y):
+    try:
+        binom = math.factorial(x) // math.factorial(y) // math.factorial(x - y)
+    except ValueError:
+        binom = 0
+    return binom
+
+# some distribution functions ... 
 def poisson(val, func, inc, cyc, lamb):
     "Function eval by poisson distribution over a certain cyclicity"
     index = int(inc % cyc)
     prob = (pow(lamb, index) / math.factorial(index)) * math.exp(-lamb)
     random.seed()
+    selecta = random.randint(0,99)
+    if selecta < (prob * 100):
+        return func
+    else:
+        return val
+
+def hypergeo(val, func, inc, cyc, bigm, bign):
+    "Function eval by hypergeometric distribution over a certain cyclicity"
+    index = int(inc % cyc)
+    prob = (binomial(bigm, index) * binomial(bign-bigm, cyc - index)) / binomial(bign, cyc)    
     selecta = random.randint(0,99)
     if selecta < (prob * 100):
         return func
