@@ -279,3 +279,9 @@ def sqr(*args, **kwargs):
 # end sqr()
 
 
+def say(*args, **kwargs):
+    text = args[0]
+    speed = kwargs.get("speed", 140)
+    command = "espeak -s{} --stdout \"{}\" | aplay -q" .format(int(speed), text)
+    os.system(command)
+
