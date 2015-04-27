@@ -35,7 +35,7 @@ class MySqr{
 		r::ms => now;
 
 		if(rev > 0.0){
-			800::ms => now;
+			2000::ms => now;
 	    }
 	}
 
