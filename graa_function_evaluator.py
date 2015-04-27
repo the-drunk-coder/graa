@@ -55,22 +55,24 @@ def func_eval(orig_type, func, local_vars):
     # recursively evaluate argument functions
     trans_args = copy.deepcopy(func.args)
     trans_kwargs = copy.deepcopy(func.kwargs)
+    # even those should be non-destructive !
+    trans_local = copy.deepcopy(local_vars)    
     for i in range(0, len(trans_args)):        
         # replace local variables from dict
-        if  trans_args[i] in local_vars.keys():
+        if  trans_args[i] in trans_local.keys():
             #print("REPLACING!!")
-            trans_args[i] = local_vars[trans_args[i]]
+            trans_args[i] = trans_local[trans_args[i]]
             #print("REPLACED: " + str(trans_args))
         else:
             #print("EVALUATING!!")
-            trans_args[i] = arg_eval(type(trans_args[i]), trans_args[i], local_vars)
+            trans_args[i] = arg_eval(type(trans_args[i]), trans_args[i], trans_local)
             #print("EVALUATED" + str(trans_args))
     for key in trans_kwargs:        
         #replace local variables from dict
-        if trans_kwargs[key] in local_vars.keys():            
-            trans_kwargs[key] = local_vars[trans_kwargs[key]]
+        if trans_kwargs[key] in trans_local.keys():            
+            trans_kwargs[key] = trans_local[trans_kwargs[key]]
         else:
-            trans_kwargs[key] = arg_eval(type(trans_kwargs[key]), trans_kwargs[key], local_vars)   
+            trans_kwargs[key] = arg_eval(type(trans_kwargs[key]), trans_kwargs[key], trans_local)   
     if orig_type != None and orig_type != Func and orig_type != GraaNote:
         #print("NAME:" + str(func.name) + " " + str(orig_type))
         if func.func_type == "#":
