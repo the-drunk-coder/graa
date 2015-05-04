@@ -11,7 +11,8 @@ class GraaDispatcher():
     def __init__(self):
        self.dispatcher_map = {}
        self.dispatcher_map[parser.NODE] = self.dispatch_node       
-       self.dispatcher_map[parser.EDGE] = self.dispatch_edge        
+       self.dispatcher_map[parser.EDGE] = self.dispatch_edge
+       self.dispatcher_map[parser.DELETE] = self.dispatch_deletion        
     # The main dispatcher function, bridge between parser and code execution
     def dispatch(self, parser_output):
         elem = parser_output[0]
@@ -52,6 +53,12 @@ class GraaDispatcher():
         log.action("Adding edge: '{}' to graph: '{}'".format(edge, graph_id))
         # update eventual overlays
         self.update_lays(graph_id)
+    def dispatch_deletion(deletion):
+        if deletion[1][0] is 'edge':
+            
+        elif if deletion[1][0] is 'node':
+
+            
     def update_lays(self, graph_id):
         for player in session.players:
             if graph_id in session.players[player].overlays:

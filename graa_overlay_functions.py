@@ -8,7 +8,7 @@ def binomial(x, y):
     return binom
 
 # some distribution functions ... 
-def poisson(val, func, inc, cyc, lamb):
+def poisson(val, func, inc, cyc, lamb):    
     "Function eval by poisson distribution over a certain cyclicity"
     index = int(inc % cyc)
     prob = (pow(lamb, index) / math.factorial(index)) * math.exp(-lamb)
@@ -46,6 +46,8 @@ def mod(i, j):
     return i % j
 
 def add(i, j):
+    print(i)
+    print(j)
     return i + j
 
 def sub(i, j):

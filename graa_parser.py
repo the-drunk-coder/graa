@@ -8,7 +8,8 @@ import __main__
 class GraaParser():
     # command constants for dispatcher    
     EDGE = "edge"    
-    NODE = "node"    
+    NODE = "node"
+    DELETE = "delete"    
     # some literals
     PARAM_DIVIDER = Suppress(Literal(":"))
     LPAREN = Suppress(Literal("<"))
@@ -44,14 +45,16 @@ class GraaParser():
     slot = Suppress("|") + Group(Literal("nil") ^ Literal("mute") ^ Literal("unmute") ^ sound_func ^ mod_func ^ ctrl_func)
     node_def = node_id + OneOrMore(slot)
     node_def.setParseAction(lambda t: GraaParser.parse_node(t))
-    #edge definitions
+    # edge definitions
     trans_dur = Group((param ^ Literal("nil")) + Optional(Suppress("|") + param))
     trans_prob = Group(Literal("%") + (param ^ Literal("nil")) + Optional(Suppress("|") + param))
     transition = Suppress("--") + Group(Optional(trans_dur) + Optional(trans_prob)) + Suppress("-->")
     edge_def = node_id + (transition ^ Suppress("-->")) + node_id
     edge_def.setParseAction(lambda t: GraaParser.parse_edge(t))    
-    # line definition
-    line = node_def ^ edge_def
+    # line definition   
+    deletion = Suppress("(") + (node_def ^ edge_def) + Suppress(")")
+    deletion.setParseAction(lambda t: GraaParser.parse_deletion(t))
+    line = node_def ^ edge_def ^ deletion    
     line.setParseAction(lambda t: t.asList())    
     # convert string representation to actual (typed) value
     def typify(arg):
@@ -145,7 +148,10 @@ class GraaParser():
                         edge.dur = elem[0]
                     if len(elem) == 2:
                         edge.dur_mod = elem[1]            
-        return (GraaParser.EDGE, graph_id, edge, source_node_id)    
+        return (GraaParser.EDGE, graph_id, edge, source_node_id)        
+    def parse_deletion(arg):
+        print(arg)
+        return (GraaParser.DELETE, arg[0])
     def parse(arg):
         return GraaParser.line.parseString(arg)
 
@@ -154,23 +160,23 @@ if __name__ == "__main__":
     #print(GraaParser.edge_def.parseString("guu1-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--500-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--%50-->guu2"))
-    #print(GraaParser.edge_def.parseString("guu1--500%25-->guu2"))
+    print(GraaParser.deletion.parseString("(guu1--500%25-->guu2)"))
     #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>-->guu2"))    
     #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%25-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--%25|add<prob:10>-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%25|add<prob:10>-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--nil|add<dur:25>%25|add<prob:10>-->guu2"))
     #print(GraaParser.edge_def.parseString("guu1--512|add<dur:25>%nil|add<prob:10>-->guu2"))
-    #print(GraaParser.node_def.parseString("guu1|disk~c4:500:50:gain=0.05:acc=0.5|play#guu:gaa|$3=add<$3:4>"))
-    p = GraaParser.pitch.parseString("c4-20")
-    d = GraaParser.pitch.parseString("cis4-20")
-    e = GraaParser.pitch.parseString("cis4")
-    f = GraaParser.pitch.parseString("c4")
-    print(p[0].pitch.frequency)
-    print(d[0].pitch.frequency)
-    print(e[0].pitch.frequency)
-    print(f[0].pitch.frequency)
-    print(p[0].pitch.microtone)
-    print(d[0].pitch.microtone)
-    print(e[0].pitch.microtone)
-    print(f[0].pitch.microtone)
+    print(GraaParser.line.parseString("(guu1|disk~c4:500:50:gain=0.05:acc=0.5|play#guu:gaa|$3=add<$3:4>)"))
+    #p = GraaParser.pitch.parseString("c4-20")
+    #d = GraaParser.pitch.parseString("cis4-20")
+    #e = GraaParser.pitch.parseString("cis4")
+    #f = GraaParser.pitch.parseString("c4")
+    #print(p[0].pitch.frequency)
+    #print(d[0].pitch.frequency)
+    #print(e[0].pitch.frequency)
+    #print(f[0].pitch.frequency)
+    #print(p[0].pitch.microtone)
+    #print(d[0].pitch.microtone)
+    #print(e[0].pitch.microtone)
+    #print(f[0].pitch.microtone)

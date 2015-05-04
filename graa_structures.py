@@ -240,7 +240,21 @@ class Graph():
         # only intialize edges if node not present yet
         if node.id not in self.nodes.keys():    
             self.edges[node.id] = []
-        self.nodes[node.id] = node
+        self.nodes[node.id] = node        
+    def delete_node(self, node_del):
+        # delete all incoming edges and rebalance
+        # brute force ...
+        for node in self.nodes:
+            for edge
+        # delete all outgoing edges
+        del(self.edges[node_del.id])
+        # delete node 
+        
+    def delete_edge(self, source_node_id, edge):
+        # first rebalance ...
+        self.rebalance_edges(source_node_id, edge, 0)
+        self.edges[source_node_id].remove(edge)
+        # now rebalance ...
     # Add an edge, a tuple of destination node and transition
     def add_edge(self, source_node_id, new_edge):
         if source_node_id not in self.nodes or new_edge.dest not in self.nodes:
@@ -258,11 +272,12 @@ class Graph():
             self.edges[source_node_id].append(new_edge)
     # method to rebalance edges in case the probability was changed ...
     # somewhat naive ...
-    def rebalance_edges(self, node_id, edge_id, edge_mod):
+    # only called from player copy ...
+    def rebalance_edges(self, node_id, current_edge, edge_mod):
         # noting to do here in that case ...
         if len(self.edges[node_id]) == 1:
             return
-        current_edge = self.edges[node_id][edge_id]
+        #current_edge = self.edges[node_id][edge_id]
         if edge_mod > 100:
             edge_mod = 100
         if edge_mod < 0:

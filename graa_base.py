@@ -143,7 +143,7 @@ class GraaPlayer():
         current_prob = edge.prob
         for step, prob_mod in prob_mods:            
             current_prob = func_eval(int,  prob_mod, {"step": step, "prob": current_prob})    
-        self.player_copy.rebalance_edges(edge.source, chosen_one, current_prob)            
+        self.player_copy.rebalance_edges(edge.source, edge, current_prob)            
         # set next timestamp
         self.timestamp += current_dur + self.delay        
         session.scheduler.time_function(self.play, [], {}, self.timestamp)
