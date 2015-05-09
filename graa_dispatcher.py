@@ -54,7 +54,7 @@ class GraaDispatcher():
         # update eventual overlays
         self.update_lays(graph_id)
     def dispatch_deletion(self, deletion):
-        print("DELETION:" + str(deletion))
+        #print("DELETION:" + str(deletion))
         if deletion[0] is 'edge':
             session.graphs[deletion[1]].delete_edge(deletion[3],deletion[2])
             if session.players[deletion[1]]:
