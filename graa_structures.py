@@ -240,22 +240,8 @@ class Graph():
         # only intialize edges if node not present yet
         if node.id not in self.nodes.keys():    
             self.edges[node.id] = []
-        self.nodes[node.id] = node        
-    def delete_node(self, node_del):
-        # delete all incoming edges and rebalance
-        # brute force ...
-        for node in self.nodes:
-            for edge
-        # delete all outgoing edges
-        del(self.edges[node_del.id])
-        # delete node 
-        
-    def delete_edge(self, source_node_id, edge):
-        # first rebalance ...
-        self.rebalance_edges(source_node_id, edge, 0)
-        self.edges[source_node_id].remove(edge)
-        # now rebalance ...
-    # Add an edge, a tuple of destination node and transition
+        self.nodes[node.id] = node
+        # Add an edge, a tuple of destination node and transition
     def add_edge(self, source_node_id, new_edge):
         if source_node_id not in self.nodes or new_edge.dest not in self.nodes:
             raise GraphError("nodes for this edge not present")
@@ -270,6 +256,29 @@ class Graph():
                     edge.prob = new_prob
                 new_edge.prob = new_prob
             self.edges[source_node_id].append(new_edge)
+    # delete a node and all related edges ...
+    def delete_node(self, node_del):
+        # delete all incoming edges and rebalance
+        # brute force ...
+        for node in self.nodes:
+            for edge in self.edges[node]:
+                if edge.dest == node_del.id:
+                    self.delete_edge(node, edge)                
+        # delete all outgoing edges
+        del(self.edges[node_del.id])
+        del(self.nodes[node_del.id])                
+    def delete_edge(self, source_node_id, edge):        
+        # retreive the actual edge first, as the parsed one might not be the same ...
+        actual_edge = None
+        if edge.prob == None:            
+            for some_edge in self.edges[source_node_id]:
+                if some_edge.source == edge.source and some_edge.dest == edge.dest:
+                    actual_edge = some_edge
+        else:
+            actual_edge = edge
+        # first rebalance ...
+        self.rebalance_edges(source_node_id, actual_edge, 0)
+        self.edges[source_node_id].remove(actual_edge)
     # method to rebalance edges in case the probability was changed ...
     # somewhat naive ...
     # only called from player copy ...
@@ -281,7 +290,7 @@ class Graph():
         if edge_mod > 100:
             edge_mod = 100
         if edge_mod < 0:
-            edge_mod = 0
+            edge_mod = 0        
         difference = current_edge.prob - edge_mod
         current_edge.prob = edge_mod
         # print(difference)

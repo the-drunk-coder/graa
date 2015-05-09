@@ -53,12 +53,16 @@ class GraaDispatcher():
         log.action("Adding edge: '{}' to graph: '{}'".format(edge, graph_id))
         # update eventual overlays
         self.update_lays(graph_id)
-    def dispatch_deletion(deletion):
-        if deletion[1][0] is 'edge':
-            
-        elif if deletion[1][0] is 'node':
-
-            
+    def dispatch_deletion(self, deletion):
+        print("DELETION:" + str(deletion))
+        if deletion[0] is 'edge':
+            session.graphs[deletion[1]].delete_edge(deletion[3],deletion[2])
+            if session.players[deletion[1]]:
+                session.players[deletion[1]].player_copy.delete_edge(deletion[3],deletion[2])
+        elif deletion[0] is 'node':
+            session.graphs[deletion[1]].delete_node(deletion[2])
+            if session.players[deletion[1]]:
+                session.players[deletion[1]].player_copy.delete_node(deletion[2])            
     def update_lays(self, graph_id):
         for player in session.players:
             if graph_id in session.players[player].overlays:

@@ -150,7 +150,7 @@ class GraaParser():
                         edge.dur_mod = elem[1]            
         return (GraaParser.EDGE, graph_id, edge, source_node_id)        
     def parse_deletion(arg):
-        print(arg)
+        #print(arg)
         return (GraaParser.DELETE, arg[0])
     def parse(arg):
         return GraaParser.line.parseString(arg)
