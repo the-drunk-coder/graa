@@ -1,0 +1,61 @@
+samplepath = "/home/nik/soa/01_berio.wav"
+samplepath = "/home/nik/soa/02_reich.wav"
+samplepath = "/home/nik/soa/03_henri.wav"
+
+add("""
+graain1|grain~?samplepath:0.8:60:gain=0.6:rev=0.1:speed=1.2,
+graain1--40-->graain1
+""")
+
+add("""
+ol1|$2=wrap<brownian<$2:0.0001>:0.7:0.9>:$3=wrap<brownian<$3:5>:60:100>,
+ol1--nil|wrap<brownian<dur:5>:30:100>-->ol1
+""")
+
+add("""
+sol1|nil,
+sol2|speed=wrap<add<speed:0.2>:0.8:1.8>,
+sol3|speed=wrap<sub<speed:0.2>:0.8:1.8>,
+sol1--%90-->sol1,
+sol1--%5-->sol2,
+sol1--%5-->sol3,
+sol2-->sol1,
+sol3-->sol1
+""")
+
+"graain" <<permaplus>> "ol"
+"graain" <<permaplus>> "sol"
+
+expand("graain")
+
+play("graain")
+
+pause("graain")
+
+add("""
+beat1|dirt~0:bd:0,
+beat2|dirt~0:sn:4,
+beat1--620-->beat2,
+beat2--620-->beat1
+""")
+
+add("""
+hat1|dirt~0:casio:0,
+hat1--620-->hat1
+""")
+
+"hat" <<shift>> 310
+
+play("beat, hat")
+
+stop("all")
+
+add("""
+voce1|say~on,
+voce2|say~off,
+voce1--620-->voce2,
+voce2--1860-->voce1
+""")
+
+play("voce")
+stop("voce")
