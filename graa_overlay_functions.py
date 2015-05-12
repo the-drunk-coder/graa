@@ -45,9 +45,7 @@ def stepvow(step):
 def mod(i, j):
     return i % j
 
-def add(i, j):
-    print(i)
-    print(j)
+def add(i, j):    
     return i + j
 
 def sub(i, j):
