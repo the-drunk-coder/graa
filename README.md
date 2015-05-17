@@ -1,6 +1,8 @@
 # graa>
 A music livecoding eDSL using Markov chains.
 
+A short introduction (from a seminar presentation) can be found [here](http://www.parkellipsen.de/files/graa.pdf)
+
 ## Installation
 
 ### Requirements
