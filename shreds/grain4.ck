@@ -12,7 +12,8 @@ fun void grain(string samplepath, float start, int length, float gain, float rat
 	if (gain > 1.0){
 		1.0 => gain;
     }
-		
+	
+	
     (samples * start) $ int => int startpos;
 	
 	//<<< "sample: " + samplepath + " start: " + start + " length: " + length + " gain: " + gain + " rate: " + rate + " rev: " + rev + " startpos: " + startpos >>>;
@@ -36,7 +37,7 @@ fun void grain(string samplepath, float start, int length, float gain, float rat
 OscRecv recv;
 6449 => recv.port;
 recv.listen();
-recv.event( "/grain, s f i f f f" ) @=> OscEvent @ oe;
+recv.event( "/graind, s f i f f f" ) @=> OscEvent @ oe;
 
 // infinite event loop
 while( true )

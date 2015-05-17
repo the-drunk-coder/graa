@@ -205,6 +205,69 @@ def grain(*args, **kwargs):
     chuck_client.send(msg)
 # end grain()
 
+def grainB(*args, **kwargs):
+    """
+    Play a grain from a sample (with ChucK).
+    """
+    path = str(args[0])
+    start = float(args[1])
+    length = int(args[2])
+    gain = float(kwargs.get("gain", 0.5))
+    speed = float(kwargs.get("speed", 1.0))          
+    rev = float (kwargs.get("rev", 0.0))    
+    msg = osc_message_builder.OscMessageBuilder(address = "/grainb")
+    msg.add_arg(path)
+    msg.add_arg(start)
+    msg.add_arg(length)
+    msg.add_arg(gain)
+    msg.add_arg(speed)        
+    msg.add_arg(rev)    
+    msg = msg.build()
+    chuck_client.send(msg)
+# end grain()
+
+def grainC(*args, **kwargs):
+    """
+    Play a grain from a sample (with ChucK).
+    """
+    path = str(args[0])
+    start = float(args[1])
+    length = int(args[2])
+    gain = float(kwargs.get("gain", 0.5))
+    speed = float(kwargs.get("speed", 1.0))          
+    rev = float (kwargs.get("rev", 0.0))    
+    msg = osc_message_builder.OscMessageBuilder(address = "/grainc")
+    msg.add_arg(path)
+    msg.add_arg(start)
+    msg.add_arg(length)
+    msg.add_arg(gain)
+    msg.add_arg(speed)        
+    msg.add_arg(rev)    
+    msg = msg.build()
+    chuck_client.send(msg)
+# end grain()
+
+def grainD(*args, **kwargs):
+    """
+    Play a grain from a sample (with ChucK).
+    """
+    path = str(args[0])
+    start = float(args[1])
+    length = int(args[2])
+    gain = float(kwargs.get("gain", 0.5))
+    speed = float(kwargs.get("speed", 1.0))          
+    rev = float (kwargs.get("rev", 0.0))    
+    msg = osc_message_builder.OscMessageBuilder(address = "/graind")
+    msg.add_arg(path)
+    msg.add_arg(start)
+    msg.add_arg(length)
+    msg.add_arg(gain)
+    msg.add_arg(speed)        
+    msg.add_arg(rev)    
+    msg = msg.build()
+    chuck_client.send(msg)
+# end grain()
+
 
 def subt(*args, **kwargs):    
     """
