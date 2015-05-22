@@ -110,7 +110,7 @@ def disk(*args, **kwargs):
     if play_pitch not in notes_on:
         notes_on[play_pitch] = True
         midi_out.note_on(play_pitch, play_note.vel)
-        pg_time.wait(play_note.absolute_duration)
+        pg_time.wait(int(play_note.absolute_duration))
         midi_out.note_off(play_pitch,play_note.vel)
         del notes_on[play_pitch]
     else:    
@@ -224,7 +224,7 @@ def grainB(*args, **kwargs):
     msg.add_arg(rev)    
     msg = msg.build()
     chuck_client.send(msg)
-# end grain()
+# end grainB()
 
 def grainC(*args, **kwargs):
     """
@@ -245,7 +245,7 @@ def grainC(*args, **kwargs):
     msg.add_arg(rev)    
     msg = msg.build()
     chuck_client.send(msg)
-# end grain()
+# end grainC()
 
 def grainD(*args, **kwargs):
     """
@@ -266,7 +266,7 @@ def grainD(*args, **kwargs):
     msg.add_arg(rev)    
     msg = msg.build()
     chuck_client.send(msg)
-# end grain()
+# end grainD()
 
 
 def subt(*args, **kwargs):    
@@ -279,24 +279,25 @@ def subt(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
-    #gain = gain * 0.65
     sus = args[1]
     attack = kwargs.get("a", max(4, min(50, sus*0.25)));
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
+    rev = kwargs.get("rev", 0.0)
     sus = sus - attack - decay - release
     if sus <= 0:
-        log.action("sine duration too short!")
+        log.action("subt duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/sub")
     msg.add_arg(float(freq));
     msg.add_arg(gain);
     msg.add_arg(int(attack))
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))
-    msg.add_arg(int(release))        
+    msg.add_arg(int(release))
+    msg.add_arg(float(rev));
     msg = msg.build()
     chuck_client.send(msg)
-# end sub()
+# end subt()
 
 
 def buzz(*args, **kwargs):
@@ -308,13 +309,14 @@ def buzz(*args, **kwargs):
         freq = args[0].pitch.frequency
     else:
         freq = args[0]    
-    gain = float(kwargs.get("gain", 0.5))
-    #gain = gain * 0.07
+    gain = float(kwargs.get("gain", 0.5))    
     sus = args[1]
     attack = kwargs.get("a", max(4, min(30, sus*0.1)));
     decay = kwargs.get("d", max(4, min(30, sus*0.25)));
     release = kwargs.get("r", max(4, min(50, sus*0.1)));    
     sus = sus - attack - decay - release
+    rev = kwargs.get("rev", 0.0)
+    cutoff = kwargs.get("cutoff", 1.0)
     if sus <= 0:
         log.action("sine duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/buzz")
@@ -324,7 +326,9 @@ def buzz(*args, **kwargs):
     msg.add_arg(int(attack))
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))
-    msg.add_arg(int(release))        
+    msg.add_arg(int(release))
+    msg.add_arg(float(rev))
+    msg.add_arg(float(cutoff)) 
     msg = msg.build()
     chuck_client.send(msg)
 # end buzz()
@@ -339,14 +343,14 @@ def sqr(*args, **kwargs):
         freq = args[0].pitch.frequency
     else:
         freq = args[0]    
-    gain = float(kwargs.get("gain", 0.5))
-    #gain = gain * 0.07
+    gain = float(kwargs.get("gain", 0.5))    
     sus = args[1]
     attack = kwargs.get("a", max(4, min(30, sus*0.1)));
     decay = kwargs.get("d", max(4, min(30, sus*0.25)));
     release = kwargs.get("r", max(4, min(50, sus*0.1)));    
     sus = sus - attack - decay - release
     rev = kwargs.get("rev", 0.0)
+    cutoff = kwargs.get("cutoff", 1.0)
     if sus <= 0:
         log.action("sine duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/sqr")
@@ -357,7 +361,8 @@ def sqr(*args, **kwargs):
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))
     msg.add_arg(int(release))
-    msg.add_arg(float(rev)) 
+    msg.add_arg(float(rev))
+    msg.add_arg(float(cutoff)) 
     msg = msg.build()
     chuck_client.send(msg)
 # end sqr()
@@ -368,4 +373,5 @@ def say(*args, **kwargs):
     speed = kwargs.get("speed", 140)
     command = "espeak -s{} --stdout \"{}\" | aplay -q" .format(int(speed), text)
     os.system(command)
+# end say()    
 
