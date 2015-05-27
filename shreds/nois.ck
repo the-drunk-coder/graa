@@ -1,8 +1,14 @@
 
 // one-shot sine spork
-fun void noise(float gain, int a, int d, int sus, int r, float rev) {
-	Noise n => ADSR e => Dyno dyn => JCRev reverb => dac;
+fun void noise(float gain, int a, int d, int sus, int r, float rev, float pan) {
+	Noise n => ADSR e => Dyno dyn => Pan2 p;
 
+	p.left => JCRev lrev => dac.left;
+	p.right => JCRev rrev => dac.right;
+
+	rev => lrev.mix;
+	rev => rrev.mix;
+	
 	e.set( a::ms, d::ms, gain, r::ms );
 
 	if (gain > 1.0) {
@@ -16,15 +22,14 @@ fun void noise(float gain, int a, int d, int sus, int r, float rev) {
 	if(d == 0) {
 		0 => e.decayRate;
     }
-
-	rev => reverb.mix;
-	
+		
 	e.keyOn();
 	sus::ms => now;
 	e.keyOff();
 	r::ms => now;
+
 	if(rev > 0.0){
-		800::ms => now;
+		2000::ms => now;
 	}
 }
 
@@ -36,7 +41,7 @@ OscRecv recv;
 recv.listen();
 
 // create an address in the receiver, store in new variable
-recv.event( "/nois, f i i i i f" ) @=> OscEvent @ oe;
+recv.event( "/nois, f i i i i f f " ) @=> OscEvent @ oe;
 
 // infinite event loop
 while( true ) {
@@ -51,7 +56,8 @@ while( true ) {
 		oe.getInt() => int s;
 		oe.getInt() => int r;
 		oe.getFloat() => float rev;
+		oe.getFloat() => float pan;
 		
-		spork ~ noise(gain, a, d, s, r, rev);
+		spork ~ noise(gain, a, d, s, r, rev, pan);
     }
 }

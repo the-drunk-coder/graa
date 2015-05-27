@@ -1,20 +1,28 @@
 class MyBuzzer {
 
-	SawOsc saw => LPF lp => ADSR e => Dyno dyn => JCRev reverb => dac;
+	SawOsc saw => LPF lp => ADSR e => Dyno dyn => Pan2 p;
+	
 	ADSR filt => Gain fg => blackhole;
 	10 => fg.gain;
+
+	p.left => JCRev lrev => dac.left;
+	p.right => JCRev rrev => dac.right;
 	
 	Step s;
 	s => filt;
 	1 => s.next;
 
 	// one-shot buzz spork
-	fun void buzz(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff)
+	fun void buzz(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan)
 	{	
 				
 		a + d + sus + r => int overall;
 		freq => saw.freq;
-		rev => reverb.mix;
+
+		pan => p.pan;
+		rev => lrev.mix;
+		rev => rrev.mix;
+	
 
 		e.set( a::ms, d::ms, gain, r::ms );
 		filt.set( a::ms, (sus - r)::ms, gain, r::ms );
@@ -54,9 +62,9 @@ class MyBuzzer {
 	}
 }
 
-fun void sporkBuzzer(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff){
+fun void sporkBuzzer(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan){
 	MyBuzzer buzzer;
-	buzzer.buzz(freq, gain, a, d, sus, r, rev, cutoff);
+	buzzer.buzz(freq, gain, a, d, sus, r, rev, cutoff, pan);
 }
 
 // create our OSC receiver
@@ -67,7 +75,7 @@ OscRecv recv;
 recv.listen();
 
 // create an address in the receiver, store in new variable
-recv.event( "/buzz, f f i i i i f f ") @=> OscEvent @ oe;
+recv.event( "/buzz, f f i i i i f f f ") @=> OscEvent @ oe;
 
 // infinite event loop
 while( true )
@@ -86,8 +94,9 @@ while( true )
 		oe.getInt() => int r;
 		oe.getFloat() => float rev;
 		oe.getFloat() => float cutoff;
+		oe.getFloat() => float pan;
 		
 		
-		spork ~ sporkBuzzer(freq, gain, a, d, s, r, rev, cutoff);
+		spork ~ sporkBuzzer(freq, gain, a, d, s, r, rev, cutoff, pan);
     }
 }

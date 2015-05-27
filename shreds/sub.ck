@@ -1,16 +1,21 @@
 
 // one-shot sine spork
-fun void sub(float freq, float gain, int a, int d, int sus, int r, float rev)
+fun void sub(float freq, float gain, int a, int d, int sus, int r, float rev, float pan)
 {
-	Noise n => BPF b => ResonZ res => ADSR e => Dyno dyn => JCRev reverb => dac;
+	Noise n => BPF b => ResonZ res => ADSR e => Dyno dyn => Pan2 p;
 
+	p.left => JCRev lrev => dac.left;
+	p.right => JCRev rrev => dac.right;
+	
 	5 => b.gain;
 	freq => b.freq;
 	5 => res.gain;
 	freq => res.freq;
 	30 => b.Q;
 	30 => res.Q;
-	rev => reverb.mix;
+	rev => lrev.mix;
+	rev => rrev.mix;
+	pan => p.pan;
 	
 	e.set( a::ms, d::ms, gain, r::ms );
 
@@ -44,7 +49,7 @@ OscRecv recv;
 recv.listen();
 
 // create an address in the receiver, store in new variable
-recv.event( "/sub, f f i i i i f" ) @=> OscEvent @ oe;
+recv.event( "/sub, f f i i i i f f" ) @=> OscEvent @ oe;
 
 // infinite event loop
 while( true )
@@ -62,7 +67,8 @@ while( true )
 		oe.getInt() => int s;
 		oe.getInt() => int r;
 		oe.getFloat() => float rev;
+		oe.getFloat() => float pan;
 		
-		spork ~ sub(freq, gain, a, d, s, r, rev);
+		spork ~ sub(freq, gain, a, d, s, r, rev, pan);
     }
 }

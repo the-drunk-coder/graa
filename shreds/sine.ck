@@ -1,8 +1,17 @@
 
 // one-shot sine spork
-fun void sine(float freq, float gain, int a, int d, int sus, int r)
+fun void sine(float freq, float gain, int a, int d, int sus, int r, float rev, float pan)
 {
-	SinOsc s => ADSR e => Dyno dyn => dac;
+	SinOsc s => ADSR e => Dyno dyn => Pan2 p;
+
+	p.left => JCRev lrev => dac.left;
+	p.right => JCRev rrev => dac.right;
+
+	pan => p.pan;
+	
+	rev => lrev.mix;
+	rev => rrev.mix;
+	
 	gain => s.gain;
 	freq => s.freq;
 	
@@ -24,6 +33,10 @@ fun void sine(float freq, float gain, int a, int d, int sus, int r)
 	sus::ms => now;
 	e.keyOff();
 	r::ms => now;
+
+	if(rev > 0.0){
+		2000::ms => now;
+	}
 }
 
 // create our OSC receiver
@@ -34,7 +47,7 @@ OscRecv recv;
 recv.listen();
 
 // create an address in the receiver, store in new variable
-recv.event( "/sine, f f i i i i" ) @=> OscEvent @ oe;
+recv.event( "/sine, f f i i i i f f" ) @=> OscEvent @ oe;
 
 // infinite event loop
 while( true )
@@ -51,7 +64,9 @@ while( true )
 		oe.getInt() => int d;
 		oe.getInt() => int s;
 		oe.getInt() => int r;
+		oe.getFloat() => float rev;
+		oe.getFloat() => float pan;
 		
-		spork ~ sine(freq, gain, a, d, s, r);
+		spork ~ sine(freq, gain, a, d, s, r, rev, pan);
     }
 }

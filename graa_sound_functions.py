@@ -146,6 +146,9 @@ def sine(*args, **kwargs):
     attack = kwargs.get("a", max(4, min(50, sus*0.25)));
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
+    rev = kwargs.get("rev", 0.0)
+    pan = kwargs.get("pan", 0.5)
+    pan = float((pan * 2) - 1) 
     sus = sus - attack - decay - release
     if sus <= 0:
         log.action("sine duration too short!")
@@ -156,6 +159,8 @@ def sine(*args, **kwargs):
     msg.add_arg(int(decay))
     msg.add_arg(int(sus))
     msg.add_arg(int(release))        
+    msg.add_arg(float(rev))
+    msg.add_arg(pan)
     msg = msg.build()
     chuck_client.send(msg)
 # end sine()
@@ -170,6 +175,8 @@ def nois(*args, **kwargs):
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
     rev = kwargs.get("rev", 0.0)
+    pan = kwargs.get("pan", 0.5)
+    pan = float((pan * 2) - 1) 
     sus = sus - attack - decay - release
     if sus <= 0:
         log.action("nois duration too short!")
@@ -180,6 +187,7 @@ def nois(*args, **kwargs):
     msg.add_arg(int(sus))
     msg.add_arg(int(release))        
     msg.add_arg(float(rev))
+    msg.add_arg(pan)
     msg = msg.build()
     chuck_client.send(msg)
 # end noiz()
@@ -284,6 +292,8 @@ def subt(*args, **kwargs):
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
     rev = kwargs.get("rev", 0.0)
+    pan = kwargs.get("pan", 0.5)
+    pan = float((pan * 2) - 1) 
     sus = sus - attack - decay - release
     if sus <= 0:
         log.action("subt duration too short!")
@@ -295,6 +305,7 @@ def subt(*args, **kwargs):
     msg.add_arg(int(sus))
     msg.add_arg(int(release))
     msg.add_arg(float(rev));
+    msg.add_arg(pan);
     msg = msg.build()
     chuck_client.send(msg)
 # end subt()
@@ -317,6 +328,8 @@ def buzz(*args, **kwargs):
     sus = sus - attack - decay - release
     rev = kwargs.get("rev", 0.0)
     cutoff = kwargs.get("cutoff", 1.0)
+    pan = kwargs.get("pan", 0.5)
+    pan = float((pan * 2) - 1) 
     if sus <= 0:
         log.action("sine duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/buzz")
@@ -328,7 +341,8 @@ def buzz(*args, **kwargs):
     msg.add_arg(int(sus))
     msg.add_arg(int(release))
     msg.add_arg(float(rev))
-    msg.add_arg(float(cutoff)) 
+    msg.add_arg(float(cutoff))
+    msg.add_arg(pan)
     msg = msg.build()
     chuck_client.send(msg)
 # end buzz()
@@ -351,6 +365,8 @@ def sqr(*args, **kwargs):
     sus = sus - attack - decay - release
     rev = kwargs.get("rev", 0.0)
     cutoff = kwargs.get("cutoff", 1.0)
+    pan = kwargs.get("pan", 0.5)
+    pan = float((pan * 2) - 1) 
     if sus <= 0:
         log.action("sine duration too short!")
     msg = osc_message_builder.OscMessageBuilder(address = "/sqr")
@@ -362,7 +378,8 @@ def sqr(*args, **kwargs):
     msg.add_arg(int(sus))
     msg.add_arg(int(release))
     msg.add_arg(float(rev))
-    msg.add_arg(float(cutoff)) 
+    msg.add_arg(float(cutoff))
+    msg.add_arg(pan) 
     msg = msg.build()
     chuck_client.send(msg)
 # end sqr()
