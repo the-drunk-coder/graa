@@ -1,3 +1,6 @@
+JCRev lrev => dac.left;
+JCRev rrev => dac.right;
+	
 class MyBuzzer {
 
 	SawOsc saw => LPF lp => ADSR e => Dyno dyn => Pan2 p;
@@ -5,13 +8,15 @@ class MyBuzzer {
 	ADSR filt => Gain fg => blackhole;
 	10 => fg.gain;
 
-	p.left => JCRev lrev => dac.left;
-	p.right => JCRev rrev => dac.right;
-	
 	Step s;
 	s => filt;
 	1 => s.next;
-
+	
+	fun void init(UGen out_left, UGen out_right){
+		p.left => out_left;
+		p.right => out_right;
+	}
+	
 	// one-shot buzz spork
 	fun void buzz(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan)
 	{	
@@ -23,7 +28,6 @@ class MyBuzzer {
 		rev => lrev.mix;
 		rev => rrev.mix;
 	
-
 		e.set( a::ms, d::ms, gain, r::ms );
 		filt.set( a::ms, (sus - r)::ms, gain, r::ms );
 
@@ -43,11 +47,6 @@ class MyBuzzer {
 		e.keyOff();
 		filt.keyOff();	
 		r::ms => now;
-
-		if(rev > 0.0){
-			2000::ms => now;
-	    }
-
 	}
 
 	fun void filteradsr (time then, float freq, float cutoff)
@@ -64,6 +63,7 @@ class MyBuzzer {
 
 fun void sporkBuzzer(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan){
 	MyBuzzer buzzer;
+	buzzer.init(lrev, rrev);
 	buzzer.buzz(freq, gain, a, d, sus, r, rev, cutoff, pan);
 }
 

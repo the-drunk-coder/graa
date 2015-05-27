@@ -1,11 +1,13 @@
+JCRev lrev => dac.left;
+JCRev rrev => dac.right;
 
 // one-shot sine spork
-fun void sub(float freq, float gain, int a, int d, int sus, int r, float rev, float pan)
+fun void sub(UGen out_left, UGen out_right, float freq, float gain, int a, int d, int sus, int r, float rev, float pan)
 {
 	Noise n => BPF b => ResonZ res => ADSR e => Dyno dyn => Pan2 p;
 
-	p.left => JCRev lrev => dac.left;
-	p.right => JCRev rrev => dac.right;
+	p.left => out_left;
+	p.right => out_right;
 	
 	5 => b.gain;
 	freq => b.freq;
@@ -36,9 +38,6 @@ fun void sub(float freq, float gain, int a, int d, int sus, int r, float rev, fl
 	e.keyOff();
 	r::ms => now;
 
-	if(rev > 0.0){
-		2000::ms => now;
-	}
 }
 
 // create our OSC receiver
@@ -69,6 +68,6 @@ while( true )
 		oe.getFloat() => float rev;
 		oe.getFloat() => float pan;
 		
-		spork ~ sub(freq, gain, a, d, s, r, rev, pan);
+		spork ~ sub(lrev, rrev, freq, gain, a, d, s, r, rev, pan);
     }
 }

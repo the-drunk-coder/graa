@@ -1,12 +1,14 @@
+JCRev lrev => dac.left;
+JCRev rrev => dac.right;
 
 // one-shot sine spork
-fun void sine(float freq, float gain, int a, int d, int sus, int r, float rev, float pan)
+fun void sine(UGen out_left, UGen out_right, float freq, float gain, int a, int d, int sus, int r, float rev, float pan)
 {
 	SinOsc s => ADSR e => Dyno dyn => Pan2 p;
 
-	p.left => JCRev lrev => dac.left;
-	p.right => JCRev rrev => dac.right;
-
+	p.left => out_left;
+	p.right => out_right;
+	
 	pan => p.pan;
 	
 	rev => lrev.mix;
@@ -33,10 +35,7 @@ fun void sine(float freq, float gain, int a, int d, int sus, int r, float rev, f
 	sus::ms => now;
 	e.keyOff();
 	r::ms => now;
-
-	if(rev > 0.0){
-		2000::ms => now;
-	}
+	
 }
 
 // create our OSC receiver
@@ -67,6 +66,6 @@ while( true )
 		oe.getFloat() => float rev;
 		oe.getFloat() => float pan;
 		
-		spork ~ sine(freq, gain, a, d, s, r, rev, pan);
+		spork ~ sine(lrev, rrev, freq, gain, a, d, s, r, rev, pan);
     }
 }

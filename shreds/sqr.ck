@@ -1,14 +1,19 @@
+JCRev lrev => dac.left;
+JCRev rrev => dac.right;
+
 class MySqr{
 	SqrOsc sqrosc => LPF lp => ADSR e => Dyno dyn => Pan2 p;
 	ADSR filt => Gain fg => blackhole;
 	10 => fg.gain;
-
-	p.left => JCRev lrev => dac.left;
-	p.right => JCRev rrev => dac.right;
 	
 	Step s;
 	s => filt;
 	1 => s.next;
+	
+	fun void init(UGen out_left, UGen out_right){
+		p.left => out_left;
+		p.right => out_right;
+	}
 	
 	fun void sqr(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan) {	
 	
@@ -39,10 +44,6 @@ class MySqr{
 		e.keyOff();
 		filt.keyOff();	
 		r::ms => now;
-
-		if(rev > 0.0){
-			2000::ms => now;
-	    }
 	}
 
 	fun void filteradsr (time then, float freq, float cutoff) {
@@ -67,6 +68,7 @@ recv.event( "/sqr, f f i i i i f f f" ) @=> OscEvent @ oe;
 
 fun void sporkSqr(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan){
 	MySqr mysqr;
+	mysqr.init(lrev, rrev);
 	mysqr.sqr(freq, gain, a, d, sus, r, rev, cutoff, pan);
 }
 
