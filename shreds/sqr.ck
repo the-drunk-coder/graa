@@ -68,7 +68,11 @@ recv.event( "/sqr, f f i i i i f f f" ) @=> OscEvent @ oe;
 
 fun void sporkSqr(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan){
 	MySqr mysqr;
-	mysqr.init(lrev, rrev);
+	if(rev > 0.0){
+		mysqr.init(lrev, rrev);
+	} else {
+		mysqr.init(dac.left, dac.right);
+    }
 	mysqr.sqr(freq, gain, a, d, sus, r, rev, cutoff, pan);
 }
 

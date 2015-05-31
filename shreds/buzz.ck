@@ -63,7 +63,11 @@ class MyBuzzer {
 
 fun void sporkBuzzer(float freq, float gain, int a, int d, int sus, int r, float rev, float cutoff, float pan){
 	MyBuzzer buzzer;
-	buzzer.init(lrev, rrev);
+	if(rev > 0.0){
+		buzzer.init(lrev, rrev);
+	} else {
+		buzzer.init(dac.left, dac.right);
+    }	
 	buzzer.buzz(freq, gain, a, d, sus, r, rev, cutoff, pan);
 }
 

@@ -65,7 +65,10 @@ while( true )
 		oe.getInt() => int r;
 		oe.getFloat() => float rev;
 		oe.getFloat() => float pan;
-		
-		spork ~ sine(lrev, rrev, freq, gain, a, d, s, r, rev, pan);
+		if(rev > 0.0){
+			spork ~ sine(lrev, rrev, freq, gain, a, d, s, r, rev, pan);
+		} else {
+			spork ~ sine(dac.left, dac.right, freq, gain, a, d, s, r, rev, pan);
+        }
     }
 }
