@@ -54,8 +54,6 @@ SynthDef.new(\subtrev, { | freq, gain, a, d, s, r, pan, rev |
 	}
 ).store;
 
-Synth(\subtrev, ["freq", 800, "gain", 0.4, "a", 0.01, "d", 0.2,"s", 0.3, "r", 0.04, "rev", 0.2, "cutoff", 1000 , "pan", 0])
-
 SynthDef.new(\noiserev, { | gain, a, d, s, r, rev, pan |
 	var lim_gain = min(gain, 1.1);
 	var ampenv = Env([0, lim_gain, lim_gain*0.7, lim_gain*0.7, 0], [a, d, s, r]);
@@ -75,8 +73,6 @@ SynthDef.new(\sinerev, { | freq, gain, a, d, s, r, rev, pan |
 	Out.ar(0, Pan2.ar(revsnd, pan))
 	}
 ).store;
-
-UGen.dumpMethodList ;
 
 SynthDef.new(\buzzrev, { | freq, gain, a, d, s, r, rev, cutoff, pan |
 	var lim_cutoff = min(cutoff,15000);
