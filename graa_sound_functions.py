@@ -122,6 +122,12 @@ class sampl_info:
     sample_root = "/home/nik/REPOSITORIES/graa/samples"
     bufnum = 0
 
+def free_samples():
+    for sample in sampl_info.graa_samples:
+        scsynth_client.sendMsg("/b_free", sampl_info.graa_samples[sample])
+
+atexit.register(free_samples)
+
 def sampl(*args, **kwargs):
     """
     Play a sample or a part of it (with SC).
