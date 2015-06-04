@@ -26,8 +26,9 @@ First of all, you'll need Python3, on which graa> is based.
 
 Install the following backends as needed ...
 
-* Alex McLean's [Dirt sampler](https://github.com/tidalcycles/Dirt)
-* [ChucK](http://chuck.cs.princeton.edu/)
+(as of recently, i ditched the ChucK and dirt backends in favor of a unified backend based on SCSynth)
+
+* SuperCollider 3
 * MIDI Infrastructure
 
 #### Frontends to interact with graa>
@@ -58,10 +59,9 @@ Now you should be ready to use graa> !
 ## Usage
 
 First of all, start the backends, and, if needed, patch up MIDI.
-The ChucK shreds currently need to be started manually (go to shreds folder and run 'chuck a.ck b.ck ...').
+Start scsynth (default port) and, if you haved done so, load the file 'graa_synth.scd' to get the synthdefs.
 
-If you want to use Linuxsampler (i use it quite often for piano samples), make sure to avoid the port conflict with
-ChucK, as both use port 8888 per default.
+If you want to use Linuxsampler (i use it quite often for piano samples), make sure there are no port conflicts.
 
 Then, start graa> itself.
 * Load a graa> file with emacs (there are some in the examples folder you can check out)
