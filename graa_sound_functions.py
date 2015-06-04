@@ -14,64 +14,6 @@ from graa_structures import GraaNote as gnote
 
 
 """
-Output "routes" to dirt ...
-
-"""
-
-dc = []
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44442))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44448))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44454))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44460))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44466))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44472))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44476))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44482))
-dc.append(dirt_client.UDPClient("127.0.0.1", 7771, 44488))
-
-def dirt(*args, **kwargs):
-    """
-    Procedure to send an event to Alex McLean's marvellous dirt sample player!
-
-    The dirt player takes osc messages as input, via udp, on port 7771
-
-    Each source port is interpretad as an output to dirt ...
-
-    """
-    msg = osc_message_builder.OscMessageBuilder(address = "/play")
-    msg.add_arg(int(time.time()))
-    msg.add_arg(datetime.datetime.now().microsecond + 4)
-    msg.add_arg(0)
-    msg.add_arg(args[1] + ":" + str(args[2])) #sample name:number
-    msg.add_arg(float(kwargs.get('offset', 0.0)))
-    msg.add_arg(float(kwargs.get('begin', 0.0)))
-    msg.add_arg(float(kwargs.get('end', 1.0)))
-    msg.add_arg(float(kwargs.get('speed', 1.0)))
-    msg.add_arg(float(kwargs.get('pan', 0.5)))
-    msg.add_arg(float(kwargs.get('velocity', 0.0)))
-    msg.add_arg(kwargs.get('vowel', ' '))
-    msg.add_arg(float(kwargs.get('cutoff', 0.0)))
-    msg.add_arg(float(kwargs.get('resonance', 0.0)))
-    msg.add_arg(float(kwargs.get('accelerate', 0.0)))
-    msg.add_arg(float(kwargs.get('shape', 0.0)))
-    msg.add_arg(int(kwargs.get('kriole_chunk', 0)))
-    msg.add_arg(float(kwargs.get('gain', 1.0)))
-    msg.add_arg(int(kwargs.get('cutgroup', 0)))
-    msg.add_arg(float(kwargs.get('delay', 0.0)))
-    msg.add_arg(float(kwargs.get('delaytime', -1.0)))
-    msg.add_arg(float(kwargs.get('delayfeedback', -1.0)))
-    msg.add_arg(float(kwargs.get('crush', 0.0)))
-    msg.add_arg(int(kwargs.get('coarse', 0)))
-    msg.add_arg(float(kwargs.get('hcutoff', 0.0)))
-    msg.add_arg(float(kwargs.get('hresonance', 0.0)))
-    msg.add_arg(float(kwargs.get('bandf', 0.0)))
-    msg.add_arg(float(kwargs.get('bandq', 0.0)))
-    msg = msg.build()
-    dc[int(args[0])].send(msg)
-    log.beat("sample: {}, out: {}".format(args[1] + ":" + str(args[2]), args[0]))
-    
-
-"""
 
 Midi (Disklavier) function, midi with "collision detection":
 
@@ -118,56 +60,44 @@ def disk(*args, **kwargs):
 
 
 """
-Synthetic sounds, created with the ChucK backend ... so, yes, you need ChucK installed!
+Synthetic sounds, created with the SC3 backend ... so, yes, you need SuperCollider installed!
 """
 
-# Collect shreds ...
 
-# shreds = for file in listdir("./shreds"):
-
-# Start chuck with respective shreds
-
-
-# Client to send OSC stuff to ChucK 
-chuck_client = dirt_client.UDPClient("127.0.0.1", 6449, 54442)
+# Client to send OSC stuff to SCSynth 
+scsynth_client = dirt_client.UDPClient("127.0.0.1", 57110, 54442)
 
 def sine(*args, **kwargs):
     """
-    Play a sine wave (with ChucK).
+    Play a sine wave (with SCSynth).
     """
+    # Gather % Process Information
     freq = None
     if type(args[0]) is gnote:
-        freq = args[0].pitch.frequency
+        freq = float(args[0].pitch.frequency)
     else:
-        freq = args[0]    
+        freq = float(args[0] )
     gain = float(kwargs.get("gain", 0.5))
-    #gain = gain * 0.46
     sus = args[1]
-    attack = kwargs.get("a", max(4, min(50, sus*0.25)));
-    decay = kwargs.get("d", 0);
-    release = kwargs.get("r", max(4, min(50, sus*0.1)));
-    rev = kwargs.get("rev", 0.0)
+    attack = float(kwargs.get("a", max(4, min(50, sus*0.25))) / 1000)
+    decay = float(kwargs.get("d", 5) / 1000)
+    release = float(kwargs.get("r", max(4, min(50, sus*0.1))) / 1000)
+    rev = float(kwargs.get("rev", 0.0))
+    synth_name = "sine"
+    if(rev > 0.0):
+        synth_name = "sinerev"
     pan = kwargs.get("pan", 0.5)
     pan = float((pan * 2) - 1) 
-    sus = sus - attack - decay - release
+    sus = float((sus - attack - decay - release) / 1000)   
     if sus <= 0:
         log.action("sine duration too short!")
-    msg = osc_message_builder.OscMessageBuilder(address = "/sine")
-    msg.add_arg(float(freq));
-    msg.add_arg(gain);
-    msg.add_arg(int(attack))
-    msg.add_arg(int(decay))
-    msg.add_arg(int(sus))
-    msg.add_arg(int(release))        
-    msg.add_arg(float(rev))
-    msg.add_arg(pan)
-    msg = msg.build()
-    chuck_client.send(msg)
+    # send message
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "freq", freq, "gain", gain, "a", attack, "d", decay, "s", sus, "r", release, "rev", rev, "pan", pan)
 # end sine()
 
 def nois(*args, **kwargs):
     """
-    Play a white noise (with ChucK).
+    Play a white noise (with SC).
     """    
     gain = float(kwargs.get("gain", 0.5))    
     sus = args[0]
@@ -175,111 +105,61 @@ def nois(*args, **kwargs):
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
     rev = kwargs.get("rev", 0.0)
-    pan = kwargs.get("pan", 0.5)
-    pan = float((pan * 2) - 1) 
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
     sus = sus - attack - decay - release
     if sus <= 0:
         log.action("nois duration too short!")
-    msg = osc_message_builder.OscMessageBuilder(address = "/nois")
-    msg.add_arg(gain);
-    msg.add_arg(int(attack))
-    msg.add_arg(int(decay))
-    msg.add_arg(int(sus))
-    msg.add_arg(int(release))        
-    msg.add_arg(float(rev))
-    msg.add_arg(pan)
-    msg = msg.build()
-    chuck_client.send(msg)
+    synth_name = "noise"
+    if(rev > 0.0):
+        synth_name = "noiserev"
+    # send message
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "gain", gain, "a", attack, "d", decay, "s", sus, "r", release, "rev", rev, "pan", pan)
 # end noiz()
 
-def grain(*args, **kwargs):
-    """
-    Play a grain from a sample (with ChucK).
-    """
-    path = str(args[0])
-    start = float(args[1])
-    length = int(args[2])
-    gain = float(kwargs.get("gain", 0.5))
-    speed = float(kwargs.get("speed", 1.0))          
-    rev = float (kwargs.get("rev", 0.0))    
-    msg = osc_message_builder.OscMessageBuilder(address = "/grain")
-    msg.add_arg(path)
-    msg.add_arg(start)
-    msg.add_arg(length)
-    msg.add_arg(gain)
-    msg.add_arg(speed)        
-    msg.add_arg(rev)    
-    msg = msg.build()
-    chuck_client.send(msg)
-# end grain()
+# dict mapping samplename to bufnum
+class sampl_info:
+    graa_samples = {}
+    sample_root = "/home/nik/REPOSITORIES/graa/samples"
+    bufnum = 0
 
-def grainB(*args, **kwargs):
+def sampl(*args, **kwargs):
     """
-    Play a grain from a sample (with ChucK).
+    Play a sample or a part of it (with SC).
     """
-    path = str(args[0])
-    start = float(args[1])
-    length = int(args[2])
-    gain = float(kwargs.get("gain", 0.5))
-    speed = float(kwargs.get("speed", 1.0))          
-    rev = float (kwargs.get("rev", 0.0))    
-    msg = osc_message_builder.OscMessageBuilder(address = "/grainb")
-    msg.add_arg(path)
-    msg.add_arg(start)
-    msg.add_arg(length)
-    msg.add_arg(gain)
-    msg.add_arg(speed)        
-    msg.add_arg(rev)    
-    msg = msg.build()
-    chuck_client.send(msg)
-# end grainB()
-
-def grainC(*args, **kwargs):
-    """
-    Play a grain from a sample (with ChucK).
-    """
-    path = str(args[0])
-    start = float(args[1])
-    length = int(args[2])
-    gain = float(kwargs.get("gain", 0.5))
-    speed = float(kwargs.get("speed", 1.0))          
-    rev = float (kwargs.get("rev", 0.0))    
-    msg = osc_message_builder.OscMessageBuilder(address = "/grainc")
-    msg.add_arg(path)
-    msg.add_arg(start)
-    msg.add_arg(length)
-    msg.add_arg(gain)
-    msg.add_arg(speed)        
-    msg.add_arg(rev)    
-    msg = msg.build()
-    chuck_client.send(msg)
-# end grainC()
-
-def grainD(*args, **kwargs):
-    """
-    Play a grain from a sample (with ChucK).
-    """
-    path = str(args[0])
-    start = float(args[1])
-    length = int(args[2])
-    gain = float(kwargs.get("gain", 0.5))
-    speed = float(kwargs.get("speed", 1.0))          
-    rev = float (kwargs.get("rev", 0.0))    
-    msg = osc_message_builder.OscMessageBuilder(address = "/graind")
-    msg.add_arg(path)
-    msg.add_arg(start)
-    msg.add_arg(length)
-    msg.add_arg(gain)
-    msg.add_arg(speed)        
-    msg.add_arg(rev)    
-    msg = msg.build()
-    chuck_client.send(msg)
-# end grainD()
+    folder = str(args[0])
+    name = str(args[1])
+    sample_id = folder + ":" + name
+    speed = float(kwargs.get("speed", 1.0))
+    rev = float(kwargs.get("rev", 0.0))
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1)
+    cutoff = float(kwargs.get("cutoff", 20000))
+    gain = float(kwargs.get("gain", 1.0))
+    start = float(kwargs.get("start", 0.0))
+    length = float(kwargs.get("length", 0) / 1000)
+    if rev > 0.0:
+        if length > 0.0:
+            synth_name="grainrev"
+        else:
+            synth_name="samplrev"
+    else:
+        if length > 0.0:
+            synth_name="grain"
+        else:
+            synth_name="sampl"
+    #print(synth_name + ":" + str(length))
+    if sample_id not in sampl_info.graa_samples:
+        sample_path = sampl_info.sample_root + "/" + folder + "/" + name + ".wav"
+        # create buffer on scsynth
+        scsynth_client.sendMsg("/b_allocRead", sampl_info.bufnum, sample_path)
+        sampl_info.graa_samples[sample_id] = sampl_info.bufnum
+        sampl_info.bufnum += 1
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "bufnum", sampl_info.graa_samples[sample_id], "speed", speed, "rev", rev, "pan", pan, "cutoff", cutoff, "gain", gain, "start", start, "length", length)
+# end sampl()
 
 
 def subt(*args, **kwargs):    
     """
-    Play a subtractive synth sound (with ChucK).
+    Play a subtractive synth sound (with SC).
     """
     freq = None
     if type(args[0]) is gnote:
@@ -292,65 +172,50 @@ def subt(*args, **kwargs):
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
     rev = kwargs.get("rev", 0.0)
-    pan = kwargs.get("pan", 0.5)
-    pan = float((pan * 2) - 1) 
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
     sus = sus - attack - decay - release
     if sus <= 0:
         log.action("subt duration too short!")
-    msg = osc_message_builder.OscMessageBuilder(address = "/sub")
-    msg.add_arg(float(freq));
-    msg.add_arg(gain);
-    msg.add_arg(int(attack))
-    msg.add_arg(int(decay))
-    msg.add_arg(int(sus))
-    msg.add_arg(int(release))
-    msg.add_arg(float(rev));
-    msg.add_arg(pan);
-    msg = msg.build()
-    chuck_client.send(msg)
+    synth_name = "subt"
+    if(rev > 0.0):
+        synth_name = "subtrev"
+    # send message
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "gain", gain, "a", attack, "d", decay, "s", sus, "r", release, "rev", rev, "pan", pan) 
 # end subt()
 
 
 def buzz(*args, **kwargs):
     """
-    Play a buzz bass synth sound (with ChucK).
-    """
-    freq = None
+    Play a buzz bass synth sound (with SC).
+    """  
     if type(args[0]) is gnote:
         freq = args[0].pitch.frequency
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))    
     sus = args[1]
-    attack = kwargs.get("a", max(4, min(30, sus*0.1)));
-    decay = kwargs.get("d", max(4, min(30, sus*0.25)));
-    release = kwargs.get("r", max(4, min(50, sus*0.1)));    
-    sus = sus - attack - decay - release
+    attack = kwargs.get("a", max(4, min(30, sus*0.1))) / 1000
+    decay = kwargs.get("d", max(4, min(30, sus*0.25))) / 1000
+    release = kwargs.get("r", max(4, min(50, sus*0.1))) / 1000
+    sus = (sus - attack - decay - release) / 1000
     rev = kwargs.get("rev", 0.0)
-    cutoff = kwargs.get("cutoff", 1.0)
-    pan = kwargs.get("pan", 0.5)
-    pan = float((pan * 2) - 1) 
+    cutoff = kwargs.get("cutoff", freq)
+    if type(cutoff) is gnote:
+        cutoff = cutoff.pitch.frequency
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
     if sus <= 0:
-        log.action("sine duration too short!")
-    msg = osc_message_builder.OscMessageBuilder(address = "/buzz")
-    #print("f {} g {} a {} d {} s {} r {}".format(freq, gain, attack, decay, sus, release))
-    msg.add_arg(float(freq))
-    msg.add_arg(gain)
-    msg.add_arg(int(attack))
-    msg.add_arg(int(decay))
-    msg.add_arg(int(sus))
-    msg.add_arg(int(release))
-    msg.add_arg(float(rev))
-    msg.add_arg(float(cutoff))
-    msg.add_arg(pan)
-    msg = msg.build()
-    chuck_client.send(msg)
+        log.action("sine duration too short!")    
+    if rev > 0.0:
+        synth_name="buzzrev"
+    else:
+        synth_name="buzz"    
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "freq", freq, "gain", gain, "a", attack, "d", decay, "s", sus, "r", release, "rev", rev, "pan", pan, "cutoff", cutoff)
 # end buzz()
 
 
 def sqr(*args, **kwargs):
     """
-    Play a square wave synth sound (with ChucK).
+    Play a sqr bass synth sound (with SC).
     """
     freq = None
     if type(args[0]) is gnote:
@@ -359,29 +224,22 @@ def sqr(*args, **kwargs):
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))    
     sus = args[1]
-    attack = kwargs.get("a", max(4, min(30, sus*0.1)));
-    decay = kwargs.get("d", max(4, min(30, sus*0.25)));
-    release = kwargs.get("r", max(4, min(50, sus*0.1)));    
-    sus = sus - attack - decay - release
+    attack = kwargs.get("a", max(4, min(30, sus*0.1))) / 1000
+    decay = kwargs.get("d", max(4, min(30, sus*0.25))) / 1000
+    release = kwargs.get("r", max(4, min(50, sus*0.1))) / 1000
+    sus = (sus - attack - decay - release) / 1000
     rev = kwargs.get("rev", 0.0)
-    cutoff = kwargs.get("cutoff", 1.0)
-    pan = kwargs.get("pan", 0.5)
-    pan = float((pan * 2) - 1) 
+    cutoff = kwargs.get("cutoff", freq)
+    if type(cutoff) is gnote:
+        cutoff = cutoff.pitch.frequency
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
     if sus <= 0:
         log.action("sine duration too short!")
-    msg = osc_message_builder.OscMessageBuilder(address = "/sqr")
-    #print("f {} g {} a {} d {} s {} r {}".format(freq, gain, attack, decay, sus, release))
-    msg.add_arg(float(freq))
-    msg.add_arg(gain)
-    msg.add_arg(int(attack))
-    msg.add_arg(int(decay))
-    msg.add_arg(int(sus))
-    msg.add_arg(int(release))
-    msg.add_arg(float(rev))
-    msg.add_arg(float(cutoff))
-    msg.add_arg(pan) 
-    msg = msg.build()
-    chuck_client.send(msg)
+    if rev > 0.0:
+        synth_name="sqrrev"
+    else:
+        synth_name="sqr"    
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "freq", freq, "gain", gain, "a", attack, "d", decay, "s", sus, "r", release, "rev", rev, "pan", pan, "cutoff", cutoff)
 # end sqr()
 
 
