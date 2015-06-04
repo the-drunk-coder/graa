@@ -2,10 +2,9 @@
 
 Client to send OSC datagrams to an OSC server via UDP.
 
-To faciliate usage with dirt sampler, source port can be specified.
-
 """
 import socket
+from pythonosc import osc_message_builder
 
 class UDPClient(object):
     """OSC client to send OscMessages or OscBundles via UDP."""
@@ -23,7 +22,11 @@ class UDPClient(object):
         self._address = address
         self._port = port
         self._sock.bind(("127.0.0.1", src_port))
-    def send(self, content):
+    def sendMsg(self, *args):
         """Sends an OscBundle or OscMessage to the server."""
-        self._sock.sendto(content.dgram, (self._address, self._port))
+        msg = osc_message_builder.OscMessageBuilder(address = args[0])
+        for arg in args[1:]:
+            msg.add_arg(arg)
+        msg = msg.build()
+        self._sock.sendto(msg.dgram, (self._address, self._port))
             
