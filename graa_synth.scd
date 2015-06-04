@@ -104,7 +104,7 @@ SynthDef(\sampl, {| bufnum, gain, start, rev, pan, cutoff, speed |
 	var lim_cutoff = min(cutoff, 20000);
 	var lim_gain = min(gain, 1.1);
 	var length = BufDur.ir(bufnum);
-	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, length * 44100 * start,  doneAction:2), cutoff);
+	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, length * 44100 * start,  doneAction:2), cutoff) * gain;
 	Out.ar(0, Pan2.ar(sampl, pan));
 	}
 ).store;
