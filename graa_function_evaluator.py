@@ -79,17 +79,27 @@ def func_eval(orig_type, func, local_vars):
             ret = orig_type(getattr(graa_language_functions, func.name)(*trans_args, **trans_kwargs))
         elif func.func_type == "~":
             ret = orig_type(getattr(graa_sound_functions, func.name)(*trans_args, **trans_kwargs))
+        elif func.func_type == "§":
+            ret = orig_type(getattr(__main__, func.name)(*trans_args, **trans_kwargs))
         else:
-            ret = orig_type(eval(func.name)(*trans_args, **trans_kwargs))
+            try:
+                ret = orig_type(eval(func.name)(*trans_args, **trans_kwargs))
+            except:
+                ret = orig_type(getattr(__main__, func.name)(*trans_args, **trans_kwargs))
         #print("RET " + str(ret))
         return ret    
     else:
-        if func.func_type == "#":
+        if func.func_type == "#":            
             ret = getattr(graa_language_functions, func.name)(*trans_args, **trans_kwargs)
         elif func.func_type == "~":
             ret = getattr(graa_sound_functions, func.name)(*trans_args, **trans_kwargs)
+        elif func.func_type == "§":
+            ret = getattr(__main__, func.name)(*trans_args, **trans_kwargs)
         else:
-            ret = eval(func.name)(*trans_args, **trans_kwargs)
+            try:
+                ret = eval(func.name)(*trans_args, **trans_kwargs)
+            except:
+                ret = getattr(__main__, func.name)(*trans_args, **trans_kwargs)
         #print("VOIDRET " + str(ret))
         return ret
 

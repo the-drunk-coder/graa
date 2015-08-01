@@ -8,6 +8,8 @@ from graa_scheduler import GraaScheduler as scheduler
 from graa_dispatcher import GraaDispatcher as dispatcher
 from graa_dispatcher import DispatcherError
 from graa_parser import GraaParser as parser
+#again, the dirty old hack ... 
+import __main__
 
 def start_graa():
     """Initialize the graa> session."""    
@@ -338,3 +340,15 @@ def status():
         for pl_key in session.players[key].permalays:
             playline += "'" + str(pl_key) + "' "
         log.shell(playline)
+# end status()
+
+# change a variable in the main context
+#def setvar(var, value):
+#    #print(var, value)
+#    setattr(__main__, var, value)
+
+#basically the same, just for the sake of clarity
+def inject(function):
+    setattr(__main__, function.__name__, function)
+    
+
