@@ -28,19 +28,9 @@ def hypergeo(val, func, inc, cyc, bigm, bign):
         return func
     else:
         return val
-    
-def rndvow():
-    """
-    Return a random vowel. Only really necessary for the vowel filter included in Dirt.
-    """
-    return random.choice(['a', 'e', 'i', 'o', 'u'])
 
-def stepvow(step):
-    """
-    Return a vowel accorind to a step. Only really necessary for the vowel filter included in Dirt.
-    """
-    vowels = ['a', 'e', 'i', 'o', 'u']
-    return vowels[step % 5]
+def rndrange(a, b):
+    return random.randrange(a,b)
 
 def mod(i, j):
     return i % j
