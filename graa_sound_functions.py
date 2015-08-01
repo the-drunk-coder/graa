@@ -67,6 +67,8 @@ Synthetic sounds, created with the SC3 backend ... so, yes, you need SuperCollid
 # Client to send OSC stuff to SCSynth 
 scsynth_client = dirt_client.UDPClient("127.0.0.1", 57110, 54442)
 
+scsynth_client.sendMsg("/g_new", 1, 0, 0)
+
 def sine(*args, **kwargs):
     """
     Play a sine wave (with SCSynth).
