@@ -164,6 +164,40 @@ def sampl(*args, **kwargs):
     scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "bufnum", sampl_info.graa_samples[sample_id], "speed", speed, "rev", rev, "pan", pan, "cutoff", cutoff, "gain", gain, "start", start, "length", length)
 # end sampl()
 
+def sampl8(*args, **kwargs):
+    """
+    Play a sample or a part of it (with SC), with 8-Channel panning
+    """
+    folder = str(args[0])
+    name = str(args[1])
+    sample_id = folder + ":" + name
+    speed = float(kwargs.get("speed", 1.0))
+    rev = float(kwargs.get("rev", 0.0))
+    pan = float((kwargs.get("pan", 0.0)))
+    cutoff = float(kwargs.get("cutoff", 20000))
+    gain = float(kwargs.get("gain", 1.0))
+    start = float(kwargs.get("start", 0.0))
+    length = float(kwargs.get("length", 0) / 1000)
+    if rev > 0.0:
+        if length > 0.0:
+            synth_name="grain8rev"
+        else:
+            synth_name="sampl8rev"
+    else:
+        if length > 0.0:
+            synth_name="grain8"
+        else:
+            synth_name="sampl8"
+    #print(synth_name + ":" + str(length))
+    if sample_id not in sampl_info.graa_samples:
+        sample_path = sampl_info.sample_root + "/" + folder + "/" + name + ".wav"
+        # create buffer on scsynth
+        scsynth_client.sendMsg("/b_allocRead", sampl_info.bufnum, sample_path)
+        sampl_info.graa_samples[sample_id] = sampl_info.bufnum
+        sampl_info.bufnum += 1
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "bufnum", sampl_info.graa_samples[sample_id], "speed", speed, "rev", rev, "pan", pan, "cutoff", cutoff, "gain", gain, "start", start, "length", length)
+# end sampl()
+
 
 def subt(*args, **kwargs):    
     """

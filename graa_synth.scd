@@ -140,3 +140,45 @@ SynthDef(\grainrev, {| bufnum, gain, start, length, rev, pan, cutoff, speed |
 	Out.ar(0, Pan2.ar(revsampl, pan));
 	}
 ).store;
+
+// 8-Channel versions of sampl and grain ... channels ('pan' argument) reach from 0 to 7
+SynthDef(\sampl8, {| bufnum, gain, start, rev, pan, cutoff, speed |
+	var lim_cutoff = min(cutoff, 20000);
+	var lim_gain = min(gain, 1.1);
+	var length = BufDur.ir(bufnum);
+	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, length * 44100 * start,  doneAction:2), cutoff) * gain;
+	Out.ar(0, PanAz.ar(8, sampl, pan * 0.25, orientation:0));
+	}
+).store;
+
+SynthDef(\sampl8rev, {| bufnum, gain, start, rev, pan, cutoff, speed |
+	var lim_cutoff = min(cutoff,20000);
+	var lim_gain = min(gain, 1.1);
+	var length =  BufDur.ir(bufnum);
+	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [0.004, length - 0.008, 0.004]);
+	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed), cutoff) * EnvGen.ar(cutenv);
+	var revsampl = FreeVerb.ar(sampl, mix:rev, room:0.6);
+	DetectSilence.ar(revsampl, doneAction:2);
+	Out.ar(0, PanAz.ar(8, revsampl, pan * 0.25, orientation:0));
+	}
+).store;
+
+SynthDef(\grain8, {| bufnum, gain, start, length, rev, pan, cutoff, speed |
+	var lim_cutoff = min(cutoff, 20000);
+	var lim_gain = min(gain, 1.1);
+	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [0.004, length - 0.008, 0.004]);
+	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, startPos: BufDur.ir(bufnum) * 44100 * start), cutoff) * EnvGen.ar(cutenv, doneAction:2);
+	Out.ar(0, PanAz.ar(8, sampl, pan * 0.25, orientation:0));
+	}
+).store;
+
+SynthDef(\grain8rev, {| bufnum, gain, start, length, rev, pan, cutoff, speed |
+	var lim_cutoff = min(cutoff,20000);
+	var lim_gain = min(gain, 1.1);
+	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [0.004, length - 0.008, 0.004]);
+	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, startPos: BufDur.ir(bufnum) * 44100 * start), cutoff) * EnvGen.ar(cutenv);
+	var revsampl = FreeVerb.ar(sampl, mix:rev, room:0.6);
+	DetectSilence.ar(revsampl, doneAction:2);
+	Out.ar(0, PanAz.ar(8, revsampl, pan * 0.25, orientation:0));
+	}
+).store;
