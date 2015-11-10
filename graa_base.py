@@ -91,6 +91,9 @@ class GraaPlayer():
                 self.sched_next_node(permalay_infos[1], overlay_infos[1], permalay_infos[2])
                 #print("Current Node: " + str(current_node))
                 self.eval_node(current_node, permalay_infos[0], overlay_infos[0])
+                # increment player copy's step counter ... this is a little different than the node steps for the overlays,
+                # but here, it's simpler to do it that way ...
+                self.player_copy.steps = self.player_copy.steps + 1
             except Exception as e:                    
                 log.action("Couldn't schedule next node for graph {}, ending!".format(self.graph_id))           
                 self.active = False
@@ -182,7 +185,7 @@ class GraaPlayer():
                             elif ol_slot == "unmute":
                                 node.mute_mask[slot_index] = False
                         elif type(ol_slot) is Func:
-                            async = threading.Thread(target=func_eval, args=(None, ol_slot, {"$time":session.now}))
+                            async = threading.Thread(target=func_eval, args=(None, ol_slot, {"time":session.now}))
                             async.start()
                         else:
                             #print("perma")
@@ -212,7 +215,7 @@ class GraaPlayer():
                             elif ol_slot == "unmute":
                                 trans_mute_mask[slot_index] = False
                         elif type(ol_slot) is Func:
-                            async = threading.Thread(target=func_eval, args=(None, ol_slot, {"$time":session.now}))
+                            async = threading.Thread(target=func_eval, args=(None, ol_slot, {"time":session.now}))
                             async.start()
                         else:
                             #print("over")
@@ -225,7 +228,7 @@ class GraaPlayer():
             for func in trans_func:
                 if type(func) is Func:
                     if not trans_mute_mask[slot_index]:
-                        async = threading.Thread(target=func_eval, args=(None, func, {"$time":session.now}))
+                        async = threading.Thread(target=func_eval, args=(None, func, {"time":session.now, "step":self.player_copy.steps}))
                         async.start()
                 slot_index += 1                        
         except:

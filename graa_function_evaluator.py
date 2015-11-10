@@ -17,7 +17,7 @@ import __main__
 
 def process_arguments(func, arg_funcs, step):
     #print("PROC " + str(func))
-    #print(func)
+    #print(step)
     for i in range(0, len(func.args)):
         key = "$" + str(i+1) 
         if key in arg_funcs:

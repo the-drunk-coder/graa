@@ -10,6 +10,7 @@ def binomial(x, y):
 # some distribution functions ... 
 def poisson(val, func, inc, cyc, lamb):    
     "Function eval by poisson distribution over a certain cyclicity"
+    #print(str(inc) + ":" + str(cyc))
     index = int(inc % cyc)
     prob = (pow(lamb, index) / math.factorial(index)) * math.exp(-lamb)
     random.seed()
