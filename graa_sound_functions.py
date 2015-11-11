@@ -164,7 +164,7 @@ def sampl(*args, **kwargs):
     scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "bufnum", sampl_info.graa_samples[sample_id], "speed", speed, "rev", rev, "pan", pan, "cutoff", cutoff, "gain", gain, "start", start, "length", length)
 # end sampl()
 
-def sampl8(*args, **kwargs):
+def sampl8ch(*args, **kwargs):
     """
     Play a sample or a part of it (with SC), with 8-Channel panning
     """
@@ -174,6 +174,7 @@ def sampl8(*args, **kwargs):
     speed = float(kwargs.get("speed", 1.0))
     rev = float(kwargs.get("rev", 0.0))
     pan = float((kwargs.get("pan", 0.0)))
+    print(pan)
     cutoff = float(kwargs.get("cutoff", 20000))
     gain = float(kwargs.get("gain", 1.0))
     start = float(kwargs.get("start", 0.0))
