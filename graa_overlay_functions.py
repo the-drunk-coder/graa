@@ -33,6 +33,9 @@ def hypergeo(val, func, inc, cyc, bigm, bign):
 def rndrange(a, b):
     return random.randrange(a,b)
 
+def rndarg(*args):
+    return random.choice(args)
+
 def mod(i, j):
     return i % j
 
