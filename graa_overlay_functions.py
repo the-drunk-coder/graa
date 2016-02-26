@@ -80,6 +80,20 @@ def brownian(val, inc):
     #print("br RET " + str(val))
     return val
 
+
+def tline(orig, goal, steps, curr_step):
+    diff = goal - orig;
+    if curr_step >= steps:
+        return goal
+    step_diff = steps - curr_step
+    step_size = diff / steps
+    #print(steps)
+    #print(curr_step)
+    #print(step_diff)
+    #print(orig + (step_diff * step_size))
+    return orig + (curr_step * step_size)
+    
+
 def bounds(val, bounda, boundb):
     #print("bounds")
     """
