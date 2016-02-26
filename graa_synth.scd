@@ -121,19 +121,19 @@ SynthDef(\samplrev, {| bufnum, gain, start, rev, pan, cutoff, speed |
 	}
 ).store;
 
-SynthDef(\grain, {| bufnum, gain, start, length, rev, pan, cutoff, speed |
+SynthDef(\grain, {| bufnum, gain, start, length, a, r, rev, pan, cutoff, speed |
 	var lim_cutoff = min(cutoff, 20000);
 	var lim_gain = min(gain, 1.1);
-	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [0.004, length - 0.008, 0.004]);
+	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [a, length, r]);
 	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, startPos: BufDur.ir(bufnum) * 44100 * start), cutoff) * EnvGen.ar(cutenv, doneAction:2);
 	Out.ar(0, Pan2.ar(sampl, pan));
 	}
 ).store;
 
-SynthDef(\grainrev, {| bufnum, gain, start, length, rev, pan, cutoff, speed |
+SynthDef(\grainrev, {| bufnum, gain, start, length, a, r, rev, pan, cutoff, speed |
 	var lim_cutoff = min(cutoff,20000);
 	var lim_gain = min(gain, 1.1);
-	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [0.004, length - 0.008, 0.004]);
+	var cutenv = Env.new([0, lim_gain, lim_gain, 0], [a, length, r]);
 	var sampl = LPF.ar(PlayBuf.ar(1, bufnum, speed, 1, startPos: BufDur.ir(bufnum) * 44100 * start), cutoff) * EnvGen.ar(cutenv);
 	var revsampl = FreeVerb.ar(sampl, mix:rev, room:0.6);
 	DetectSilence.ar(revsampl, doneAction:2);

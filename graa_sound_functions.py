@@ -143,7 +143,12 @@ def sampl(*args, **kwargs):
     cutoff = float(kwargs.get("cutoff", 20000))
     gain = float(kwargs.get("gain", 1.0))
     start = float(kwargs.get("start", 0.0))
-    length = float(kwargs.get("length", 0) / 1000)
+    a_ms = kwargs.get("a", 4)
+    r_ms = kwargs.get("r", 4)
+    l_ms = kwargs.get("length", 0) - a_ms - r_ms
+    release = float(r_ms / 1000)
+    attack = float(a_ms / 1000)
+    length = float(l_ms / 1000)
     if rev > 0.0:
         if length > 0.0:
             synth_name="grainrev"
@@ -174,7 +179,7 @@ def sampl8ch(*args, **kwargs):
     speed = float(kwargs.get("speed", 1.0))
     rev = float(kwargs.get("rev", 0.0))
     pan = float((kwargs.get("pan", 0.0)))
-    print(pan)
+    #print(pan)
     cutoff = float(kwargs.get("cutoff", 20000))
     gain = float(kwargs.get("gain", 1.0))
     start = float(kwargs.get("start", 0.0))
