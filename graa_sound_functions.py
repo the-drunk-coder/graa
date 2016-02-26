@@ -146,9 +146,11 @@ def sampl(*args, **kwargs):
     a_ms = kwargs.get("a", 4)
     r_ms = kwargs.get("r", 4)
     l_ms = kwargs.get("length", 0) - a_ms - r_ms
+    #print("a: " + str(a_ms) + " l: " + str(l_ms) + " r: " + str(r_ms)) 
     release = float(r_ms / 1000)
     attack = float(a_ms / 1000)
     length = float(l_ms / 1000)
+    #print("a sc: " + str(attack) + " l sc: " + str(length) + " r sc: " + str(release)) 
     if rev > 0.0:
         if length > 0.0:
             synth_name="grainrev"
@@ -166,7 +168,7 @@ def sampl(*args, **kwargs):
         scsynth_client.sendMsg("/b_allocRead", sampl_info.bufnum, sample_path)
         sampl_info.graa_samples[sample_id] = sampl_info.bufnum
         sampl_info.bufnum += 1
-    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "bufnum", sampl_info.graa_samples[sample_id], "speed", speed, "rev", rev, "pan", pan, "cutoff", cutoff, "gain", gain, "start", start, "length", length)
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "bufnum", sampl_info.graa_samples[sample_id], "speed", speed, "rev", rev, "pan", pan, "cutoff", cutoff, "gain", gain, "start", start, "length", length, "a", attack, "r", release)
 # end sampl()
 
 def sampl8ch(*args, **kwargs):
