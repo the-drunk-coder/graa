@@ -179,6 +179,7 @@
   (define-key map [?\C-c ?\C-x] 'graa-expand-line)
   (define-key map [?\C-c ?\C-a] 'graa-run-multiple-lines)
   (define-key map (kbd "<C-return>") 'graa-run-multiple-lines)
+  (define-key map [?\C-c ?\ä] 'graa-run-multiple-lines)
   (define-key map [?\C-c ?\C-i] 'graa-interrupt)
   )
 
@@ -188,8 +189,10 @@
   (local-set-key [?\C-c ?\C-v] 'graa-see-output)
   (local-set-key [?\C-c ?\C-q] 'graa-quit)
   (local-set-key [?\C-c ?\C-c] 'graa-run-line)
+  (local-set-key [?\C-c ?\C-x] 'graa-expand-line)
   (local-set-key [?\C-c ?\C-a] 'graa-run-multiple-lines)
-  (local-set-key (kbd "<C-return>") 'graa-run-multiple-lines)  
+  (local-set-key (kbd "<C-return>") 'graa-run-multiple-lines)
+  (local-set-key [?\C-c ?\ä] 'graa-run-multiple-lines)  
   (local-set-key [?\C-c ?\C-i] 'graa-interrupt)
   )
 
