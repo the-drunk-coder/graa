@@ -7,7 +7,7 @@ def binomial(x, y):
         binom = 0
     return binom
 
-# some distribution functions ... 
+# some distribution functions ...
 def poisson(val, func, inc, cyc, lamb):    
     "Function eval by poisson distribution over a certain cyclicity"
     #print(str(inc) + ":" + str(cyc))

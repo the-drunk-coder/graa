@@ -45,8 +45,8 @@ def disk(*args, **kwargs):
     Can be used with disklavier, as there won't be two notes played at the same time.
     """
     play_note = args[0]
-    play_note.vel = args[2]
-    play_note.absolute_duration = args[1]
+    play_note.vel = int(127.0 * kwargs.get("gain", 0.5))
+    play_note.absolute_duration = kwargs.get("length", 100)
     play_pitch = play_note.pitch.midi
     log.beat("playing: {}".format(play_pitch))
     if play_pitch not in notes_on:
@@ -80,7 +80,7 @@ def sine(*args, **kwargs):
     else:
         freq = float(args[0] )
     gain = float(kwargs.get("gain", 0.5))
-    sus = args[1]
+    sus = kwargs.get("length", 100) 
     attack = float(kwargs.get("a", max(4, min(50, sus*0.25))) / 1000)
     decay = float(kwargs.get("d", 5) / 1000)
     release = float(kwargs.get("r", max(4, min(50, sus*0.1))) / 1000)
@@ -102,7 +102,7 @@ def nois(*args, **kwargs):
     Play a white noise (with SC).
     """    
     gain = float(kwargs.get("gain", 0.5))    
-    sus = args[0]
+    sus = kwargs.get("length", 100)
     attack = kwargs.get("a", max(4, min(50, sus*0.25)));
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
@@ -217,7 +217,7 @@ def subt(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))
-    sus = args[1]
+    sus = kwargs.get("length", 100)
     attack = kwargs.get("a", max(4, min(50, sus*0.25)));
     decay = kwargs.get("d", 0);
     release = kwargs.get("r", max(4, min(50, sus*0.1)));
@@ -243,7 +243,7 @@ def buzz(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))    
-    sus = args[1]
+    sus = kwargs.get("length", 100)
     attack = kwargs.get("a", max(4, min(30, sus*0.1))) / 1000
     decay = kwargs.get("d", max(4, min(30, sus*0.25))) / 1000
     release = kwargs.get("r", max(4, min(50, sus*0.1))) / 1000
@@ -273,7 +273,7 @@ def sqr(*args, **kwargs):
     else:
         freq = args[0]    
     gain = float(kwargs.get("gain", 0.5))    
-    sus = args[1]
+    sus = kwargs.get("length", 100)
     attack = kwargs.get("a", max(4, min(30, sus*0.1))) / 1000
     decay = kwargs.get("d", max(4, min(30, sus*0.25))) / 1000
     release = kwargs.get("r", max(4, min(50, sus*0.1))) / 1000
@@ -291,6 +291,65 @@ def sqr(*args, **kwargs):
         synth_name="sqr"    
     scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "freq", freq, "gain", gain, "a", attack, "d", decay, "s", sus, "r", release, "rev", rev, "pan", pan, "cutoff", cutoff)
 # end sqr()
+
+def risset(*args, **kwargs):
+    """
+    Play a risset bell synth sound (with SC).
+    """
+    freq = None
+    if type(args[0]) is gnote:
+        freq = args[0].pitch.frequency
+    else:
+        freq = args[0]    
+    gain = float(kwargs.get("gain", 0.1) / 10)    
+    sus = kwargs.get("length", 200) / 1000
+    #attack = kwargs.get("a", max(4, min(30, sus*0.1))) / 1000
+    #decay = kwargs.get("d", max(4, min(30, sus*0.25))) / 1000
+    #release = kwargs.get("r", max(4, min(50, sus*0.1))) / 1000
+    #sus = (sus - attack - decay - release) / 1000
+    rev = kwargs.get("rev", 0.0)
+    cutoff = kwargs.get("cutoff", freq)
+    if type(cutoff) is gnote:
+        cutoff = cutoff.pitch.frequency
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
+    if sus <= 0:
+        log.action("bell duration too short!")
+    if rev > 0.0:
+        synth_name="rissetrev"
+    else:
+        synth_name="risset"    
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "freq", freq, "gain", gain, "length", sus, "rev", rev, "pan", pan, "cutoff", cutoff)
+# end risset()
+
+def pluck(*args, **kwargs):
+    """
+    Play a karplus strong pluck synth sound (with SC).
+    """
+    freq = None
+    if type(args[0]) is gnote:
+        freq = args[0].pitch.frequency
+    else:
+        freq = args[0]    
+    gain = float(kwargs.get("gain", 0.1) * 0.9)    
+    sus = kwargs.get("length", 200) / 1000
+    #attack = kwargs.get("a", max(4, min(30, sus*0.1))) / 1000
+    #decay = kwargs.get("d", max(4, min(30, sus*0.25))) / 1000
+    #release = kwargs.get("r", max(4, min(50, sus*0.1))) / 1000
+    #sus = (sus - attack - decay - release) / 1000
+    rev = kwargs.get("rev", 0.0)
+    cutoff = kwargs.get("cutoff", freq)
+    if type(cutoff) is gnote:
+        cutoff = cutoff.pitch.frequency
+    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
+    if sus <= 0:
+        log.action("pluck duration too short!")
+    if rev > 0.0:
+        synth_name="pluckrev"
+    else:
+        synth_name="pluck"    
+    scsynth_client.sendMsg("/s_new", synth_name, -1, 0, 1, "freq", freq, "gain", gain, "length", sus, "rev", rev, "pan", pan, "cutoff", cutoff)
+# end pluck()
+
 
 
 def say(*args, **kwargs):

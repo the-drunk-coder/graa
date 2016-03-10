@@ -1,4 +1,5 @@
 import sys, os
+from datetime import datetime
 from infix import shift_infix as infix
 from graa_session import GraaSession as session
 from graa_logger import GraaLogger as log
@@ -63,6 +64,7 @@ def stop(*args, **kwargs):
             if key == "all":
                 for player_key in session.players:
                     try:
+                        print("\nSTOPPING " + key + " AT " + datetime.now().strftime("%H:%M:%S:%f")[:-3]+"\n")
                         session.players[player_key].stop()                    
                     except Exception as e:
                         log.action("Couldn't hold graph, probably not played yet!")
@@ -71,6 +73,7 @@ def stop(*args, **kwargs):
                 session.players={}
             else:
                 try:
+                    print("\nSTOPPING " + key + " AT " + datetime.now().strftime("%H:%M:%S:%f")[:-3]+"\n")
                     session.players[key].stop()                   
                     del session.players[key]
                 except Exception as e:
@@ -160,7 +163,8 @@ def play(*args, **kwargs):
     play("a,b","c", d <<shift>> 256, imd=True) -- will immediately play graphs a,b,c, plus graph d with a timeshift.
 
     """
-    session.beat.collect_garbage_players()
+    
+    session.beat.collect_garbage_players()    
     for command in args:
         for key in command.split(","):
             key = key.strip()
@@ -169,7 +173,8 @@ def play(*args, **kwargs):
             elif key in session.players and session.players[key].active and not session.players[key].paused:
                 log.action("{} already playing!".format(key))
             else:
-                immediately = kwargs.get("imd", False)
+                immediately = kwargs.get("imd", True)
+                print("\nSTARTING " + key + " AT " + datetime.now().strftime("%H:%M:%S:%f")[:-3]+"\n")
                 if immediately:
                     session.beat.start_graph(key)
                 else:
