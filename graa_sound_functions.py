@@ -52,11 +52,11 @@ def disk(*args, **kwargs):
     if play_pitch not in notes_on:
         notes_on[play_pitch] = True
         midi_out.note_on(play_pitch, play_note.vel)
-        pg_time.wait(int(play_note.absolute_duration))
+        pg_time.wait(int(play_note.absolute_duration))                
         midi_out.note_off(play_pitch,play_note.vel)
         del notes_on[play_pitch]
     else:    
-        log.action("MIDI fail, note already on!")
+        print("MIDI fail, note already on!")
 
 
 """
@@ -340,7 +340,7 @@ def pluck(*args, **kwargs):
     cutoff = kwargs.get("cutoff", freq)
     if type(cutoff) is gnote:
         cutoff = cutoff.pitch.frequency
-    pan = float((kwargs.get("pan", 0.5) * 2) - 1) 
+    pan = kwargs.get("pan", 0.5) 
     if sus <= 0:
         log.action("pluck duration too short!")
     if rev > 0.0:

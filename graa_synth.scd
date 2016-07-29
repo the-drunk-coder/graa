@@ -184,53 +184,53 @@ SynthDef(\grain8rev, {| bufnum, gain, start, length, rev, pan, cutoff, speed |
 ).store;
 
 // Based on the risset port by Frederik Oloffson
-SynthDef(\risset, {|pan, freq, gain, length, cutoff| 
-	var amps= #[1, 0.67, 1, 1.8, 2.67, 1.67, 1.46, 1.33, 1.33, 1, 1.33]; 
-	var durs= #[1, 0.9, 0.65, 0.55, 0.325, 0.35, 0.25, 0.2, 0.15, 0.1, 0.075]; 
-	var frqs= #[0.56, 0.56, 0.92, 0.92, 1.19, 1.7, 2, 2.74, 3, 3.76, 4.07]; 
-	var dets= #[0, 1, 0, 1.7, 0, 0, 0, 0, 0, 0, 0]; 
-	var src= LPF.ar(Mix.fill(11, {|i| 
-		var env= EnvGen.ar(Env.perc(0.015, length*durs[i], amps[i], -4.5), 1); 
-		SinOsc.ar(freq*frqs[i]+dets[i], 0, gain*env); 
+SynthDef(\risset, {|pan, freq, gain, length, cutoff|
+	var amps= #[1, 0.67, 1, 1.8, 2.67, 1.67, 1.46, 1.33, 1.33, 1, 1.33];
+	var durs= #[1, 0.9, 0.65, 0.55, 0.325, 0.35, 0.25, 0.2, 0.15, 0.1, 0.075];
+	var frqs= #[0.56, 0.56, 0.92, 0.92, 1.19, 1.7, 2, 2.74, 3, 3.76, 4.07];
+	var dets= #[0, 1, 0, 1.7, 0, 0, 0, 0, 0, 0, 0];
+	var src= LPF.ar(Mix.fill(11, {|i|
+		var env= EnvGen.ar(Env.perc(0.015, length*durs[i], amps[i], -4.5), 1);
+		SinOsc.ar(freq*frqs[i]+dets[i], 0, gain*env);
 	}), cutoff);
-	Out.ar(0, Pan2.ar(src, pan)); 
+	Out.ar(0, Pan2.ar(src, pan));
 }).store;
 
 // Based on the risset port by Frederik Oloffson
-SynthDef(\rissetrev, {|pan, freq, gain, length, cutoff, rev| 
-	var amps= #[1, 0.67, 1, 1.8, 2.67, 1.67, 1.46, 1.33, 1.33, 1, 1.33]; 
-	var durs= #[1, 0.9, 0.65, 0.55, 0.325, 0.35, 0.25, 0.2, 0.15, 0.1, 0.075]; 
-	var frqs= #[0.56, 0.56, 0.92, 0.92, 1.19, 1.7, 2, 2.74, 3, 3.76, 4.07]; 
-	var dets= #[0, 1, 0, 1.7, 0, 0, 0, 0, 0, 0, 0]; 
-	var src= LPF.ar(Mix.fill(11, {|i| 
-		var env= EnvGen.ar(Env.perc(0.005, length*durs[i], amps[i], -4.5), 1); 
-		SinOsc.ar(freq*frqs[i]+dets[i], 0, gain*env); 
+SynthDef(\rissetrev, {|pan, freq, gain, length, cutoff, rev|
+	var amps= #[1, 0.67, 1, 1.8, 2.67, 1.67, 1.46, 1.33, 1.33, 1, 1.33];
+	var durs= #[1, 0.9, 0.65, 0.55, 0.325, 0.35, 0.25, 0.2, 0.15, 0.1, 0.075];
+	var frqs= #[0.56, 0.56, 0.92, 0.92, 1.19, 1.7, 2, 2.74, 3, 3.76, 4.07];
+	var dets= #[0, 1, 0, 1.7, 0, 0, 0, 0, 0, 0, 0];
+	var src= LPF.ar(Mix.fill(11, {|i|
+		var env= EnvGen.ar(Env.perc(0.005, length*durs[i], amps[i], -4.5), 1);
+		SinOsc.ar(freq*frqs[i]+dets[i], 0, gain*env);
 	}), cutoff);
 	var revsrc = FreeVerb.ar(src, mix:rev, room:0.6);
 	DetectSilence.ar(revsrc, doneAction:2);
-	Out.ar(0, Pan2.ar(revsrc, pan)); 
+	Out.ar(0, Pan2.ar(revsrc, pan));
 }).store;
 
-SynthDef(\pluck, {|out=0, freq=440, pan=0, length=0.5, gain=0.3, cutoff=12000 |                                             
-	var pluck, period, string;                             
-	pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));                                                         
-	period = freq.reciprocal;                                                                                        
-	string = CombL.ar(pluck, period, period, length*6);                                                             
+SynthDef(\pluck, {|out=0, freq=440, pan=0, length=0.5, gain=0.3, cutoff=12000 |
+	var pluck, period, string;
+	pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));
+	period = freq.reciprocal;
+	string = CombL.ar(pluck, period, period, length*6);
 	string = LeakDC.ar(LPF.ar(Pan2.ar(string, pan), cutoff)) * gain;
-	DetectSilence.ar(string, doneAction:2);                                                                          
-	Out.ar(out, string)                                                                                              
-}).store;                                                                                                          
+	DetectSilence.ar(string, doneAction:2);
+	Out.ar(2, string)
+}).store;
 
-SynthDef(\pluckrev, {|out=0, freq=440, pan=0, length=0.5, gain=0.3, cutoff=12000, rev=0.1|                                             
-	var pluck, period, string, revstring;                                                                          
-	pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));                                                         
-	period = freq.reciprocal;                                                                                        
-	string = CombL.ar(pluck, period, period, length*6);                                                             
+SynthDef(\pluckrev, {|out=0, freq=440, pan=0, length=0.5, gain=0.3, cutoff=12000, rev=0.1|
+	var pluck, period, string, revstring;
+	pluck = PinkNoise.ar(Decay.kr(Impulse.kr(0.005), 0.05));
+	period = freq.reciprocal;
+	string = CombL.ar(pluck, period, period, length*6);
 	string = LeakDC.ar(LPF.ar(Pan2.ar(string, pan), cutoff)) * gain;
 	revstring = FreeVerb.ar(string, mix:rev, room:0.6);
-	DetectSilence.ar(revstring, doneAction:2);                                                                          
-	Out.ar(out, revstring)                                                                                              
-}).store;                                                                                                          
+	DetectSilence.ar(revstring, doneAction:2);
+	Out.ar(2, revstring)
+}).store;
 
 
 
